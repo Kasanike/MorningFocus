@@ -60,7 +60,7 @@ export function ProtocolListItem({
     return (
       <motion.li
         layout
-        className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm sm:flex-row sm:items-center"
+        className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center"
       >
         <input
           type="text"
@@ -107,34 +107,15 @@ export function ProtocolListItem({
     <motion.li
       layout
       onClick={handleRowClick}
-      className="flex cursor-pointer items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-colors hover:bg-white/10 sm:p-6"
+      className="flex cursor-pointer items-center gap-4 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm transition-colors hover:bg-black/30 sm:p-6"
       whileTap={{ scale: 0.995 }}
     >
-      {/* Custom circular checkbox */}
-      <MotionDiv
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2"
-        initial={false}
-        animate={{
-          borderColor: isCompleted ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)",
-          backgroundColor: isCompleted ? "rgba(255,255,255,0.95)" : "transparent",
-        }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-      >
-        <MotionDiv
-          initial={false}
-          animate={{ opacity: isCompleted ? 1 : 0, scale: isCompleted ? 1 : 0.5 }}
-          transition={{ duration: 0.2 }}
-        >
-          <Check className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
-        </MotionDiv>
-      </MotionDiv>
-
       <div className="min-w-0 flex-1">
         <MotionP
-          className="font-sans text-base font-normal leading-relaxed"
+          className="font-sans text-base font-normal leading-relaxed drop-shadow-md"
           initial={false}
           animate={{
-            opacity: isCompleted ? 0.5 : 1,
+            opacity: isCompleted ? 0.4 : 1,
             textDecorationLine: isCompleted ? "line-through" : "none",
           }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -142,10 +123,10 @@ export function ProtocolListItem({
           {step.label}
         </MotionP>
         <MotionP
-          className="mt-0.5 font-mono text-sm text-white/60"
+          className="mt-0.5 font-mono text-sm text-white/60 drop-shadow-md"
           initial={false}
           animate={{
-            opacity: isCompleted ? 0.5 : 1,
+            opacity: isCompleted ? 0.4 : 1,
             textDecorationLine: isCompleted ? "line-through" : "none",
           }}
           transition={{ duration: 0.3, ease: "easeOut" }}
@@ -154,20 +135,40 @@ export function ProtocolListItem({
         </MotionP>
       </div>
 
-      {isEditMode && (
-        <button
-          type="button"
-          data-edit
-          onClick={(e) => {
-            e.stopPropagation();
-            onStartEdit();
+      <div className="flex shrink-0 items-center gap-2">
+        {isEditMode && (
+          <button
+            type="button"
+            data-edit
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartEdit();
+            }}
+            className="rounded-lg p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+            aria-label={`${editPrincipleLabel}: ${step.label}`}
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+        )}
+        {/* Custom circular checkbox - right side, same as Personal Constitution */}
+        <MotionDiv
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2"
+          initial={false}
+          animate={{
+            borderColor: isCompleted ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)",
+            backgroundColor: isCompleted ? "rgba(255,255,255,0.95)" : "transparent",
           }}
-          className="shrink-0 rounded-lg p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
-          aria-label={`${editPrincipleLabel}: ${step.label}`}
+          transition={{ duration: 0.25, ease: "easeOut" }}
         >
-          <Pencil className="h-4 w-4" />
-        </button>
-      )}
+          <MotionDiv
+            initial={false}
+            animate={{ opacity: isCompleted ? 1 : 0, scale: isCompleted ? 1 : 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Check className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
+          </MotionDiv>
+        </MotionDiv>
+      </div>
     </motion.li>
   );
 }

@@ -4,4 +4,5 @@ export const STORAGE_KEYS = {
   ONE_THING: "morning-focus-one-thing",
   MORNING_PROTOCOL: "morning-focus-morning-protocol",
   MORNING_PROTOCOL_COMPLETED: "morning-focus-morning-protocol-completed",
+  LAST_VISIT_DATE: "morning-focus-date",
 } as const;

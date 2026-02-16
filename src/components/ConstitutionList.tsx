@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Check, Plus, Pencil, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -45,7 +45,6 @@ export function ConstitutionList() {
   const [principles, setPrinciples] = useState<Principle[]>([]);
   const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
   const [isEditing, setIsEditing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [newPrinciple, setNewPrinciple] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -134,68 +133,34 @@ export function ConstitutionList() {
 
   return (
     <section
-      className="card-glass overflow-hidden rounded-2xl border border-white/10 shadow-2xl shadow-black/20"
+      className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.principles_title}
     >
-      {/* Accordion header - sacred, inviting */}
-      <motion.button
-        type="button"
-        onClick={() => setIsExpanded((prev) => !prev)}
-        className="flex w-full items-center justify-between gap-4 px-8 py-6 text-left transition-colors hover:bg-white/[0.03] sm:px-10 sm:py-8"
-        whileTap={{ scale: 0.998 }}
-      >
-        <div className="min-w-0 flex-1">
+      <div className="flex items-center justify-between gap-4">
+        <div className="drop-shadow-md">
           <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
             {t.principles_title}
           </h2>
-          <p className="mt-1 text-sm font-medium tracking-[0.15em] uppercase text-white/50">
+          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
             {t.principles_subtitle}
           </p>
         </div>
-        <motion.span
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="shrink-0 rounded-lg p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+        <button
+          type="button"
+          onClick={() => setIsEditing(!isEditing)}
+          className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+          aria-label={isEditing ? t.done_editing : t.edit_principles}
         >
-          <ChevronDown className="h-5 w-5" />
-        </motion.span>
-      </motion.button>
+          <Pencil className="h-5 w-5" />
+        </button>
+      </div>
 
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="border-t border-white/10 px-8 pb-8 pt-6 sm:px-10 sm:pb-10 sm:pt-8">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <p className="text-sm text-white/60">
-                  {principles.length === 1
-                    ? t.principle_count.replace("{{count}}", "1")
-                    : t.principles_count.replace("{{count}}", String(principles.length))}
-                </p>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsEditing(!isEditing);
-                  }}
-                  className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
-                  aria-label={isEditing ? t.done_editing : t.edit_principles}
-                >
-                  <Pencil className="h-5 w-5" />
-                </button>
-              </div>
-
-              <ul className="space-y-3">
+      <ul className="mt-6 space-y-3">
                 {principles.map((p) => (
                   <motion.li
                     key={p.id}
                     layout
-                    className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-colors hover:bg-white/[0.07] sm:p-6"
+                    className="flex items-start gap-4 rounded-xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm transition-colors hover:bg-black/30 sm:p-6"
                   >
                     {editId === p.id ? (
                       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -228,8 +193,8 @@ export function ConstitutionList() {
                     ) : (
                       <div className="flex flex-1 items-start justify-between gap-4">
                         <p
-                          className={`font-sans text-base font-normal leading-relaxed ${
-                            acknowledged[p.id] ? "text-white/50 line-through" : "text-white/95"
+                          className={`font-sans text-base font-normal leading-relaxed drop-shadow-md ${
+                            acknowledged[p.id] ? "opacity-40 line-through text-white/95" : "text-white/95"
                           }`}
                         >
                           {p.text}
@@ -263,33 +228,29 @@ export function ConstitutionList() {
                       </div>
                     )}
                   </motion.li>
-                ))}
-              </ul>
+        ))}
+      </ul>
 
-              {isEditing && (
-                <div className="mt-4 flex gap-2">
-                  <input
-                    type="text"
-                    value={newPrinciple}
-                    onChange={(e) => setNewPrinciple(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-                    placeholder={t.add_principle_placeholder}
-                    className="flex-1 rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAdd}
-                    className="flex items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t.add}
-                  </button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isEditing && (
+        <div className="mt-4 flex gap-2">
+          <input
+            type="text"
+            value={newPrinciple}
+            onChange={(e) => setNewPrinciple(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            placeholder={t.add_principle_placeholder}
+            className="flex-1 rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+          />
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="flex items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
+          >
+            <Plus className="h-4 w-4" />
+            {t.add}
+          </button>
+        </div>
+      )}
     </section>
   );
 }

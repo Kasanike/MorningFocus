@@ -19,7 +19,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 border-b border-white/10 bg-black/20 px-4 py-8 backdrop-blur-xl sm:px-8 sm:py-10">
       <div className="flex items-start justify-between gap-6">
-        <div className="min-w-0">
+        <div className="min-w-0 drop-shadow-md">
           <p className="text-xs font-medium uppercase tracking-[0.25em] text-white/60">
             {formattedDate}
           </p>

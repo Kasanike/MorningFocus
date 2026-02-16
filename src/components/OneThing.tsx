@@ -62,25 +62,30 @@ export function OneThing() {
       className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.one_thing_aria}
     >
-      <div className="flex items-center gap-3">
-        <Target className="h-5 w-5 shrink-0 text-white/60" />
-        <h2 className="font-mono text-xl font-semibold text-white/95">
-          {t.one_thing_title}
-        </h2>
+      <div className="drop-shadow-md">
+        <div className="flex items-center gap-3">
+          <Target className="h-5 w-5 shrink-0 text-white/60" />
+          <h2 className="font-mono text-xl font-semibold text-white/95">
+            {t.one_thing_title}
+          </h2>
+        </div>
+        <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+          {t.one_thing_prompt}
+        </p>
       </div>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-3">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
           placeholder={t.one_thing_placeholder}
-          className="min-w-0 flex-1 rounded-xl border border-white/20 bg-black/20 px-4 py-3 font-mono text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+          className="min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 font-medium text-white placeholder:text-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/50"
         />
         <button
           type="button"
           onClick={handleSave}
-          className="w-full shrink-0 rounded-xl bg-white/20 px-5 py-3 font-mono font-semibold text-white/95 transition-colors hover:bg-white/30 sm:w-auto"
+          className="w-full shrink-0 rounded-full bg-white px-6 py-3 font-bold text-indigo-900 transition-opacity hover:opacity-90 sm:w-auto"
         >
           {t.save}
         </button>

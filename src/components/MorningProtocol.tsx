@@ -165,10 +165,15 @@ export function MorningProtocol() {
       className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.morning_protocol_aria}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-mono text-xl font-semibold text-white/95">
-          {t.morning_protocol_title}
-        </h2>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="drop-shadow-md">
+          <h2 className="font-mono text-xl font-semibold text-white/95">
+            {t.morning_protocol_title}
+          </h2>
+          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+            {t.morning_protocol_prompt}
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           {totalMinutes > 0 && (
             <div className="flex items-center gap-1.5 text-sm text-white/60">
@@ -213,7 +218,7 @@ export function MorningProtocol() {
 
       {isEditMode && (
         isAdding ? (
-          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
+          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
             <input
               type="text"
               value={newLabel}
