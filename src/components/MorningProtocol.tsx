@@ -11,19 +11,16 @@ export interface ProtocolStep {
   minutes: number;
 }
 
-const DEFAULT_STEPS: ProtocolStep[] = [
-  { id: "1", label: "Wake & no snooze", minutes: 0 },
-  { id: "2", label: "Cold shower", minutes: 5 },
-  { id: "3", label: "Hydrate & stretch", minutes: 5 },
-  { id: "4", label: "Mindfulness / journaling", minutes: 10 },
-  { id: "5", label: "Review priorities", minutes: 5 },
-];
+const DEFAULT_PROTOCOL_MINUTES = [0, 5, 5, 10, 5] as const;
 
 function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function getStoredSteps(): ProtocolStep[] {
+function getStoredSteps(
+  defaultLabels: readonly string[],
+  defaultMinutes: readonly number[]
+): ProtocolStep[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.MORNING_PROTOCOL);
@@ -40,7 +37,11 @@ function getStoredSteps(): ProtocolStep[] {
   } catch {
     // ignore
   }
-  return DEFAULT_STEPS.map((s, i) => ({ ...s, id: `default-${i}` }));
+  return defaultLabels.map((label, i) => ({
+    id: `default-${i}`,
+    label,
+    minutes: defaultMinutes[i] ?? 0,
+  }));
 }
 
 function saveSteps(steps: ProtocolStep[]) {
@@ -86,9 +87,9 @@ export function MorningProtocol() {
 
   useEffect(() => {
     setMounted(true);
-    setSteps(getStoredSteps());
+    setSteps(getStoredSteps(t.default_protocol_step_labels, DEFAULT_PROTOCOL_MINUTES));
     setCompleted(getStoredCompleted());
-  }, []);
+  }, [t.default_protocol_step_labels]);
 
   const persist = useCallback((next: ProtocolStep[]) => {
     setSteps(next);
@@ -188,19 +189,6 @@ export function MorningProtocol() {
             key={s.id}
             className="flex items-center gap-4 rounded-lg border border-app-border bg-app-bg p-5 sm:p-6 transition-all duration-200"
           >
-            <button
-              type="button"
-              onClick={() => handleToggleComplete(s.id)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-app-border font-mono text-sm text-app-muted transition-colors hover:border-app-fg hover:text-app-fg focus:outline-none focus:ring-2 focus:ring-app-fg"
-              aria-label={completed[s.id] ? `Mark ${s.label} incomplete` : `Mark ${s.label} complete`}
-            >
-              {completed[s.id] ? (
-                <Check className="h-4 w-4 text-app-fg" strokeWidth={2.5} />
-              ) : (
-                index + 1
-              )}
-            </button>
-
             {editId === s.id ? (
               <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
                 <input
@@ -247,22 +235,38 @@ export function MorningProtocol() {
                   }`}
                 >
                   <p className="font-sans text-app-fg">{s.label}</p>
-                  {s.minutes > 0 && (
-                    <p className="mt-0.5 text-sm text-app-muted">
-                      {s.minutes} {t.minutes}
-                    </p>
-                  )}
+                  <p className="mt-0.5 font-mono text-sm text-app-muted">
+                    {s.minutes > 0 ? `${s.minutes} ${t.minutes}` : "—"}
+                  </p>
                 </div>
-                {isEditMode && (
+                <div className="flex shrink-0 items-center gap-2">
+                  {isEditMode && (
+                    <button
+                      type="button"
+                      onClick={() => handleStartEdit(s)}
+                      className="rounded-lg p-2 text-app-muted transition-colors hover:bg-app-border hover:text-app-fg"
+                      aria-label={`${t.edit_principle}: ${s.label}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => handleStartEdit(s)}
-                    className="shrink-0 rounded-lg p-2 text-app-muted transition-colors hover:bg-app-border hover:text-app-fg"
-                    aria-label={`${t.edit_principle}: ${s.label}`}
+                    onClick={() => handleToggleComplete(s.id)}
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-app-fg focus:ring-offset-2 focus:ring-offset-app-bg ${
+                      completed[s.id]
+                        ? "border-app-fg bg-app-fg"
+                        : "border-app-muted hover:border-app-fg"
+                    }`}
+                    aria-label={completed[s.id] ? `Mark ${s.label} incomplete` : `Mark ${s.label} complete`}
                   >
-                    <Pencil className="h-4 w-4" />
+                    {completed[s.id] ? (
+                      <Check className="h-3.5 w-3.5 text-app-bg" strokeWidth={2.5} />
+                    ) : (
+                      <span className="h-4 w-4" />
+                    )}
                   </button>
-                )}
+                </div>
               </>
             )}
           </li>

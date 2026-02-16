@@ -43,6 +43,25 @@ export const sk: LocaleKeys = {
   protocol_step_placeholder: "Názov kroku…",
   cancel: "Zrušiť",
 
+  // Default / seed data (shown when user has no stored data)
+  default_principles: [
+    "Som pokojný pod tlakom",
+    "Dávam prednosť činom pred plánovaním",
+    "Beriem zodpovednosť za svoje výsledky a neobviňujem iných",
+    "Menej hovorím a viac počúvam",
+    "Chránim si rána pre hĺbkovú prácu",
+    "So svojím telom zaobchádzam ako s chrámom",
+    "Som disciplínny v malých veciach, aby som bol disciplínny vo veľkých",
+    "Sústreďujem sa na to, čo môžem ovplyvniť",
+  ],
+  default_protocol_step_labels: [
+    "Vstávanie bez budíka",
+    "Studená sprcha",
+    "Hydratácia a rozcvička",
+    "Mindfulness / denník",
+    "Prezeranie priorít",
+  ],
+
   // ConstitutionList
   loading: "Načítavam…",
   edit_principles: "Upraviť zásady",

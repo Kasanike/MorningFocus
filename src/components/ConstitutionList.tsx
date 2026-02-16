@@ -3,14 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { DEFAULT_PRINCIPLES, STORAGE_KEYS } from "@/lib/constants";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 export interface Principle {
   id: string;
   text: string;
 }
 
-function getStoredPrinciples(): Principle[] {
+function getStoredPrinciples(defaultPrinciples: readonly string[]): Principle[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PRINCIPLES);
@@ -23,7 +23,7 @@ function getStoredPrinciples(): Principle[] {
   } catch {
     // ignore
   }
-  return DEFAULT_PRINCIPLES.map((text, i) => ({
+  return defaultPrinciples.map((text, i) => ({
     id: `default-${i}`,
     text,
   }));
@@ -51,17 +51,18 @@ export function ConstitutionList() {
 
   useEffect(() => {
     setMounted(true);
-    setPrinciples(getStoredPrinciples());
+    const defaults = t.default_principles;
+    setPrinciples(getStoredPrinciples(defaults));
     const ackToday = isAcknowledgedToday();
     if (ackToday) {
-      const stored = getStoredPrinciples();
+      const stored = getStoredPrinciples(defaults);
       const allChecked: Record<string, boolean> = {};
       stored.forEach((p) => {
         allChecked[p.id] = true;
       });
       setAcknowledged(allChecked);
     }
-  }, []);
+  }, [t.default_principles]);
 
   const savePrinciples = useCallback((next: Principle[]) => {
     setPrinciples(next);

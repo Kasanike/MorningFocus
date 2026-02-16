@@ -41,6 +41,25 @@ export const en = {
   protocol_step_placeholder: "Step name…",
   cancel: "Cancel",
 
+  // Default / seed data (shown when user has no stored data)
+  default_principles: [
+    "I am calm under pressure",
+    "I prioritize execution over planning",
+    "I own my outcomes and never blame others",
+    "I speak less and listen more",
+    "I protect my mornings for deep work",
+    "I treat my body as a temple",
+    "I am disciplined in small things to be disciplined in great ones",
+    "I focus on what I can control",
+  ],
+  default_protocol_step_labels: [
+    "Wake & no snooze",
+    "Cold shower",
+    "Hydrate & stretch",
+    "Mindfulness / journaling",
+    "Review priorities",
+  ],
+
   // ConstitutionList
   loading: "Loading…",
   edit_principles: "Edit principles",

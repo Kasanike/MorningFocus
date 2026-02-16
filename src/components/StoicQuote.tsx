@@ -12,8 +12,8 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export function StoicQuote() {
-  const { t } = useLanguage();
-  const quote = useMemo(() => getQuoteForDate(new Date()), []);
+  const { t, locale } = useLanguage();
+  const quote = useMemo(() => getQuoteForDate(new Date(), locale), [locale]);
 
   return (
     <section

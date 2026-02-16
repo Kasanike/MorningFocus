@@ -1,3 +1,5 @@
+import type { SupportedLocale } from "@/locales";
+
 export interface StoicQuote {
   text: string;
   author: string;
@@ -103,10 +105,39 @@ export const STOIC_QUOTES: StoicQuote[] = [
 ];
 
 /**
- * Returns a deterministic "random" quote for the given date.
- * Same date = same quote each time.
+ * Slovak translations of the Stoic quotes. Same order as STOIC_QUOTES.
  */
-export function getQuoteForDate(date: Date): StoicQuote {
+export const STOIC_QUOTES_SK: StoicQuote[] = [
+  { text: "Máš moc nad svojou mysľou — nie nad vonkajšími udalosťami. Uvedom si to a nájdeš silu.", author: "Marcus Aurelius" },
+  { text: "Šťastie tvojho života závisí od kvality tvojich myšlienok.", author: "Marcus Aurelius" },
+  { text: "Neplýtvaj viac časom hádaním sa o tom, aký má byť dobrý človek. Buď ním.", author: "Marcus Aurelius" },
+  { text: "Na šťastný život stačí veľmi málo; všetko je v tebe samom, v tvojom spôsobe myslenia.", author: "Marcus Aurelius" },
+  { text: "Prijmi veci, ktorými ťa osud viaže, a miluj ľudí, s ktorými ťa osud zjednocuje.", author: "Marcus Aurelius" },
+  { text: "Účelom života nie je byť na strane väčšiny, ale vyhnúť sa tomu, aby si sa ocitol v radoch šialencov.", author: "Marcus Aurelius" },
+  { text: "O koľko ťažšie sú následky hnevu než jeho príčiny.", author: "Marcus Aurelius" },
+  { text: "Zamýšľaj sa nad krásou života. Sleduj hviezdy a predstav si seba, ako s nimi bežíš.", author: "Marcus Aurelius" },
+  { text: "Trpíme častejšie v predstave ako v skutočnosti.", author: "Seneca" },
+  { text: "Nie je to tak, že máme málo času na život, ale že ho veľa plytváme.", author: "Seneca" },
+  { text: "Šťastie je to, čo sa stane, keď príprava stretne príležitosť.", author: "Seneca" },
+  { text: "Ťažkosti posilňujú myseľ, ako práca telo.", author: "Seneca" },
+  { text: "Kým odkladáme, život letí.", author: "Seneca" },
+  { text: "Častejšie sa bojíme než trpíme; a trpíme viac od predstavy než od reality.", author: "Seneca" },
+  { text: "Je to sila mysle byť neporaziteľná.", author: "Seneca" },
+  { text: "Najprv si povedz, čím chceš byť; a potom urob, čo musíš.", author: "Epictetus" },
+  { text: "Nemôžeme si vybrať vonkajšie okolnosti, ale vždy si môžeme vybrať, ako na ne zareagujeme.", author: "Epictetus" },
+  { text: "Nie je dôležité, čo sa ti stane, ale ako na to zareaguješ.", author: "Epictetus" },
+  { text: "Len vzdelaní sú slobodní.", author: "Epictetus" },
+  { text: "Žiadny človek nie je slobodný, kto nie je pánom sám seba.", author: "Epictetus" },
+  { text: "Najlepšie využi, čo je v tvojej moci, a zvyšok ber, ako príde.", author: "Epictetus" },
+  { text: "Neobjasňuj svoju filozofiu. Ži ju.", author: "Epictetus" },
+  { text: "Bohatstvo spočíva nie v tom mať veľký majetok, ale v tom mať málo potrieb.", author: "Epictetus" },
+];
+
+/**
+ * Returns a deterministic "random" quote for the given date.
+ * Same date = same quote each time. Uses locale for translation.
+ */
+export function getQuoteForDate(date: Date, locale: SupportedLocale = "en"): StoicQuote {
   const dateStr = date.toISOString().slice(0, 10); // YYYY-MM-DD
   let hash = 0;
   for (let i = 0; i < dateStr.length; i++) {
@@ -114,6 +145,7 @@ export function getQuoteForDate(date: Date): StoicQuote {
     hash = (hash << 5) - hash + char;
     hash = hash & hash;
   }
-  const index = Math.abs(hash) % STOIC_QUOTES.length;
-  return STOIC_QUOTES[index];
+  const quotes = locale === "sk" ? STOIC_QUOTES_SK : STOIC_QUOTES;
+  const index = Math.abs(hash) % quotes.length;
+  return quotes[index];
 }
