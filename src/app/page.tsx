@@ -9,9 +9,13 @@ export default function Home() {
     <main className="mx-auto min-h-screen max-w-2xl pb-16">
       <Header />
 
-      <div className="mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
+      <div className="animate-fade-in mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
         <section aria-label="Quote from Stoics">
           <StoicQuote />
+        </section>
+
+        <section aria-label="Morning Protocol">
+          <MorningProtocol />
         </section>
 
         <section aria-label="Personal Constitution">
@@ -20,10 +24,6 @@ export default function Home() {
 
         <section aria-label="One Thing - Priority of the day">
           <OneThing />
-        </section>
-
-        <section aria-label="Morning Protocol">
-          <MorningProtocol />
         </section>
       </div>
     </main>

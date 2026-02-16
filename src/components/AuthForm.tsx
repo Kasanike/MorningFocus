@@ -7,6 +7,9 @@ import { createClient } from "@/utils/supabase/client";
 
 type Mode = "signin" | "signup";
 
+const inputBase =
+  "block w-full min-w-0 rounded-lg border border-app-border bg-app-card px-4 py-3 pl-11 font-sans text-base text-app-fg placeholder:text-app-muted focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg transition-colors";
+
 export function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -72,19 +75,16 @@ export function AuthForm() {
     }
   };
 
-  const inputBase =
-    "block w-full min-w-0 rounded-lg border border-zinc-700/80 bg-zinc-900/60 px-4 py-3 pl-11 text-base text-zinc-100 placeholder:text-zinc-500 focus:border-amber-600/50 focus:outline-none focus:ring-1 focus:ring-amber-600/30 transition-colors";
-
   return (
     <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-5">
-      <div className="flex w-full min-w-0 shrink-0 rounded-lg border border-zinc-700/60 bg-zinc-900/40 p-1">
+      <div className="flex w-full min-w-0 shrink-0 rounded-lg border border-app-border bg-app-card p-1">
         <button
           type="button"
           onClick={() => setMode("signin")}
-          className={`flex-1 min-w-0 rounded-md py-3 text-sm font-medium transition-colors ${
+          className={`flex-1 min-w-0 rounded py-3 text-sm font-medium transition-colors ${
             mode === "signin"
-              ? "bg-zinc-800 text-zinc-100 shadow-sm"
-              : "text-zinc-500 hover:text-zinc-300"
+              ? "bg-app-border text-app-fg"
+              : "text-app-muted hover:text-app-fg"
           }`}
         >
           Sign In
@@ -92,10 +92,10 @@ export function AuthForm() {
         <button
           type="button"
           onClick={() => setMode("signup")}
-          className={`flex-1 min-w-0 rounded-md py-3 text-sm font-medium transition-colors ${
+          className={`flex-1 min-w-0 rounded py-3 text-sm font-medium transition-colors ${
             mode === "signup"
-              ? "bg-zinc-800 text-zinc-100 shadow-sm"
-              : "text-zinc-500 hover:text-zinc-300"
+              ? "bg-app-border text-app-fg"
+              : "text-app-muted hover:text-app-fg"
           }`}
         >
           Create Account
@@ -103,7 +103,7 @@ export function AuthForm() {
       </div>
 
       <div className="relative w-full min-w-0">
-        <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-zinc-500" />
+        <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-app-muted" />
         <input
           type="email"
           value={email}
@@ -117,7 +117,7 @@ export function AuthForm() {
       </div>
 
       <div className="relative w-full min-w-0">
-        <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-zinc-500" />
+        <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-app-muted" />
         <input
           type="password"
           value={password}
@@ -132,21 +132,15 @@ export function AuthForm() {
       </div>
 
       {error && (
-        <div
-          className={`rounded-lg px-3 py-2.5 text-sm ${
-            error === "setup"
-              ? "border border-amber-600/40 bg-amber-950/30 text-amber-200"
-              : "bg-red-950/50 text-red-400"
-          }`}
-        >
+        <div className="rounded-lg border border-app-border bg-app-card px-3 py-2.5 text-sm text-app-muted">
           {error === "setup" ? (
             <div className="space-y-2">
-              <p className="font-medium">Supabase is not configured</p>
-              <ol className="list-inside list-decimal space-y-1 text-amber-200/90">
-                <li>Create a <code className="rounded bg-zinc-800 px-1">.env.local</code> file in the project root</li>
-                <li>Add: <code className="block rounded bg-zinc-800/80 p-2 text-xs">NEXT_PUBLIC_SUPABASE_URL=your-url<br />NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key</code></li>
-                <li>Get these from <a href="https://supabase.com/dashboard/project/_/settings/api" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">Supabase Dashboard → Project Settings → API</a></li>
-                <li>Restart the dev server (<code className="rounded bg-zinc-800 px-1">npm run dev</code>)</li>
+              <p className="font-medium text-app-fg">Supabase is not configured</p>
+              <ol className="list-inside list-decimal space-y-1 text-app-muted">
+                <li>Create a <code className="rounded bg-app-border px-1">.env.local</code> file in the project root</li>
+                <li>Add: <code className="block rounded bg-app-border p-2 text-xs">NEXT_PUBLIC_SUPABASE_URL=your-url<br />NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key</code></li>
+                <li>Get these from <a href="https://supabase.com/dashboard/project/_/settings/api" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline text-app-fg">Supabase Dashboard → Project Settings → API</a></li>
+                <li>Restart the dev server (<code className="rounded bg-app-border px-1">npm run dev</code>)</li>
               </ol>
             </div>
           ) : (
@@ -158,7 +152,7 @@ export function AuthForm() {
       <button
         type="submit"
         disabled={loading}
-        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-lg bg-amber-600/90 px-6 py-4 text-base font-semibold text-zinc-950 transition-colors hover:bg-amber-500 disabled:opacity-70"
+        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-lg bg-app-fg px-6 py-4 font-sans text-base font-semibold text-app-bg transition-opacity hover:opacity-90 disabled:opacity-70"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
@@ -169,10 +163,10 @@ export function AuthForm() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-zinc-700/60" />
+          <span className="w-full border-t border-app-border" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-zinc-950/80 px-3 text-zinc-500">or</span>
+          <span className="bg-app-card px-3 text-app-muted">or</span>
         </div>
       </div>
 
@@ -180,7 +174,7 @@ export function AuthForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-zinc-600/80 bg-zinc-800/30 px-6 py-3.5 text-base font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800/50 disabled:opacity-50"
+        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-card px-6 py-3.5 font-sans text-base font-medium text-app-fg transition-colors hover:bg-app-border disabled:opacity-50"
       >
         <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
           <path

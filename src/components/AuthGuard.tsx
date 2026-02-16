@@ -73,7 +73,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!checked && (isProtected(pathname) || isAuthRoute(pathname))) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-amber-500" />
+        <div className="h-8 w-8 animate-spin rounded border-2 border-app-border border-t-app-fg" />
       </div>
     );
   }

@@ -120,8 +120,8 @@ export function ConstitutionList() {
 
   if (!mounted) {
     return (
-      <section className="rounded-2xl border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10 shadow-xl shadow-black/20">
-        <h2 className="font-serif text-xl font-semibold text-app-fg">
+      <section className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10">
+        <h2 className="font-mono text-xl font-semibold text-app-fg">
           {t.principles_title}
         </h2>
         <p className="mt-3 text-app-muted animate-pulse">{t.loading}</p>
@@ -131,17 +131,22 @@ export function ConstitutionList() {
 
   return (
     <section
-      className="rounded-2xl border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10 shadow-xl shadow-black/20"
+      className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10"
       aria-label={t.principles_title}
     >
       <div className="flex items-center justify-between gap-4">
-        <h2 className="font-serif text-xl font-semibold text-app-fg">
-          {t.principles_title}
-        </h2>
+        <div>
+          <h2 className="font-mono text-xl font-semibold text-app-fg">
+            {t.principles_title}
+          </h2>
+          <p className="mt-1 text-sm text-app-muted">
+            {t.principles_subtitle}
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => setIsEditing(!isEditing)}
-          className="rounded-xl p-2.5 text-app-muted transition-colors hover:bg-app-border hover:text-app-fg"
+          className="rounded-lg p-2.5 text-app-muted transition-colors hover:bg-app-border hover:text-app-fg"
           aria-label={isEditing ? t.done_editing : t.edit_principles}
         >
           <Pencil className="h-5 w-5" />
@@ -152,21 +157,8 @@ export function ConstitutionList() {
         {principles.map((p) => (
           <li
             key={p.id}
-            className="flex items-start gap-4 rounded-xl border border-app-border/60 bg-app-bg/40 p-4 transition-colors hover:bg-app-border/30"
+            className="flex items-start gap-4 rounded-lg border border-app-border bg-app-bg p-4 transition-colors hover:border-app-muted/50"
           >
-            <button
-              type="button"
-              onClick={() => handleCheck(p.id)}
-              className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-app-muted transition-colors hover:border-app-fg focus:outline-none focus:ring-2 focus:ring-app-fg/40"
-              aria-label={`${t.acknowledge}: ${p.text}`}
-            >
-              {acknowledged[p.id] ? (
-                <Check className="h-3.5 w-3.5 text-app-fg" strokeWidth={2.5} />
-              ) : (
-                <span className="h-4 w-4" />
-              )}
-            </button>
-
             {editId === p.id ? (
               <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
                 <input
@@ -174,7 +166,7 @@ export function ConstitutionList() {
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
-                  className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 font-serif text-app-fg placeholder:text-app-muted focus:border-app-fg/50 focus:outline-none focus:ring-1 focus:ring-app-fg/30"
+                  className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 font-sans text-app-fg placeholder:text-app-muted focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg"
                   autoFocus
                 />
                 <div className="flex gap-2">
@@ -188,7 +180,7 @@ export function ConstitutionList() {
                   <button
                     type="button"
                     onClick={() => handleRemove(p.id)}
-                    className="rounded-lg p-2 text-red-400/90 hover:bg-red-950/40"
+                    className="rounded-lg p-2 text-app-muted hover:bg-app-border hover:text-app-fg"
                     aria-label={t.remove}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -198,22 +190,36 @@ export function ConstitutionList() {
             ) : (
               <div className="flex flex-1 items-start justify-between gap-2">
                 <p
-                  className={`font-serif text-base leading-relaxed ${
+                  className={`font-sans text-base font-normal leading-relaxed ${
                     acknowledged[p.id] ? "text-app-muted line-through" : "text-app-fg"
                   }`}
                 >
                   {p.text}
                 </p>
-                {isEditing && (
+                <div className="flex shrink-0 items-center gap-2">
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => handleStartEdit(p)}
+                      className="rounded-lg p-2 text-app-muted hover:bg-app-border hover:text-app-fg"
+                      aria-label={`${t.edit_principle}: ${p.text}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => handleStartEdit(p)}
-                    className="shrink-0 rounded-lg p-2 text-app-muted hover:bg-app-border hover:text-app-fg"
-                    aria-label={`${t.edit_principle}: ${p.text}`}
+                    onClick={() => handleCheck(p.id)}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 border-app-muted transition-colors hover:border-app-fg focus:outline-none focus:ring-2 focus:ring-app-fg"
+                    aria-label={`${t.acknowledge}: ${p.text}`}
                   >
-                    <Pencil className="h-4 w-4" />
+                    {acknowledged[p.id] ? (
+                      <Check className="h-3.5 w-3.5 text-app-fg" strokeWidth={2.5} />
+                    ) : (
+                      <span className="h-4 w-4" />
+                    )}
                   </button>
-                )}
+                </div>
               </div>
             )}
           </li>
@@ -228,7 +234,7 @@ export function ConstitutionList() {
             onChange={(e) => setNewPrinciple(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder={t.add_principle_placeholder}
-            className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 font-sans text-app-fg placeholder:text-app-muted focus:border-app-fg/50 focus:outline-none focus:ring-1 focus:ring-app-fg/30"
+            className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 font-sans text-app-fg placeholder:text-app-muted focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg"
           />
           <button
             type="button"

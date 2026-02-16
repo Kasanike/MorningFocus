@@ -1,25 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Cormorant_Garamond, Playfair_Display } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { Providers } from "@/components/Providers";
 import { AuthGuard } from "@/components/AuthGuard";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const cormorant = Cormorant_Garamond({
-  weight: ["400", "500", "600"],
-  subsets: ["latin"],
-  variable: "--font-cormorant-garamond",
-});
-
-const playfair = Playfair_Display({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-playfair",
-});
 
 export const metadata: Metadata = {
   title: "Morning Focus — Start Your Day With Discipline",
@@ -34,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -47,14 +31,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" style={{ background: "#09090b", color: "#fafafa" }}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      style={{ background: "#09090b", color: "#e4e4e7" }}
+    >
       <body
-        className={`${inter.variable} ${cormorant.variable} ${playfair.variable} font-sans antialiased min-h-screen`}
-        style={{ background: "#09090b", color: "#fafafa" }}
+        className="font-sans antialiased min-h-screen"
+        style={{ background: "#09090b", color: "#e4e4e7" }}
       >
         <Providers>
-        <AuthGuard>{children}</AuthGuard>
-      </Providers>
+          <AuthGuard>{children}</AuthGuard>
+        </Providers>
       </body>
     </html>
   );

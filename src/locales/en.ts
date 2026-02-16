@@ -1,6 +1,6 @@
 export const en = {
   // Header
-  greeting: "Good Morning. Focus.",
+  greeting: "Morning Focus.",
   weekdays: [
     "Sunday",
     "Monday",
@@ -29,9 +29,10 @@ export const en = {
   stoic_oracle_aria: "Daily Stoic quote",
   quote_title: "Quote",
   principles_title: "Personal Constitution",
+  principles_subtitle: "Read for yourself all lines and check all boxes.",
   one_thing_title: "One Thing",
   one_thing_aria: "Priority of the day",
-  one_thing_placeholder: "What is the one thing that would make today a success?",
+  one_thing_placeholder: "Your top priority for today…",
   morning_protocol_title: "Morning Protocol",
   morning_protocol_aria: "Step by step morning actions",
   minutes: "min",

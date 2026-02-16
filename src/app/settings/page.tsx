@@ -50,17 +50,17 @@ export default function SettingsPage() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Link>
-        <h1 className="font-serif text-2xl font-semibold text-app-fg sm:text-3xl">
+        <h1 className="font-sans text-2xl font-semibold text-app-fg sm:text-3xl">
           {t.settings_title}
         </h1>
       </header>
 
       <div className="space-y-8 px-4 pt-8 sm:px-8">
         <section
-          className="rounded-2xl border border-app-border bg-app-card px-6 py-8 shadow-xl shadow-black/20 sm:px-8"
+          className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"
           aria-label={t.language_label}
         >
-          <h2 className="font-serif text-xl font-semibold text-app-fg">
+          <h2 className="font-sans text-xl font-semibold text-app-fg">
             {t.language_label}
           </h2>
           <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -69,7 +69,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setSelectedLocale(e.target.value as SupportedLocale)
               }
-              className="w-full rounded-lg border border-app-border bg-app-bg px-4 py-2.5 font-sans text-app-fg focus:border-app-fg/50 focus:outline-none focus:ring-1 focus:ring-app-fg/30 sm:w-auto"
+              className="w-full rounded-lg border border-app-border bg-app-bg px-4 py-2.5 font-sans text-app-fg focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg sm:w-auto"
             >
               <option value="en">{t.language_english}</option>
               <option value="sk">{t.language_slovak}</option>

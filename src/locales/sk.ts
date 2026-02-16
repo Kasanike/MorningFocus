@@ -2,7 +2,7 @@ import type { LocaleKeys } from "./en";
 
 export const sk: LocaleKeys = {
   // Header
-  greeting: "Dobré ráno. Sústredenie.",
+  greeting: "Morning Focus.",
   weekdays: [
     "Nedeľa",
     "Pondelok",
@@ -31,9 +31,10 @@ export const sk: LocaleKeys = {
   stoic_oracle_aria: "Denný stoický citát",
   quote_title: "Citát",
   principles_title: "Osobná ústava",
+  principles_subtitle: "Prečítaj si všetky riadky a zaškrtni všetky políčka.",
   one_thing_title: "Jedna vec",
   one_thing_aria: "Priorita dňa",
-  one_thing_placeholder: "Čo je tá jedna vec, ktorá by urobila dnes úspešným?",
+  one_thing_placeholder: "Vaša priorita na dnes…",
   morning_protocol_title: "Ranný protokol",
   morning_protocol_aria: "Kroky ranných aktivít",
   minutes: "min",
