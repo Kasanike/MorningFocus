@@ -131,7 +131,13 @@ export const en = {
   logout: "Log out",
 } as const;
 
-/** Shape of a locale - same keys and value types as en */
+/** Shape of a locale - keys must match en, values allow localized strings/arrays */
 export type LocaleKeys = {
-  [K in keyof typeof en]: (typeof en)[K];
+  [K in keyof typeof en]: (typeof en)[K] extends string
+    ? string
+    : (typeof en)[K] extends readonly (infer E)[]
+      ? E extends { id: number; text: string; subtitle: string }
+        ? readonly { id: number; text: string; subtitle: string }[]
+        : readonly string[]
+      : (typeof en)[K];
 };
