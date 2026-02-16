@@ -9,25 +9,51 @@ import { STORAGE_KEYS } from "@/lib/constants";
 export interface Principle {
   id: string;
   text: string;
+  subtitle?: string;
 }
 
-function getStoredPrinciples(defaultPrinciples: readonly string[]): Principle[] {
+type DefaultPrinciple = { id: number; text: string; subtitle: string };
+
+function normalizePrinciple(
+  p: { id?: string; text?: string; subtitle?: string } | string,
+  i: number
+): Principle {
+  if (typeof p === "string") {
+    return { id: `default-${i}`, text: p };
+  }
+  const text = typeof p.text === "string" ? p.text : "";
+  return {
+    id: p.id ?? `default-${i}`,
+    text,
+    subtitle: typeof p.subtitle === "string" ? p.subtitle : undefined,
+  };
+}
+
+function getStoredPrinciples(
+  defaultPrinciples: readonly DefaultPrinciple[] | readonly string[]
+): Principle[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PRINCIPLES);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return parsed.map((p: { id?: string; text?: string; subtitle?: string } | string, i: number) =>
+          normalizePrinciple(p, i)
+        );
       }
     }
   } catch {
     // ignore
   }
-  return defaultPrinciples.map((text, i) => ({
-    id: `default-${i}`,
-    text,
-  }));
+  return defaultPrinciples.map((p, i) =>
+    typeof p === "string"
+      ? normalizePrinciple(p, i)
+      : normalizePrinciple(
+          { id: `default-${p.id}`, text: p.text, subtitle: p.subtitle },
+          i
+        )
+  );
 }
 
 function getAcknowledgementDate(): string | null {
@@ -46,6 +72,7 @@ export function ConstitutionList() {
   const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
   const [isEditing, setIsEditing] = useState(false);
   const [newPrinciple, setNewPrinciple] = useState("");
+  const [newSubtitle, setNewSubtitle] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [mounted, setMounted] = useState(false);
@@ -90,9 +117,14 @@ export function ConstitutionList() {
     const trimmed = newPrinciple.trim();
     if (!trimmed) return;
     const id = `principle-${Date.now()}`;
-    const next = [...principles, { id, text: trimmed }];
+    const subtitleTrimmed = newSubtitle.trim();
+    const next = [
+      ...principles,
+      { id, text: trimmed, subtitle: subtitleTrimmed || undefined } as Principle,
+    ];
     savePrinciples(next);
     setNewPrinciple("");
+    setNewSubtitle("");
   };
 
   const handleRemove = (id: string) => {
@@ -191,14 +223,15 @@ export function ConstitutionList() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-1 items-start justify-between gap-4">
-                        <p
-                          className={`font-sans text-base font-normal leading-relaxed drop-shadow-md ${
-                            acknowledged[p.id] ? "opacity-40 line-through text-white/95" : "text-white/95"
-                          }`}
-                        >
-                          {p.text}
-                        </p>
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="flex items-start justify-between gap-4">
+                          <p
+                            className={`font-sans text-base font-normal leading-relaxed drop-shadow-md ${
+                              acknowledged[p.id] ? "opacity-40 line-through text-white/95" : "text-white/95"
+                            }`}
+                          >
+                            {p.text}
+                          </p>
                         <div className="flex shrink-0 items-center gap-2">
                           {isEditing && (
                             <button
@@ -225,6 +258,16 @@ export function ConstitutionList() {
                             ) : null}
                           </button>
                         </div>
+                        </div>
+                        {p.subtitle && (
+                          <p
+                            className={`font-mono text-xs tracking-wider text-white/50 ${
+                              acknowledged[p.id] ? "opacity-40" : ""
+                            }`}
+                          >
+                            {p.subtitle}
+                          </p>
+                        )}
                       </div>
                     )}
                   </motion.li>
@@ -232,19 +275,27 @@ export function ConstitutionList() {
       </ul>
 
       {isEditing && (
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-col gap-2">
           <input
             type="text"
             value={newPrinciple}
             onChange={(e) => setNewPrinciple(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder={t.add_principle_placeholder}
-            className="flex-1 rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+            className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+          />
+          <input
+            type="text"
+            value={newSubtitle}
+            onChange={(e) => setNewSubtitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            placeholder={t.add_principle_subtitle_placeholder}
+            className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-mono text-sm text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
           />
           <button
             type="button"
             onClick={handleAdd}
-            className="flex items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
+            className="flex w-fit items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
           >
             <Plus className="h-4 w-4" />
             {t.add}

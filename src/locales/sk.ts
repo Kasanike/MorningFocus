@@ -39,7 +39,7 @@ export const sk: LocaleKeys = {
   one_thing_aria: "Priorita dňa",
   one_thing_placeholder: "Vaša priorita na dnes…",
   morning_protocol_title: "Ranný protokol",
-  morning_protocol_prompt: "Vstaň z postele a urob to.",
+  morning_protocol_prompt: "Vstaň z postele a poď na to.",
   morning_protocol_aria: "Kroky ranných aktivít",
   minutes: "min",
   total_minutes: "{{total}} min celkom",
@@ -49,21 +49,63 @@ export const sk: LocaleKeys = {
 
   // Default / seed data (shown when user has no stored data)
   default_principles: [
-    "Som pokojný pod tlakom",
-    "Dávam prednosť činom pred plánovaním",
-    "Beriem zodpovednosť za svoje výsledky a neobviňujem iných",
-    "Menej hovorím a viac počúvam",
-    "Chránim si rána pre hĺbkovú prácu",
-    "So svojím telom zaobchádzam ako s chrámom",
-    "Som disciplínny v malých veciach, aby som bol disciplínny vo veľkých",
-    "Sústreďujem sa na to, čo môžem ovplyvniť",
+    {
+      id: 1,
+      text: "Som pokojný pod tlakom",
+      subtitle:
+        "Pokojnosť je moja kotva v chaos, umožňuje mi vidieť riešenia tam, kde iní vidia len problémy.",
+    },
+    {
+      id: 2,
+      text: "Dávam prednosť činom pred plánovaním",
+      subtitle:
+        "Jeden nedokonalý krok vpred má väčšiu hodnotu ako hodiny hľadania dokonalej cesty.",
+    },
+    {
+      id: 3,
+      text: "Beriem zodpovednosť za svoje výsledky a neobviňujem iných",
+      subtitle:
+        "Beriem plnú zodpovednosť za svoju realitu, lebo len tak získam skutočnú moc ju zmeniť.",
+    },
+    {
+      id: 4,
+      text: "Menej hovorím a viac počúvam",
+      subtitle: "Slová používam striedmo, skutočné porozumenie a múdrosť prichádzajú v tichu.",
+    },
+    {
+      id: 5,
+      text: "Chránim si rána pre hĺbkovú prácu",
+      subtitle:
+        "Moja najvyššia mentálna energia patrí mojim najdôležitejším cieľom, nie požiadavkám vonkajšieho sveta.",
+    },
+    {
+      id: 6,
+      text: "So svojím telom zaobchádzam ako s chrámom",
+      subtitle:
+        "Fyzická sila a vitalita sú základom, na ktorom stoja moja mentálna jasnosť a výdrž.",
+    },
+    {
+      id: 7,
+      text: "Som disciplínny v malých veciach, aby som bol disciplínny vo veľkých",
+      subtitle:
+        "Spôsob, akým pristupujem k detailom, určuje kvalitu a charakter mojich najväčších úspechov.",
+    },
+    {
+      id: 8,
+      text: "Sústreďujem sa na to, čo môžem ovplyvniť",
+      subtitle:
+        "Svoju energiu investujem len tam, kde mám vplyv, ostatné nechávam plynúť bez zbytočnej starosti.",
+    },
   ],
   default_protocol_step_labels: [
-    "Vstávanie bez budíka",
-    "Studená sprcha",
-    "Hydratácia a rozcvička",
-    "Mindfulness / denník",
-    "Prezeranie priorít",
+    "WC a ústna hygiena",
+    "Hydratácia - pohár vody",
+    "Rozcvička a ľahké cvičenie",
+    "Mindfulness / dýchanie",
+    "Prečítaj si svoju osobnú ústavu",
+    "Naplánuj si deň / premýšľaj o svojej jednej veci",
+    "Sprcha",
+    "Zdravé raňajky / káva pri prerušovanom pôste",
   ],
 
   // ConstitutionList
@@ -75,6 +117,7 @@ export const sk: LocaleKeys = {
   add: "Pridať",
   remove: "Odstrániť",
   add_principle_placeholder: "Pridať novú zásadu…",
+  add_principle_subtitle_placeholder: "Podnadpis (voliteľné)…",
   edit_principle: "Upraviť",
 
   // Settings

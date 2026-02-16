@@ -9,7 +9,7 @@ import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 
 export type { ProtocolStep };
 
-const DEFAULT_PROTOCOL_MINUTES = [0, 5, 5, 10, 5] as const;
+const DEFAULT_PROTOCOL_MINUTES = [5, 3, 10, 10, 5, 10, 10, 15] as const;
 
 function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -25,10 +25,13 @@ function getStoredSteps(
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((s: { id?: string; label?: string; minutes?: number }) => ({
+        return parsed.map((s: { id?: string; label?: string; minutes?: number }, i: number) => ({
           id: s.id ?? `step-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           label: typeof s.label === "string" ? s.label : "",
-          minutes: typeof s.minutes === "number" && s.minutes >= 0 ? s.minutes : 0,
+          minutes:
+            typeof s.minutes === "number" && s.minutes >= 0
+              ? s.minutes
+              : (defaultMinutes[i] ?? 0),
         }));
       }
     }

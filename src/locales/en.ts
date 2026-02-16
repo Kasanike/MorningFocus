@@ -37,7 +37,7 @@ export const en = {
   one_thing_aria: "Priority of the day",
   one_thing_placeholder: "Your top priority for today…",
   morning_protocol_title: "Morning Protocol",
-  morning_protocol_prompt: "Get up from bed and do it.",
+  morning_protocol_prompt: "Get out of bed and go for it.",
   morning_protocol_aria: "Step by step morning actions",
   minutes: "min",
   total_minutes: "{{total}} min total",
@@ -47,21 +47,63 @@ export const en = {
 
   // Default / seed data (shown when user has no stored data)
   default_principles: [
-    "I am calm under pressure",
-    "I prioritize execution over planning",
-    "I own my outcomes and never blame others",
-    "I speak less and listen more",
-    "I protect my mornings for deep work",
-    "I treat my body as a temple",
-    "I am disciplined in small things to be disciplined in great ones",
-    "I focus on what I can control",
+    {
+      id: 1,
+      text: "I am calm under pressure",
+      subtitle:
+        "Composure is my anchor in chaos, allowing me to see solutions where others only see problems.",
+    },
+    {
+      id: 2,
+      text: "I prioritize execution over planning",
+      subtitle:
+        "One imperfect step forward is worth more than hours spent searching for the perfect path.",
+    },
+    {
+      id: 3,
+      text: "I own my outcomes and never blame others",
+      subtitle:
+        "I accept full responsibility for my reality, for only then do I gain the true power to change it.",
+    },
+    {
+      id: 4,
+      text: "I speak less and listen more",
+      subtitle: "I use words sparingly, for true understanding and wisdom arrive in silence.",
+    },
+    {
+      id: 5,
+      text: "I protect my mornings for deep work",
+      subtitle:
+        "My highest mental energy belongs to my most critical goals, not the demands of the outside world.",
+    },
+    {
+      id: 6,
+      text: "I treat my body as a temple",
+      subtitle:
+        "Physical strength and vitality are the foundation upon which my mental clarity and endurance stand.",
+    },
+    {
+      id: 7,
+      text: "I am disciplined in small things to be disciplined in great ones",
+      subtitle:
+        "The way I approach details defines the quality and character of my greatest achievements.",
+    },
+    {
+      id: 8,
+      text: "I focus on what I can control",
+      subtitle:
+        "I invest my energy only where I have influence, letting the rest flow without unnecessary worry.",
+    },
   ],
   default_protocol_step_labels: [
-    "Wake & no snooze",
-    "Cold shower",
-    "Hydrate & stretch",
-    "Mindfulness / journaling",
-    "Review priorities",
+    "WC and Oral Hygiene",
+    "Hydrate - cup of water",
+    "Stretch & Light Exercise",
+    "Mindfulness / breathing",
+    "Read your personal constitution",
+    "Plan your day / think of your One thing",
+    "Shower",
+    "Healthy breakfast / Intermittent fasting coffee",
   ],
 
   // ConstitutionList
@@ -73,6 +115,7 @@ export const en = {
   add: "Add",
   remove: "Remove",
   add_principle_placeholder: "Add a new principle…",
+  add_principle_subtitle_placeholder: "Subtitle (optional)…",
   edit_principle: "Edit",
 
   // Settings
@@ -88,9 +131,7 @@ export const en = {
   logout: "Log out",
 } as const;
 
-/** Shape of a locale - same keys as en, values are string or readonly string[] */
+/** Shape of a locale - same keys and value types as en */
 export type LocaleKeys = {
-  [K in keyof typeof en]: (typeof en)[K] extends readonly string[]
-    ? readonly string[]
-    : string;
+  [K in keyof typeof en]: (typeof en)[K];
 };
