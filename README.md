@@ -26,13 +26,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## PWA Installation
+## PWA Installation (Add to Home Screen)
 
-The app includes a `manifest.json` for home screen installation. To add PWA icons:
+The app includes a `manifest.json` for home screen installation with web app icons.
 
-1. Create 192×192 and 512×512 PNG icons.
-2. Save them as `public/icon-192.png` and `public/icon-512.png`.
-3. Or use a generator like [RealFaviconGenerator](https://realfavicongenerator.net/).
+**To use your custom icon:**
+1. Copy your icon image to the `public/` folder as:
+   - `public/icon-192.png` (192×192)
+   - `public/icon-512.png` (512×512)
+   - `public/apple-icon.png` (for iOS home screen)
+2. Or run: `powershell -ExecutionPolicy Bypass -File scripts/copy-icon.ps1` (update the source path in the script if needed).
 
 ## Swapping Mock Agenda for Real Data
 
