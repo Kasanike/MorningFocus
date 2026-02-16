@@ -17,48 +17,54 @@ function isAuthRoute(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  });
+  try {
+    let response = NextResponse.next({
+      request: { headers: request.headers },
+    });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return response;
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet: { name: string; value: string }[]) {
+          cookiesToSet.forEach(({ name, value }) =>
+            response.cookies.set(name, value)
+          );
+        },
+      },
+    });
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { pathname } = request.nextUrl;
+
+    if (isProtected(pathname) && !user) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (isAuthRoute(pathname) && user) {
+      const redirect = request.nextUrl.searchParams.get("redirect") ?? "/";
+      return NextResponse.redirect(new URL(redirect, request.url));
+    }
+
     return response;
+  } catch {
+    return NextResponse.next({
+      request: { headers: request.headers },
+    });
   }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: { name: string; value: string }[]) {
-        cookiesToSet.forEach(({ name, value }) =>
-          response.cookies.set(name, value)
-        );
-      },
-    },
-  });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  if (isProtected(pathname) && !user) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  if (isAuthRoute(pathname) && user) {
-    const redirect = request.nextUrl.searchParams.get("redirect") ?? "/";
-    return NextResponse.redirect(new URL(redirect, request.url));
-  }
-
-  return response;
 }
 
 export const config = {

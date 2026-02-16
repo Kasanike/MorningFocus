@@ -6,7 +6,7 @@ import { AuthForm } from "@/components/AuthForm";
 
 function LoginContent() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6">
+    <div className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-12 sm:px-6">
       {/* Background */}
       <div className="fixed inset-0 -z-10 bg-zinc-950" />
       <div
@@ -18,7 +18,7 @@ function LoginContent() {
       />
 
       {/* Glassmorphism card */}
-      <div className="w-full max-w-[420px] rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-10">
+      <div className="w-full max-w-[420px] shrink-0 overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-10" style={{ minWidth: 320 }}>
         {/* Logo / Branding */}
         <div className="mb-10 flex flex-col items-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-700/60 bg-zinc-800/60">
@@ -40,7 +40,7 @@ function LoginContent() {
         </div>
 
         {/* Form */}
-        <div>
+        <div className="w-full min-w-0">
           <AuthForm />
         </div>
       </div>

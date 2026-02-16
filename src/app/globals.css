@@ -11,31 +11,50 @@
   --app-accent: #e4e4e7;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
 
-html {
-  -webkit-tap-highlight-color: transparent;
-  color-scheme: dark;
-}
+  html {
+    -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
+    background-color: #09090b !important;
+  }
 
-body {
-  max-width: 100vw;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background-color: var(--app-bg) !important;
-  color: var(--app-fg) !important;
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  body {
+    max-width: 100vw;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: #09090b !important;
+    color: #fafafa !important;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+
 }
 
 /* Override any accidental light-mode inheritance */
 html.dark,
-html.dark body {
-  background-color: var(--app-bg) !important;
-  color: var(--app-fg) !important;
+html.dark body,
+html body {
+  background-color: #09090b !important;
+  color: #fafafa !important;
+}
+
+/* Ensure form inputs are full-width in constrained containers */
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Prevent SVG icons in buttons from growing */
+button svg {
+  flex-shrink: 0;
 }
 
 /* Safe area for mobile notch/home indicator */
