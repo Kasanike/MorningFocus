@@ -1,76 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_ROUTES = ["/", "/settings"];
-const AUTH_ROUTES = ["/login"];
-
-function isProtected(pathname: string): boolean {
-  return PROTECTED_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
-}
-
-function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
-}
-
-export async function middleware(request: NextRequest) {
-  try {
-    // Bypass auth in middleware when set (e.g. SKIP_MIDDLEWARE_AUTH=1 on Vercel to fix 500)
-    if (process.env.SKIP_MIDDLEWARE_AUTH === "1") {
-      return NextResponse.next({ request: { headers: request.headers } });
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.next({ request: { headers: request.headers } });
-    }
-
-    const { createServerClient } = await import("@supabase/ssr");
-
-    let response = NextResponse.next({
-      request: { headers: request.headers },
-    });
-
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string }[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            response.cookies.set(name, value)
-          );
-        },
-      },
-    });
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const { pathname } = request.nextUrl;
-
-    if (isProtected(pathname) && !user) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    if (isAuthRoute(pathname) && user) {
-      const redirect = request.nextUrl.searchParams.get("redirect") ?? "/";
-      return NextResponse.redirect(new URL(redirect, request.url));
-    }
-
-    return response;
-  } catch {
-    return NextResponse.next({
-      request: { headers: request.headers },
-    });
-  }
+// Auth is handled client-side via AuthGuard to avoid Edge runtime issues with Supabase
+export function middleware(request: NextRequest) {
+  return NextResponse.next({
+    request: { headers: request.headers },
+  });
 }
 
 export const config = {

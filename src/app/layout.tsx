@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Cormorant_Garamond, Playfair_Display } from "next/font/google";
 import { Providers } from "@/components/Providers";
+import { AuthGuard } from "@/components/AuthGuard";
 import "./globals.css";
 
 const inter = Inter({
@@ -51,7 +52,9 @@ export default function RootLayout({
         className={`${inter.variable} ${cormorant.variable} ${playfair.variable} font-sans antialiased min-h-screen`}
         style={{ background: "#09090b", color: "#fafafa" }}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+        <AuthGuard>{children}</AuthGuard>
+      </Providers>
       </body>
     </html>
   );

@@ -1,0 +1,75 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+
+const PROTECTED_ROUTES = ["/", "/settings"];
+const AUTH_ROUTES = ["/login"];
+
+function isProtected(pathname: string): boolean {
+  return PROTECTED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+function isAuthRoute(pathname: string): boolean {
+  return AUTH_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
+export function AuthGuard({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function check() {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        if (isProtected(pathname) && !user) {
+          const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
+          router.replace(loginUrl);
+          return;
+        }
+
+        if (isAuthRoute(pathname) && user) {
+          const redirect =
+            typeof window !== "undefined"
+              ? new URLSearchParams(window.location.search).get("redirect") ?? "/"
+              : "/";
+          router.replace(redirect);
+          return;
+        }
+      } catch {
+        // If Supabase fails, allow through (e.g. env vars missing)
+      } finally {
+        if (!cancelled) setChecked(true);
+      }
+    }
+
+    check();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, router]);
+
+  if (!checked && (isProtected(pathname) || isAuthRoute(pathname))) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-amber-500" />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
