@@ -26,14 +26,20 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const timeout = 3000; // Don't block render for more than 3s (e.g. slow/unreachable Supabase)
 
     async function check() {
+      const timeoutId = setTimeout(() => {
+        if (!cancelled) setChecked(true);
+      }, timeout);
+
       try {
         const supabase = createClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
+        clearTimeout(timeoutId);
         if (cancelled) return;
 
         if (isProtected(pathname) && !user) {
@@ -53,6 +59,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       } catch {
         // If Supabase fails, allow through (e.g. env vars missing)
       } finally {
+        clearTimeout(timeoutId);
         if (!cancelled) setChecked(true);
       }
     }
