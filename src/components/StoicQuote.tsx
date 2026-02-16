@@ -17,16 +17,16 @@ export function StoicQuote() {
 
   return (
     <section
-      className="card-glass rounded-lg border border-app-border px-8 py-12 sm:px-12 sm:py-16"
+      className="card-glass rounded-2xl border border-white/10 p-8 shadow-2xl shadow-black/20 sm:p-10 sm:py-14"
       aria-label={t.stoic_oracle_aria}
     >
       <blockquote className="text-center">
         <p
-          className={`${instrumentSerif.className} text-3xl font-normal italic leading-[1.4] text-app-fg sm:text-4xl`}
+          className={`${instrumentSerif.className} text-3xl font-normal italic leading-[1.5] text-white/95 sm:text-4xl`}
         >
           &ldquo;{quote.text}&rdquo;
         </p>
-        <footer className="mt-8 font-mono text-xs uppercase tracking-widest text-app-muted">
+        <footer className="mt-10 font-mono text-xs font-medium uppercase tracking-[0.2em] text-white/60">
           — {quote.author}
         </footer>
       </blockquote>

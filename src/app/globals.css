@@ -25,11 +25,21 @@
   animation: fade-in 0.4s ease-out forwards;
 }
 
-/* Glassmorphism for content cards over Sunrise background */
+/* Premium glassmorphism for content cards */
 .card-glass {
-  background-color: rgba(15, 15, 15, 0.85);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Inner card / list item glass (lighter) */
+.card-glass-inner {
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @layer base {

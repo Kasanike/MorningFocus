@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Pencil, Trash2, Clock, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Clock } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 
-export interface ProtocolStep {
-  id: string;
-  label: string;
-  minutes: number;
-}
+export type { ProtocolStep };
 
 const DEFAULT_PROTOCOL_MINUTES = [0, 5, 5, 10, 5] as const;
 
@@ -154,27 +151,27 @@ export function MorningProtocol() {
 
   if (!mounted) {
     return (
-      <section className="card-glass rounded-lg border border-app-border px-8 py-10 sm:px-10 sm:py-12">
-        <h2 className="font-mono text-xl font-semibold text-app-fg">
+      <section className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
+        <h2 className="font-mono text-xl font-semibold text-white/95">
           {t.morning_protocol_title}
         </h2>
-        <p className="mt-3 text-app-muted animate-pulse">{t.loading}</p>
+        <p className="mt-3 text-white/60 animate-pulse">{t.loading}</p>
       </section>
     );
   }
 
   return (
     <section
-      className="card-glass rounded-lg border border-app-border px-8 py-10 sm:px-10 sm:py-12"
+      className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.morning_protocol_aria}
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="font-mono text-xl font-semibold text-app-fg">
+        <h2 className="font-mono text-xl font-semibold text-white/95">
           {t.morning_protocol_title}
         </h2>
         <div className="flex items-center gap-2">
           {totalMinutes > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-app-muted">
+            <div className="flex items-center gap-1.5 text-sm text-white/60">
               <Clock className="h-4 w-4" />
               <span>{t.total_minutes.replace("{{total}}", String(totalMinutes))}</span>
             </div>
@@ -182,7 +179,7 @@ export function MorningProtocol() {
           <button
             type="button"
             onClick={() => setIsEditMode(!isEditMode)}
-            className="rounded-lg p-2.5 text-app-muted transition-colors hover:bg-app-border hover:text-app-fg"
+            className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
             aria-label={isEditMode ? t.done_editing : t.edit_principles}
           >
             <Pencil className="h-5 w-5" />
@@ -191,107 +188,39 @@ export function MorningProtocol() {
       </div>
 
       <ol className="mt-6 space-y-3">
-        {steps.map((s, index) => (
-          <li
+        {steps.map((s) => (
+          <ProtocolListItem
             key={s.id}
-            className="flex items-center gap-4 rounded-lg border border-app-border bg-app-bg p-5 sm:p-6 transition-all duration-200"
-          >
-            {editId === s.id ? (
-              <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                <input
-                  type="text"
-                  value={editLabel}
-                  onChange={(e) => setEditLabel(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
-                  className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 text-app-fg focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg"
-                  autoFocus
-                />
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    value={editMinutes}
-                    onChange={(e) => setEditMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                    className="w-16 rounded-lg border border-app-border bg-app-bg px-2 py-2 text-center font-mono text-app-fg focus:border-app-fg focus:outline-none"
-                  />
-                  <span className="text-sm text-app-muted">{t.minutes}</span>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSaveEdit}
-                    className="rounded-lg bg-app-fg px-3 py-2 text-sm font-medium text-app-bg"
-                  >
-                    {t.save}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(s.id)}
-                    className="rounded-lg p-2 text-app-muted hover:bg-app-border hover:text-app-fg"
-                    aria-label={t.remove}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`font-sans text-base font-normal leading-relaxed ${
-                      completed[s.id] ? "text-app-muted line-through" : "text-app-fg"
-                    }`}
-                  >
-                    {s.label}
-                  </p>
-                  <p
-                    className={`mt-0.5 font-mono text-sm ${
-                      completed[s.id] ? "text-app-muted line-through" : "text-app-muted"
-                    }`}
-                  >
-                    {s.minutes > 0 ? `${s.minutes} ${t.minutes}` : "—"}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {isEditMode && (
-                    <button
-                      type="button"
-                      onClick={() => handleStartEdit(s)}
-                      className="rounded-lg p-2 text-app-muted transition-colors hover:bg-app-border hover:text-app-fg"
-                      aria-label={`${t.edit_principle}: ${s.label}`}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleComplete(s.id)}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 border-app-muted transition-colors hover:border-app-fg focus:outline-none focus:ring-2 focus:ring-app-fg"
-                    aria-label={completed[s.id] ? `Mark ${s.label} incomplete` : `Mark ${s.label} complete`}
-                  >
-                    {completed[s.id] ? (
-                      <Check className="h-3.5 w-3.5 text-app-fg" strokeWidth={2.5} />
-                    ) : (
-                      <span className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </>
-            )}
-          </li>
+            step={s}
+            isCompleted={!!completed[s.id]}
+            isEditing={editId === s.id}
+            isEditMode={isEditMode}
+            editLabel={editLabel}
+            editMinutes={editMinutes}
+            onToggle={() => handleToggleComplete(s.id)}
+            onStartEdit={() => handleStartEdit(s)}
+            onSaveEdit={handleSaveEdit}
+            onRemove={() => handleRemove(s.id)}
+            onEditLabelChange={setEditLabel}
+            onEditMinutesChange={setEditMinutes}
+            minutesLabel={t.minutes}
+            saveLabel={t.save}
+            removeLabel={t.remove}
+            editPrincipleLabel={t.edit_principle}
+          />
         ))}
       </ol>
 
       {isEditMode && (
         isAdding ? (
-          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-app-border bg-app-bg p-5 sm:flex-row sm:items-center sm:p-6">
+          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
             <input
               type="text"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               placeholder={t.protocol_step_placeholder}
-              className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 text-app-fg placeholder:text-app-muted focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg"
+              className="flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
               autoFocus
             />
             <div className="flex items-center gap-2">
@@ -300,15 +229,15 @@ export function MorningProtocol() {
                 min={0}
                 value={newMinutes}
                 onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                className="w-16 rounded-lg border border-app-border bg-app-bg px-2 py-2 text-center font-mono text-app-fg focus:border-app-fg focus:outline-none"
+                className="w-16 rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-white/95 focus:border-white/40 focus:outline-none"
               />
-              <span className="text-sm text-app-muted">{t.minutes}</span>
+              <span className="text-sm text-white/60">{t.minutes}</span>
             </div>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={handleAdd}
-                className="rounded-lg bg-app-fg px-4 py-2 font-medium text-app-bg"
+                className="rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
               >
                 {t.add}
               </button>
@@ -319,7 +248,7 @@ export function MorningProtocol() {
                   setNewLabel("");
                   setNewMinutes(5);
                 }}
-                className="rounded-lg border border-app-border px-4 py-2 text-app-muted hover:bg-app-border hover:text-app-fg"
+                className="rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
               >
                 {t.cancel}
               </button>
@@ -328,8 +257,8 @@ export function MorningProtocol() {
         ) : (
           <button
             type="button"
+            className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-3.5 text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
             onClick={() => setIsAdding(true)}
-            className="mt-4 flex items-center gap-2 rounded-lg border border-dashed border-app-border px-4 py-3 text-app-muted transition-colors hover:border-app-fg hover:text-app-fg"
           >
             <Plus className="h-4 w-4" />
             {t.add_step}

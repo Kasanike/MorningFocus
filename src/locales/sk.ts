@@ -32,6 +32,8 @@ export const sk: LocaleKeys = {
   quote_title: "Citát",
   principles_title: "Osobná ústava",
   principles_subtitle: "Prečítaj si všetky riadky a zaškrtni všetky políčka.",
+  principle_count: "{{count}} zásada",
+  principles_count: "{{count}} zásad",
   one_thing_title: "Jedna vec",
   one_thing_aria: "Priorita dňa",
   one_thing_placeholder: "Vaša priorita na dnes…",

@@ -48,39 +48,39 @@ export function OneThing() {
 
   if (!mounted) {
     return (
-      <section className="card-glass rounded-lg border border-app-border px-6 py-8 sm:px-8 sm:py-10">
-        <h2 className="font-mono text-xl font-semibold text-app-fg">
+      <section className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
+        <h2 className="font-mono text-xl font-semibold text-white/95">
           {t.one_thing_title}
         </h2>
-        <p className="mt-3 text-app-muted animate-pulse">{t.loading}</p>
+        <p className="mt-3 text-white/60 animate-pulse">{t.loading}</p>
       </section>
     );
   }
 
   return (
     <section
-      className="card-glass rounded-lg border border-app-border px-6 py-8 sm:px-8 sm:py-10"
+      className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.one_thing_aria}
     >
       <div className="flex items-center gap-3">
-        <Target className="h-5 w-5 shrink-0 text-app-muted" />
-        <h2 className="font-mono text-xl font-semibold text-app-fg">
+        <Target className="h-5 w-5 shrink-0 text-white/60" />
+        <h2 className="font-mono text-xl font-semibold text-white/95">
           {t.one_thing_title}
         </h2>
       </div>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:gap-3">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-3">
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
           placeholder={t.one_thing_placeholder}
-          className="min-w-0 flex-1 rounded-lg border border-app-border bg-app-bg px-4 py-3 font-mono text-app-fg placeholder:text-app-muted focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg"
+          className="min-w-0 flex-1 rounded-xl border border-white/20 bg-black/20 px-4 py-3 font-mono text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
         />
         <button
           type="button"
           onClick={handleSave}
-          className="w-full shrink-0 rounded-lg bg-app-fg px-5 py-3 font-mono font-semibold text-app-bg transition-opacity hover:opacity-90 sm:w-auto"
+          className="w-full shrink-0 rounded-xl bg-white/20 px-5 py-3 font-mono font-semibold text-white/95 transition-colors hover:bg-white/30 sm:w-auto"
         >
           {t.save}
         </button>

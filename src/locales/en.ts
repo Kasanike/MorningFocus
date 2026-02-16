@@ -30,6 +30,8 @@ export const en = {
   quote_title: "Quote",
   principles_title: "Personal Constitution",
   principles_subtitle: "Read for yourself all lines and check all boxes.",
+  principle_count: "{{count}} principle",
+  principles_count: "{{count}} principles",
   one_thing_title: "One Thing",
   one_thing_aria: "Priority of the day",
   one_thing_placeholder: "Your top priority for today…",
