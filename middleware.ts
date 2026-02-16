@@ -1,4 +1,3 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const PROTECTED_ROUTES = ["/", "/settings"];
@@ -18,16 +17,23 @@ function isAuthRoute(pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   try {
-    let response = NextResponse.next({
-      request: { headers: request.headers },
-    });
+    // Bypass auth in middleware when set (e.g. SKIP_MIDDLEWARE_AUTH=1 on Vercel to fix 500)
+    if (process.env.SKIP_MIDDLEWARE_AUTH === "1") {
+      return NextResponse.next({ request: { headers: request.headers } });
+    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return response;
+      return NextResponse.next({ request: { headers: request.headers } });
     }
+
+    const { createServerClient } = await import("@supabase/ssr");
+
+    let response = NextResponse.next({
+      request: { headers: request.headers },
+    });
 
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
