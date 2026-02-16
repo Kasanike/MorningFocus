@@ -17,7 +17,7 @@ export function StoicQuote() {
 
   return (
     <section
-      className="rounded-lg border border-app-border bg-app-card px-8 py-12 sm:px-12 sm:py-16"
+      className="card-glass rounded-lg border border-app-border px-8 py-12 sm:px-12 sm:py-16"
       aria-label={t.stoic_oracle_aria}
     >
       <blockquote className="text-center">

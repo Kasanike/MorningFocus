@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2, Clock, Check } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { STORAGE_KEYS } from "@/lib/constants";
 
 export interface ProtocolStep {
@@ -74,6 +75,7 @@ function saveCompleted(completed: Record<string, boolean>) {
 
 export function MorningProtocol() {
   const { t } = useLanguage();
+  const { setProgress } = useProtocolProgress();
   const [steps, setSteps] = useState<ProtocolStep[]>([]);
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -90,6 +92,11 @@ export function MorningProtocol() {
     setSteps(getStoredSteps(t.default_protocol_step_labels, DEFAULT_PROTOCOL_MINUTES));
     setCompleted(getStoredCompleted());
   }, [t.default_protocol_step_labels]);
+
+  useEffect(() => {
+    const completedCount = Object.values(completed).filter(Boolean).length;
+    setProgress(completedCount, steps.length);
+  }, [completed, steps.length, setProgress]);
 
   const persist = useCallback((next: ProtocolStep[]) => {
     setSteps(next);
@@ -147,7 +154,7 @@ export function MorningProtocol() {
 
   if (!mounted) {
     return (
-      <section className="rounded-lg border border-app-border bg-app-card px-8 py-10 sm:px-10 sm:py-12">
+      <section className="card-glass rounded-lg border border-app-border px-8 py-10 sm:px-10 sm:py-12">
         <h2 className="font-mono text-xl font-semibold text-app-fg">
           {t.morning_protocol_title}
         </h2>
@@ -158,7 +165,7 @@ export function MorningProtocol() {
 
   return (
     <section
-      className="rounded-lg border border-app-border bg-app-card px-8 py-10 sm:px-10 sm:py-12"
+      className="card-glass rounded-lg border border-app-border px-8 py-10 sm:px-10 sm:py-12"
       aria-label={t.morning_protocol_aria}
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -229,13 +236,19 @@ export function MorningProtocol() {
               </div>
             ) : (
               <>
-                <div
-                  className={`flex-1 min-w-0 transition-opacity duration-200 ${
-                    completed[s.id] ? "opacity-40" : "opacity-100"
-                  }`}
-                >
-                  <p className="font-sans text-app-fg">{s.label}</p>
-                  <p className="mt-0.5 font-mono text-sm text-app-muted">
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`font-sans text-base font-normal leading-relaxed ${
+                      completed[s.id] ? "text-app-muted line-through" : "text-app-fg"
+                    }`}
+                  >
+                    {s.label}
+                  </p>
+                  <p
+                    className={`mt-0.5 font-mono text-sm ${
+                      completed[s.id] ? "text-app-muted line-through" : "text-app-muted"
+                    }`}
+                  >
                     {s.minutes > 0 ? `${s.minutes} ${t.minutes}` : "—"}
                   </p>
                 </div>
@@ -253,15 +266,11 @@ export function MorningProtocol() {
                   <button
                     type="button"
                     onClick={() => handleToggleComplete(s.id)}
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-app-fg focus:ring-offset-2 focus:ring-offset-app-bg ${
-                      completed[s.id]
-                        ? "border-app-fg bg-app-fg"
-                        : "border-app-muted hover:border-app-fg"
-                    }`}
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 border-app-muted transition-colors hover:border-app-fg focus:outline-none focus:ring-2 focus:ring-app-fg"
                     aria-label={completed[s.id] ? `Mark ${s.label} incomplete` : `Mark ${s.label} complete`}
                   >
                     {completed[s.id] ? (
-                      <Check className="h-3.5 w-3.5 text-app-bg" strokeWidth={2.5} />
+                      <Check className="h-3.5 w-3.5 text-app-fg" strokeWidth={2.5} />
                     ) : (
                       <span className="h-4 w-4" />
                     )}

@@ -31,6 +31,15 @@ const config: Config = {
         xl: "8px",
         "2xl": "8px",
       },
+      keyframes: {
+        "slow-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.8" },
+          "50%": { transform: "scale(1.05)", opacity: "1" },
+        },
+      },
+      animation: {
+        "sun-pulse": "slow-pulse 8s infinite ease-in-out",
+      },
     },
   },
   plugins: [],

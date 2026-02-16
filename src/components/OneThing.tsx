@@ -48,7 +48,7 @@ export function OneThing() {
 
   if (!mounted) {
     return (
-      <section className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10">
+      <section className="card-glass rounded-lg border border-app-border px-6 py-8 sm:px-8 sm:py-10">
         <h2 className="font-mono text-xl font-semibold text-app-fg">
           {t.one_thing_title}
         </h2>
@@ -59,7 +59,7 @@ export function OneThing() {
 
   return (
     <section
-      className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10"
+      className="card-glass rounded-lg border border-app-border px-6 py-8 sm:px-8 sm:py-10"
       aria-label={t.one_thing_aria}
     >
       <div className="flex items-center gap-3">

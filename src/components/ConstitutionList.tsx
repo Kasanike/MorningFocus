@@ -121,7 +121,7 @@ export function ConstitutionList() {
 
   if (!mounted) {
     return (
-      <section className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10">
+      <section className="card-glass rounded-lg border border-app-border px-6 py-8 sm:px-8 sm:py-10">
         <h2 className="font-mono text-xl font-semibold text-app-fg">
           {t.principles_title}
         </h2>
@@ -132,7 +132,7 @@ export function ConstitutionList() {
 
   return (
     <section
-      className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8 sm:py-10"
+      className="card-glass rounded-lg border border-app-border px-6 py-8 sm:px-8 sm:py-10"
       aria-label={t.principles_title}
     >
       <div className="flex items-center justify-between gap-4">

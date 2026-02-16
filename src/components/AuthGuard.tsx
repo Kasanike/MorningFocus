@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
+/** Set to false to re-enable login/signup requirement */
+const BYPASS_AUTH = true;
+
 const PROTECTED_ROUTES = ["/", "/settings"];
 const AUTH_ROUTES = ["/login"];
 
@@ -42,13 +45,18 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         clearTimeout(timeoutId);
         if (cancelled) return;
 
-        if (isProtected(pathname) && !user) {
+        if (!BYPASS_AUTH && isProtected(pathname) && !user) {
           const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
           router.replace(loginUrl);
           return;
         }
 
-        if (isAuthRoute(pathname) && user) {
+        if (BYPASS_AUTH && isAuthRoute(pathname)) {
+          router.replace("/");
+          return;
+        }
+
+        if (!BYPASS_AUTH && isAuthRoute(pathname) && user) {
           const redirect =
             typeof window !== "undefined"
               ? new URLSearchParams(window.location.search).get("redirect") ?? "/"

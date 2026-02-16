@@ -34,11 +34,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${GeistSans.variable} ${GeistMono.variable}`}
-      style={{ background: "#09090b", color: "#e4e4e7" }}
+      style={{ color: "#e4e4e7" }}
     >
       <body
-        className="font-sans antialiased min-h-screen"
-        style={{ background: "#09090b", color: "#e4e4e7" }}
+        className="font-sans antialiased min-h-screen bg-[#09090b]"
+        style={{ color: "#e4e4e7" }}
       >
         <Providers>
           <AuthGuard>{children}</AuthGuard>
