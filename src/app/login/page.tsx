@@ -18,7 +18,7 @@ function LoginContent() {
       />
 
       {/* Glassmorphism card */}
-      <div className="w-full max-w-[420px] shrink-0 overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-10" style={{ minWidth: 320 }}>
+      <div className="w-full max-w-[420px] shrink-0 overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/40 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-10" style={{ minWidth: "min(320px, calc(100vw - 2rem))" }}>
         {/* Logo / Branding */}
         <div className="mb-10 flex flex-col items-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-700/60 bg-zinc-800/60">
