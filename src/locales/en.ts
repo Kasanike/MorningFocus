@@ -29,7 +29,7 @@ export const en = {
   stoic_oracle_aria: "Daily Stoic quote",
   quote_title: "Quote",
   principles_title: "Personal Constitution",
-  principles_subtitle: "Read for yourself all lines and check all boxes.",
+  principles_subtitle: "The internal code that shapes my decisions.",
   principle_count: "{{count}} principle",
   principles_count: "{{count}} principles",
   one_thing_title: "One Thing",

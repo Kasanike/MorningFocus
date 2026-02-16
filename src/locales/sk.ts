@@ -31,7 +31,7 @@ export const sk: LocaleKeys = {
   stoic_oracle_aria: "Denný stoický citát",
   quote_title: "Citát",
   principles_title: "Osobná ústava",
-  principles_subtitle: "Prečítaj si všetky riadky a zaškrtni všetky políčka.",
+  principles_subtitle: "Vnútorný kód, ktorý formuje moje rozhodnutia.",
   principle_count: "{{count}} zásada",
   principles_count: "{{count}} zásad",
   one_thing_title: "Jedna vec",
