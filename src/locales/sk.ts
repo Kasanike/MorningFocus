@@ -29,9 +29,18 @@ export const sk: LocaleKeys = {
 
   // Sections
   stoic_oracle_aria: "Denný stoický citát",
+  quote_title: "Citát",
   principles_title: "Osobná ústava",
-  battle_plan_title: "Denný plán",
-  battle_plan_aria: "Denný program",
+  one_thing_title: "Jedna vec",
+  one_thing_aria: "Priorita dňa",
+  one_thing_placeholder: "Čo je tá jedna vec, ktorá by urobila dnes úspešným?",
+  morning_protocol_title: "Ranný protokol",
+  morning_protocol_aria: "Kroky ranných aktivít",
+  minutes: "min",
+  total_minutes: "{{total}} min celkom",
+  add_step: "Pridať krok",
+  protocol_step_placeholder: "Názov kroku…",
+  cancel: "Zrušiť",
 
   // ConstitutionList
   loading: "Načítavam…",

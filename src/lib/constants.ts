@@ -12,4 +12,6 @@ export const DEFAULT_PRINCIPLES = [
 export const STORAGE_KEYS = {
   PRINCIPLES: "morning-focus-principles",
   ACKNOWLEDGED_DATE: "morning-focus-acknowledged-date",
+  ONE_THING: "morning-focus-one-thing",
+  MORNING_PROTOCOL: "morning-focus-morning-protocol",
 } as const;

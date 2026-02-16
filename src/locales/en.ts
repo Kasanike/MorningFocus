@@ -27,9 +27,18 @@ export const en = {
 
   // Sections
   stoic_oracle_aria: "Daily Stoic quote",
+  quote_title: "Quote",
   principles_title: "Personal Constitution",
-  battle_plan_title: "The Battle Plan",
-  battle_plan_aria: "Daily agenda",
+  one_thing_title: "One Thing",
+  one_thing_aria: "Priority of the day",
+  one_thing_placeholder: "What is the one thing that would make today a success?",
+  morning_protocol_title: "Morning Protocol",
+  morning_protocol_aria: "Step by step morning actions",
+  minutes: "min",
+  total_minutes: "{{total}} min total",
+  add_step: "Add step",
+  protocol_step_placeholder: "Step name…",
+  cancel: "Cancel",
 
   // ConstitutionList
   loading: "Loading…",

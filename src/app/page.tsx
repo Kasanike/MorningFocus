@@ -1,7 +1,8 @@
 import { Header } from "@/components/Header";
 import { StoicQuote } from "@/components/StoicQuote";
 import { ConstitutionList } from "@/components/ConstitutionList";
-import { DailyAgenda } from "@/components/DailyAgenda";
+import { OneThing } from "@/components/OneThing";
+import { MorningProtocol } from "@/components/MorningProtocol";
 
 export default function Home() {
   return (
@@ -9,7 +10,7 @@ export default function Home() {
       <Header />
 
       <div className="mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
-        <section aria-label="Stoic Oracle">
+        <section aria-label="Quote from Stoics">
           <StoicQuote />
         </section>
 
@@ -17,8 +18,12 @@ export default function Home() {
           <ConstitutionList />
         </section>
 
-        <section aria-label="Daily Battle Plan">
-          <DailyAgenda />
+        <section aria-label="One Thing - Priority of the day">
+          <OneThing />
+        </section>
+
+        <section aria-label="Morning Protocol">
+          <MorningProtocol />
         </section>
       </div>
     </main>
