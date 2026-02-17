@@ -10,6 +10,7 @@ export const en = {
     "Friday",
     "Saturday",
   ],
+  short_weekdays: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
   months: [
     "January",
     "February",
@@ -26,6 +27,10 @@ export const en = {
   ],
 
   // Sections
+  alarm_title: "Alarm",
+  alarm_aria: "Alarm time and active days",
+  alarm_time_label: "Time",
+  alarm_days_label: "Active on",
   stoic_oracle_aria: "Daily Stoic quote",
   quote_title: "Quote",
   principles_title: "Personal Constitution",

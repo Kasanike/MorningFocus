@@ -12,6 +12,7 @@ export const sk: LocaleKeys = {
     "Piatok",
     "Sobota",
   ],
+  short_weekdays: ["Ne", "Po", "Ut", "St", "Št", "Pi", "So"],
   months: [
     "Január",
     "Február",
@@ -28,6 +29,10 @@ export const sk: LocaleKeys = {
   ],
 
   // Sections
+  alarm_title: "Budík",
+  alarm_aria: "Čas budíka a dni aktivity",
+  alarm_time_label: "Čas",
+  alarm_days_label: "Aktívny v",
   stoic_oracle_aria: "Denný stoický citát",
   quote_title: "Citát",
   principles_title: "Osobná ústava",
