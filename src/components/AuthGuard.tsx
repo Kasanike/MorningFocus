@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
-/** Set to false to re-enable login/signup requirement */
-const BYPASS_AUTH = true;
+/** Set to true to skip login and go straight to /home (e.g. for local dev). */
+const BYPASS_AUTH = false;
 
 const PROTECTED_ROUTES = ["/home", "/settings"];
 const AUTH_ROUTES = ["/login"];
