@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         }
         const subscription = (await stripe.subscriptions.retrieve(
           session.subscription as string
-        )) as SubscriptionWithPeriod;
+        )) as unknown as SubscriptionWithPeriod;
         const customerId =
           typeof session.customer === "string"
             ? session.customer
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
             ? invoice.subscription
             : invoice.subscription?.id;
         if (!subId) return NextResponse.json({ received: true });
-        const subscription = (await stripe.subscriptions.retrieve(subId)) as SubscriptionWithPeriod;
+        const subscription = (await stripe.subscriptions.retrieve(subId)) as unknown as SubscriptionWithPeriod;
         const admin = createAdminClient();
         const { data: profile } = await admin
           .from("profiles")

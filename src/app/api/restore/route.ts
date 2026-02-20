@@ -61,7 +61,7 @@ export async function POST() {
       );
     }
 
-    const sub = subscriptions.data[0] as Stripe.Subscription & {
+    const sub = subscriptions.data[0] as unknown as Stripe.Subscription & {
       current_period_start: number;
       current_period_end: number;
     };
