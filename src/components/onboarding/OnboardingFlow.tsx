@@ -13,7 +13,9 @@ const GRADIENT =
 
 export function OnboardingFlow({ onComplete }: { onComplete: () => void }) {
   const router = useRouter();
-  const refresh = useBootstrap()?.refresh;
+  const bootstrap = useBootstrap();
+  const refresh = bootstrap?.refresh;
+  const markOnboardingCompleted = bootstrap?.markOnboardingCompleted;
   const [step, setStep] = useState<1 | 2 | "loading">(1);
   const [ageRange, setAgeRange] = useState<string | null>(null);
   const [profession, setProfession] = useState<string | null>(null);
@@ -21,18 +23,21 @@ export function OnboardingFlow({ onComplete }: { onComplete: () => void }) {
   const handleBuildingComplete = useCallback(async () => {
     if (!ageRange || !profession) return;
     try {
+      // 1. Update UI immediately so next render shows dashboard (no refetch = no loop)
+      markOnboardingCompleted?.();
       await saveOnboardingFlow({ age_range: ageRange, profession });
-      await refresh?.();
-      onComplete();
       if (typeof sessionStorage !== "undefined") {
         sessionStorage.setItem("onboarding_just_completed", "1");
       }
+      // 2. Sync bootstrap in background (refresh never overwrites completed → incomplete)
+      refresh?.().catch(() => {});
+      onComplete();
       router.replace("/home");
     } catch (e) {
       console.error(e);
       setStep(2);
     }
-  }, [ageRange, profession, refresh, onComplete, router]);
+  }, [ageRange, profession, refresh, markOnboardingCompleted, onComplete, router]);
 
   if (step === "loading") {
     return <BuildingScreen onComplete={handleBuildingComplete} />;

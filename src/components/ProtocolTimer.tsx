@@ -503,7 +503,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
             ) : (
               <>
                 <button onClick={skipStep} style={styles.secondaryButton}>
-                  <SkipForward size={16} />
+                  <SkipForward size={24} />
                   <span>Skip</span>
                 </button>
 
@@ -518,7 +518,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
                 )}
 
                 <button onClick={finishEarly} style={styles.secondaryButton}>
-                  <CheckCircle2 size={16} />
+                  <CheckCircle2 size={24} />
                   <span>Done</span>
                 </button>
               </>
@@ -810,21 +810,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '20px',
+    gap: '24px',
     width: '100%',
   },
   secondaryButton: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '6px',
-    background: 'none',
-    border: 'none',
-    color: 'rgba(240, 232, 224, 0.5)',
+    justifyContent: 'center',
+    gap: '8px',
+    minWidth: '80px',
+    minHeight: '72px',
+    background: 'rgba(30, 15, 25, 0.7)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    borderRadius: '14px',
+    color: '#f0e8e0',
     fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: '0.65rem',
+    fontSize: '0.85rem',
+    fontWeight: 600,
     cursor: 'pointer',
-    padding: '12px 20px',
+    padding: '14px 20px',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.2)',
   },
   primaryRoundButton: {
     width: '72px',

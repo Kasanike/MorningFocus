@@ -16,6 +16,8 @@ type Plan = "free" | "pro";
 interface BootstrapContextValue extends BootstrapData {
   loading: boolean;
   refresh: () => Promise<void>;
+  /** Call after onboarding flow is saved so the UI exits onboarding immediately without waiting for refetch. */
+  markOnboardingCompleted: () => void;
   isPro: boolean;
   plan: Plan;
 }
@@ -32,10 +34,26 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
     try {
       const data = await fetchBootstrap();
       setProfile(data.profile);
-      setOnboardingStatus(data.onboardingStatus);
+      setOnboardingStatus((prev) => {
+        const next = data.onboardingStatus;
+        if (!next) return prev ?? null;
+        // Never overwrite onboarding completed with incomplete (avoids loop after finishing onboarding)
+        if (prev?.onboardingCompleted) {
+          return { ...next, onboardingCompleted: true };
+        }
+        return next;
+      });
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const markOnboardingCompleted = useCallback(() => {
+    setOnboardingStatus((prev) =>
+      prev
+        ? { ...prev, onboardingCompleted: true }
+        : { onboardingCompleted: true, hasPrinciples: false, hasProtocol: false }
+    );
   }, []);
 
   useEffect(() => {
@@ -50,6 +68,7 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
     onboardingStatus,
     loading,
     refresh,
+    markOnboardingCompleted,
     isPro,
     plan,
   };
