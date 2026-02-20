@@ -125,6 +125,9 @@ export const en = {
 
   // Settings
   settings_title: "Settings",
+  account_label: "Account",
+  signed_in_as: "Signed in as",
+  sign_out: "Sign out",
   language_label: "Language",
   language_english: "English",
   language_slovak: "Slovak",

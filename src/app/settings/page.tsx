@@ -2,20 +2,39 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, LogOut } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
 import { PaywallBanner } from "@/components/PaywallBanner";
 import type { SupportedLocale } from "@/locales";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { t, locale, setLocale } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>(locale);
+  const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedLocale(locale);
   }, [locale]);
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setEmail(user?.email ?? null);
+    };
+    load();
+  }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
   const handleSaveLanguage = async () => {
     setSaving(true);
@@ -57,7 +76,28 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-8 px-4 pt-8 sm:px-8">
+        <section
+          className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"
+          aria-label={t.account_label}
+        >
+          <h2 className="font-sans text-xl font-semibold text-app-fg">
+            {t.account_label}
+          </h2>
+          <p className="mt-2 font-sans text-sm text-app-muted">
+            {t.signed_in_as} {email ?? "…"}
+          </p>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-app-border bg-transparent px-4 py-2.5 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg"
+          >
+            <LogOut className="h-4 w-4" />
+            {t.sign_out}
+          </button>
+        </section>
+
         <PaywallBanner />
+
         <section
           className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"
           aria-label={t.language_label}
