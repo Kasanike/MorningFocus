@@ -66,12 +66,8 @@ export function HomeWithSunrise() {
         return;
       }
       if (typeof access === "object" && access.status === "trial") {
-<<<<<<< HEAD
         const daysLeft = access.daysLeft ?? 1;
         setAccessGate({ status: "trial", daysLeft });
-=======
-        setAccessGate({ status: "trial", daysLeft: access.daysLeft });
->>>>>>> 3d42fe17ea4011b6c2b7648f47e2622527fa9200
         return;
       }
       setAccessGate({ status: "pro" });
