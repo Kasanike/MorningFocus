@@ -290,3 +290,23 @@ export async function setOnboardingCompleted(): Promise<void> {
     .eq("id", user.id);
   if (error) throw error;
 }
+
+export async function saveOnboardingFlow(data: {
+  age_range: string;
+  profession: string;
+}): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      age_range: data.age_range,
+      profession: data.profession,
+      onboarding_completed: true,
+    })
+    .eq("id", user.id);
+  if (error) throw error;
+}

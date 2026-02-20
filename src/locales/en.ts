@@ -128,6 +128,7 @@ export const en = {
   account_label: "Account",
   signed_in_as: "Signed in as",
   sign_out: "Sign out",
+  sign_in: "Sign in",
   language_label: "Language",
   language_english: "English",
   language_slovak: "Slovak",

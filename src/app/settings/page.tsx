@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, LogIn } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
 import { PaywallBanner } from "@/components/PaywallBanner";
@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>(locale);
   const [email, setEmail] = useState<string | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
 
   useEffect(() => {
     setSelectedLocale(locale);
@@ -25,6 +26,7 @@ export default function SettingsPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setEmail(user?.email ?? null);
+      setAuthLoaded(true);
     };
     load();
   }, []);
@@ -83,17 +85,31 @@ export default function SettingsPage() {
           <h2 className="font-sans text-xl font-semibold text-app-fg">
             {t.account_label}
           </h2>
-          <p className="mt-2 font-sans text-sm text-app-muted">
-            {t.signed_in_as} {email ?? "…"}
-          </p>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-app-border bg-transparent px-4 py-2.5 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg"
-          >
-            <LogOut className="h-4 w-4" />
-            {t.sign_out}
-          </button>
+          {!authLoaded ? (
+            <p className="mt-2 font-sans text-sm text-app-muted">…</p>
+          ) : email ? (
+            <>
+              <p className="mt-2 font-sans text-sm text-app-muted">
+                {t.signed_in_as} {email}
+              </p>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-app-border bg-transparent px-4 py-2.5 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg"
+              >
+                <LogOut className="h-4 w-4" />
+                {t.sign_out}
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login?redirect=/settings"
+              className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-app-border bg-transparent px-4 py-2.5 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg"
+            >
+              <LogIn className="h-4 w-4" />
+              {t.sign_in}
+            </Link>
+          )}
         </section>
 
         <PaywallBanner />

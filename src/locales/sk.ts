@@ -130,6 +130,7 @@ export const sk: LocaleKeys = {
   account_label: "Účet",
   signed_in_as: "Prihlásený ako",
   sign_out: "Odhlásiť sa",
+  sign_in: "Prihlásiť sa",
   language_label: "Jazyk",
   language_english: "Angličtina",
   language_slovak: "Slovenčina",

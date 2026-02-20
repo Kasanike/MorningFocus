@@ -40,6 +40,25 @@
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
+@keyframes shrink-x {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.animate-shrink-x {
+  transform-origin: left;
+  animation: shrink-x 1.5s ease-in-out forwards;
+}
+
+@keyframes building-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
 /* Premium glassmorphism for content cards - increased opacity for better text contrast */
 .card-glass {
   background: rgba(0, 0, 0, 0.4);

@@ -9,14 +9,20 @@ import { MorningProtocol } from "@/components/MorningProtocol";
 import { SunriseBackground } from "@/components/SunriseBackground";
 import { ProGate } from "@/components/ProGate";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { OnboardingSuggestionsBanner } from "@/components/onboarding/OnboardingSuggestionsBanner";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { useDailyReset } from "@/hooks/useDailyReset";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
+import { useBootstrap } from "@/context/BootstrapContext";
 
 export function HomeWithSunrise() {
   const { isReady } = useDailyReset();
   const { currentStep, totalSteps } = useProtocolProgress();
   const { showWizard, loading: onboardingLoading, refresh: refreshOnboarding } = useOnboardingStatus();
+  const bootstrap = useBootstrap();
+  const showNewOnboarding =
+    bootstrap?.onboardingStatus && !bootstrap.onboardingStatus.onboardingCompleted;
 
   return (
     <>
@@ -25,14 +31,17 @@ export function HomeWithSunrise() {
       <main className="relative z-10 mx-auto min-h-screen max-w-2xl pb-16">
         <Header />
 
-        {!isReady ? (
+        {!isReady || bootstrap?.loading ? (
           <div className="flex min-h-[50vh] items-center justify-center px-4">
             <p className="font-mono text-sm text-white/50">Loading…</p>
           </div>
+        ) : showNewOnboarding ? (
+          <OnboardingFlow onComplete={refreshOnboarding} />
         ) : showWizard ? (
           <OnboardingWizard onComplete={refreshOnboarding} />
         ) : (
           <div className="animate-fade-in mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
+            <OnboardingSuggestionsBanner />
             <PaywallBanner />
             <section aria-label="Morning Protocol">
               <MorningProtocol />
