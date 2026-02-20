@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { Bell, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
-import { getNativeAlarmUrl, getDeepLinkSupport } from "@/lib/alarm-deeplink";
+import {
+  getNativeAlarmUrl,
+  getOpenClockAppUrl,
+  getDeepLinkSupport,
+} from "@/lib/alarm-deeplink";
 
 export type AlarmSettings = {
   time: string;
@@ -51,16 +55,6 @@ export function AlarmSetting() {
     saveAlarm({ time: value });
   };
 
-  const handleSetAlarm = () => {
-    saveAlarm({ time });
-
-    const url = getNativeAlarmUrl(time);
-    if (url) {
-      // Same-window navigation so Chrome hands off to Clock app (no blank tab)
-      window.location.href = url;
-    }
-  };
-
   const platform =
     typeof window !== "undefined" ? getDeepLinkSupport() : "desktop";
 
@@ -104,18 +98,38 @@ export function AlarmSetting() {
           />
         </div>
 
-        <button
-          type="button"
-          onClick={handleSetAlarm}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
-        >
-          <ExternalLink className="h-4 w-4" />
-          {platform === "desktop"
-            ? "Open Clock App"
-            : platform === "ios"
-              ? "Open Clock App → Set Your Alarm"
-              : `Set Alarm for ${time}`}
-        </button>
+        {platform !== "desktop" && getNativeAlarmUrl(time) ? (
+          <>
+            <a
+              href={getNativeAlarmUrl(time)}
+              onClick={() => saveAlarm({ time })}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {platform === "ios"
+                ? "Open Clock App → Set Your Alarm"
+                : `Set Alarm for ${time}`}
+            </a>
+            {platform === "android" && (
+              <a
+                href={getOpenClockAppUrl()}
+                onClick={() => saveAlarm({ time })}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-3 font-mono text-xs font-medium text-white/70 transition-colors hover:bg-white/10"
+              >
+                Open Clock app → set alarm for {time} manually
+              </a>
+            )}
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => saveAlarm({ time })}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open Clock App
+          </button>
+        )}
 
         <p className="text-center font-mono text-xs text-white/40">
           Opens your device clock app with this time

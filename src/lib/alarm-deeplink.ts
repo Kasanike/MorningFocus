@@ -1,5 +1,6 @@
 /**
- * Returns the intent/deep link URL for the current platform, or "" for desktop.
+ * Returns a URL that tries to open the Clock app with alarm time pre-filled.
+ * May not work in PWA; use getOpenClockAppUrl() + manual time as fallback.
  */
 export function getNativeAlarmUrl(time: string): string {
   if (typeof window === "undefined") return "";
@@ -16,11 +17,30 @@ export function getNativeAlarmUrl(time: string): string {
       `i.android.intent.extra.alarm.HOUR=${hours};` +
       `i.android.intent.extra.alarm.MINUTES=${minutes};` +
       `S.android.intent.extra.alarm.MESSAGE=${message};` +
-      `S.android.intent.extra.alarm.SKIP_UI=false;` +
       `end`
     );
   }
   if (isIOS) return "clock-alarm://";
+  return "";
+}
+
+/**
+ * Returns a URL that just opens the Clock app (no time pre-fill).
+ * Use when SET_ALARM intent doesn't work (e.g. in PWA). User sets alarm for displayed time manually.
+ */
+export function getOpenClockAppUrl(): string {
+  if (typeof window === "undefined") return "";
+  const ua = navigator.userAgent.toLowerCase();
+  if (/android/.test(ua)) {
+    // Launch Samsung Clock (S24 etc.) — opens app so user can add alarm for the time shown above
+    return (
+      "intent://clock/#Intent;" +
+      "action=android.intent.action.MAIN;" +
+      "package=com.sec.android.app.clockpackage;" +
+      "end"
+    );
+  }
+  if (/iphone|ipad/.test(ua)) return "clock-alarm://";
   return "";
 }
 
