@@ -7,36 +7,30 @@ import { STORAGE_KEYS } from "@/lib/constants";
 import {
   getNativeAlarmUrl,
   getDeepLinkSupport,
+  openNativeAlarm,
 } from "@/lib/alarm-deeplink";
 
 export type AlarmSettings = {
   time: string;
-  days: number[];
 };
 
 const DEFAULT_TIME = "07:00";
-const DEFAULT_DAYS = [1, 2, 3, 4, 5]; // Mon–Fri
 
 function getStoredAlarm(): AlarmSettings {
   if (typeof window === "undefined") {
-    return { time: DEFAULT_TIME, days: [...DEFAULT_DAYS] };
+    return { time: DEFAULT_TIME };
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.ALARM_SETTINGS);
-    if (!raw) return { time: DEFAULT_TIME, days: [...DEFAULT_DAYS] };
+    if (!raw) return { time: DEFAULT_TIME };
     const parsed = JSON.parse(raw);
     const time =
       typeof parsed?.time === "string" && /^\d{2}:\d{2}$/.test(parsed.time)
         ? parsed.time
         : DEFAULT_TIME;
-    const days = Array.isArray(parsed?.days)
-      ? parsed.days.filter(
-          (d: unknown) => typeof d === "number" && d >= 0 && d <= 6
-        )
-      : [...DEFAULT_DAYS];
-    return { time, days: days.length ? days : [...DEFAULT_DAYS] };
+    return { time };
   } catch {
-    return { time: DEFAULT_TIME, days: [...DEFAULT_DAYS] };
+    return { time: DEFAULT_TIME };
   }
 }
 
@@ -48,36 +42,27 @@ function saveAlarm(settings: AlarmSettings) {
 export function AlarmSetting() {
   const { t } = useLanguage();
   const [time, setTime] = useState(DEFAULT_TIME);
-  const [days, setDays] = useState<number[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const stored = getStoredAlarm();
     setTime(stored.time);
-    setDays(stored.days);
   }, []);
-
-  const toggleDay = (day: number) => {
-    const next = days.includes(day)
-      ? days.filter((d) => d !== day)
-      : [...days, day].sort((a, b) => a - b);
-    setDays(next);
-    saveAlarm({ time, days: next });
-  };
 
   const handleTimeChange = (value: string) => {
     setTime(value);
-    saveAlarm({ time: value, days });
+    saveAlarm({ time: value });
   };
 
-  const [feedback, setFeedback] = useState<"idle" | "saved" | "opening">("idle");
-
   const handleSetAlarm = () => {
-    saveAlarm({ time, days });
-    setFeedback("opening");
-    setTimeout(() => setFeedback("saved"), 300);
-    setTimeout(() => setFeedback("idle"), 4000);
+    saveAlarm({ time });
+
+    const url = getNativeAlarmUrl(time);
+    if (url) {
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) openNativeAlarm(time);
+    }
   };
 
   const platform =
@@ -93,8 +78,6 @@ export function AlarmSetting() {
       </section>
     );
   }
-
-  const shortDays = t.short_weekdays;
 
   return (
     <section
@@ -125,68 +108,22 @@ export function AlarmSetting() {
           />
         </div>
 
-        <div>
-          <span className="block font-mono text-xs font-medium uppercase tracking-wider text-white/50">
-            {t.alarm_days_label}
-          </span>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {shortDays.map((label, index) => {
-              const day = index;
-              const isActive = days.includes(day);
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => toggleDay(day)}
-                  className={`min-w-[2.5rem] rounded-xl px-3 py-2.5 font-mono text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-white/25 text-white/95 shadow-inner"
-                      : "border border-white/15 bg-black/20 text-white/50 hover:border-white/25 hover:bg-white/5 hover:text-white/70"
-                  }`}
-                  aria-pressed={isActive}
-                  aria-label={`${label}, ${isActive ? "active" : "inactive"}`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {platform !== "desktop" ? (
-          <a
-            href={getNativeAlarmUrl(time)}
-            onClick={handleSetAlarm}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
-          >
-            <ExternalLink className="h-4 w-4" />
-            {platform === "ios"
+        <button
+          type="button"
+          onClick={handleSetAlarm}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
+        >
+          <ExternalLink className="h-4 w-4" />
+          {platform === "desktop"
+            ? "Open Clock App"
+            : platform === "ios"
               ? "Open Clock App → Set Your Alarm"
               : `Set Alarm for ${time}`}
-          </a>
-        ) : (
-          <button
-            type="button"
-            onClick={handleSetAlarm}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Open Clock App
-          </button>
-        )}
+        </button>
 
         <p className="text-center font-mono text-xs text-white/40">
-          {platform === "desktop"
-            ? "On mobile, this opens your native clock app"
-            : "Opens your device clock app with this time"}
+          Opens your device clock app with this time
         </p>
-        {feedback !== "idle" && (
-          <p className="text-center font-mono text-sm text-white/70 animate-fade-in">
-            {feedback === "opening"
-              ? "Opening clock app…"
-              : `Alarm saved for ${time}.`}
-          </p>
-        )}
       </div>
     </section>
   );
