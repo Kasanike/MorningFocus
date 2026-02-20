@@ -11,6 +11,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { canAddPrinciple, FREE_PRINCIPLES_LIMIT } from "@/lib/subscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import { trackConstitutionRead } from "@/lib/analytics";
 
 export interface Principle {
   id: string;
@@ -133,10 +134,13 @@ export function ConstitutionList() {
       const next = { ...prev, [id]: !prev[id] };
       const allChecked = principles.every((p) => next[p.id]);
       if (allChecked && typeof window !== "undefined") {
-        localStorage.setItem(
-          STORAGE_KEYS.ACKNOWLEDGED_DATE,
-          new Date().toISOString().slice(0, 10)
-        );
+        const today = new Date().toISOString().slice(0, 10);
+        localStorage.setItem(STORAGE_KEYS.ACKNOWLEDGED_DATE, today);
+        const key = "analytics_constitution_read";
+        if (localStorage.getItem(key) !== today) {
+          localStorage.setItem(key, today);
+          trackConstitutionRead();
+        }
       }
       return next;
     });

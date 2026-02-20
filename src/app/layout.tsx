@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import { Providers } from "@/components/Providers";
 import { AuthGuard } from "@/components/AuthGuard";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -62,6 +63,8 @@ export default function RootLayout({
       style={{ color: "#e4e4e7" }}
     >
       <head>
+        {/* Optional: use script tag instead of plausible-tracker for page views only:
+            <script defer data-domain="your-domain.com" src="https://plausible.io/js/script.js" /> */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
@@ -75,6 +78,7 @@ export default function RootLayout({
         style={{ color: "#e4e4e7" }}
       >
         <Providers>
+          <Analytics />
           <AuthGuard>{children}</AuthGuard>
           <InstallPrompt />
         </Providers>

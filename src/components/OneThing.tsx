@@ -13,6 +13,7 @@ import {
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import { trackOneThingSet } from "@/lib/analytics";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -97,6 +98,7 @@ export function OneThing() {
         await saveOneThingDb(value.trim(), date);
         await loadHistory();
       }
+      if (value.trim()) trackOneThingSet();
     } catch (e) {
       console.error(e);
     }

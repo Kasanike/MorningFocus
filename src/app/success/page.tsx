@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
+import { trackPaymentCompleted } from "@/lib/analytics";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -11,9 +12,14 @@ function SuccessContent() {
     "loading"
   );
 
+  const tracked = useRef(false);
   useEffect(() => {
     if (sessionId) {
       setStatus("success");
+      if (!tracked.current) {
+        tracked.current = true;
+        trackPaymentCompleted();
+      }
     } else {
       setStatus("missing");
     }

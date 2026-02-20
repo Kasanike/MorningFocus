@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Sign In — Better Morning",
-  description: "Command your morning. Sign in to access your personal constitution and daily battle plan.",
+  description: "Your principles, your protocol, your one thing. Sign in to Better Morning.",
 };
 
 export default function LoginLayout({

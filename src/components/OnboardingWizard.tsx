@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { trackOnboardingCompleted } from "@/lib/analytics";
 import {
   upsertPrinciple,
   upsertProtocolStep,
@@ -111,6 +112,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       const today = new Date().toISOString().slice(0, 10);
       await saveOneThingDb(oneThing.trim() || "—", today);
       await setOnboardingCompleted();
+      trackOnboardingCompleted();
       onComplete();
     } catch (e) {
       console.error(e);

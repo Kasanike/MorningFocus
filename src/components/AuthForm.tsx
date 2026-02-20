@@ -4,11 +4,16 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { trackSignupCompleted } from "@/lib/analytics";
 
 type Mode = "signin" | "signup";
 
 const inputBase =
-  "block w-full min-w-0 rounded-lg border border-app-border bg-app-card px-4 py-3 pl-11 font-sans text-base text-app-fg placeholder:text-app-muted focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg transition-colors";
+  "block w-full min-w-0 rounded-[10px] border px-4 py-3 pl-11 font-sans text-base text-white placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-white/30 transition-colors";
+const inputStyle = {
+  background: "rgba(60, 30, 40, 0.4)",
+  borderColor: "rgba(255, 255, 255, 0.06)",
+};
 
 export function AuthForm() {
   const router = useRouter();
@@ -41,6 +46,7 @@ export function AuthForm() {
           password,
         });
         if (signUpError) throw signUpError;
+        trackSignupCompleted();
       }
 
       router.push(redirect);
@@ -77,14 +83,23 @@ export function AuthForm() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-5">
-      <div className="flex w-full min-w-0 shrink-0 rounded-lg border border-app-border bg-app-card p-1">
+      <div className="mb-10 text-center">
+        <h1 className="font-sans text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          {mode === "signin" ? "Welcome back." : "Start your morning."}
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-white/70">
+          Your principles, your protocol, your one thing.
+        </p>
+      </div>
+
+      <div className="flex w-full min-w-0 shrink-0 rounded-lg border border-white/10 bg-white/5 p-1">
         <button
           type="button"
           onClick={() => setMode("signin")}
           className={`flex-1 min-w-0 rounded py-3 text-sm font-medium transition-colors ${
             mode === "signin"
-              ? "bg-app-border text-app-fg"
-              : "text-app-muted hover:text-app-fg"
+              ? "bg-white/20 text-white"
+              : "text-white/60 hover:text-white"
           }`}
         >
           Sign In
@@ -94,8 +109,8 @@ export function AuthForm() {
           onClick={() => setMode("signup")}
           className={`flex-1 min-w-0 rounded py-3 text-sm font-medium transition-colors ${
             mode === "signup"
-              ? "bg-app-border text-app-fg"
-              : "text-app-muted hover:text-app-fg"
+              ? "bg-white/20 text-white"
+              : "text-white/60 hover:text-white"
           }`}
         >
           Create Account
@@ -103,7 +118,7 @@ export function AuthForm() {
       </div>
 
       <div className="relative w-full min-w-0">
-        <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-app-muted" />
+        <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-white/50" />
         <input
           type="email"
           value={email}
@@ -112,12 +127,13 @@ export function AuthForm() {
           required
           disabled={loading}
           className={inputBase}
+          style={inputStyle}
           autoComplete="email"
         />
       </div>
 
       <div className="relative w-full min-w-0">
-        <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-app-muted" />
+        <Lock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-white/50" />
         <input
           type="password"
           value={password}
@@ -127,20 +143,21 @@ export function AuthForm() {
           disabled={loading}
           minLength={mode === "signup" ? 6 : undefined}
           className={inputBase}
+          style={inputStyle}
           autoComplete={mode === "signin" ? "current-password" : "new-password"}
         />
       </div>
 
       {error && (
-        <div className="rounded-lg border border-app-border bg-app-card px-3 py-2.5 text-sm text-app-muted">
+        <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white/80">
           {error === "setup" ? (
             <div className="space-y-2">
-              <p className="font-medium text-app-fg">Supabase is not configured</p>
-              <ol className="list-inside list-decimal space-y-1 text-app-muted">
-                <li>Create a <code className="rounded bg-app-border px-1">.env.local</code> file in the project root</li>
-                <li>Add: <code className="block rounded bg-app-border p-2 text-xs">NEXT_PUBLIC_SUPABASE_URL=your-url<br />NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key</code></li>
-                <li>Get these from <a href="https://supabase.com/dashboard/project/_/settings/api" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline text-app-fg">Supabase Dashboard → Project Settings → API</a></li>
-                <li>Restart the dev server (<code className="rounded bg-app-border px-1">npm run dev</code>)</li>
+              <p className="font-medium text-white">Supabase is not configured</p>
+              <ol className="list-inside list-decimal space-y-1 text-white/70">
+                <li>Create a <code className="rounded bg-white/10 px-1">.env.local</code> file in the project root</li>
+                <li>Add: <code className="block rounded bg-white/10 p-2 text-xs">NEXT_PUBLIC_SUPABASE_URL=your-url<br />NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key</code></li>
+                <li>Get these from <a href="https://supabase.com/dashboard/project/_/settings/api" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline text-white">Supabase Dashboard → Project Settings → API</a></li>
+                <li>Restart the dev server (<code className="rounded bg-white/10 px-1">npm run dev</code>)</li>
               </ol>
             </div>
           ) : (
@@ -152,21 +169,25 @@ export function AuthForm() {
       <button
         type="submit"
         disabled={loading}
-        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-lg bg-app-fg px-6 py-4 font-sans text-base font-semibold text-app-bg transition-opacity hover:opacity-90 disabled:opacity-70"
+        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-4 font-sans text-base font-bold text-indigo-900 transition-opacity hover:opacity-90 disabled:opacity-70"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
+        ) : mode === "signin" ? (
+          "Sign in"
         ) : (
-          "ENTER THE ARENA"
+          "Create account"
         )}
       </button>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-app-border" />
+          <span className="w-full border-t border-white/10" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-app-card px-3 text-app-muted">or</span>
+          <span className="px-3 text-white/50" style={{ background: "rgba(30, 15, 25, 0.55)" }}>
+            or
+          </span>
         </div>
       </div>
 
@@ -174,7 +195,12 @@ export function AuthForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-app-border bg-app-card px-6 py-3.5 font-sans text-base font-medium text-app-fg transition-colors hover:bg-app-border disabled:opacity-50"
+        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-[16px] border border-white/10 px-6 py-3.5 font-sans text-base font-medium text-white/95 transition-colors hover:bg-white/10 disabled:opacity-50"
+        style={{
+          background: "rgba(30, 15, 25, 0.4)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
       >
         <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
           <path

@@ -16,6 +16,7 @@ import { canAddProtocolStep, FREE_PROTOCOL_STEPS_LIMIT } from "@/lib/subscriptio
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import { trackProtocolCompleted } from "@/lib/analytics";
 
 export type { ProtocolStep };
 
@@ -130,6 +131,18 @@ export function MorningProtocol() {
   useEffect(() => {
     const completedCount = Object.values(completed).filter(Boolean).length;
     setProgress(completedCount, steps.length);
+    if (
+      steps.length > 0 &&
+      completedCount === steps.length &&
+      typeof window !== "undefined"
+    ) {
+      const today = new Date().toISOString().slice(0, 10);
+      const key = "analytics_protocol_completed";
+      if (localStorage.getItem(key) !== today) {
+        localStorage.setItem(key, today);
+        trackProtocolCompleted();
+      }
+    }
   }, [completed, steps.length, setProgress]);
 
   const persist = useCallback((next: ProtocolStep[]) => {
