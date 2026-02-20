@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { Bell, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
-import {
-  getNativeAlarmUrl,
-  getDeepLinkSupport,
-  openNativeAlarm,
-} from "@/lib/alarm-deeplink";
+import { getNativeAlarmUrl, getDeepLinkSupport } from "@/lib/alarm-deeplink";
 
 export type AlarmSettings = {
   time: string;
@@ -60,8 +56,8 @@ export function AlarmSetting() {
 
     const url = getNativeAlarmUrl(time);
     if (url) {
-      const opened = window.open(url, "_blank", "noopener,noreferrer");
-      if (!opened) openNativeAlarm(time);
+      // Same-window navigation so Chrome hands off to Clock app (no blank tab)
+      window.location.href = url;
     }
   };
 
