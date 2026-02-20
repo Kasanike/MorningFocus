@@ -118,3 +118,22 @@ export async function saveOneThingDb(
     );
   if (error) throw error;
 }
+
+// ── Plan (payment) ─────────────────────────────────────
+
+export type Plan = "free" | "paid";
+
+export async function fetchPlan(): Promise<Plan> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return "free";
+  const { data } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", user.id)
+    .maybeSingle();
+  const plan = data?.plan;
+  return plan === "paid" ? "paid" : "free";
+}

@@ -7,9 +7,9 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Better Morning — Start Your Day With Discipline",
+  title: "Better Morning — Own Your First Hour",
   description:
-    "A daily companion for men who start their day with clarity, purpose, and stoic wisdom.",
+    "A calm space to read your principles, follow your protocol, and name the one thing that matters today.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -20,10 +20,30 @@ export const metadata: Metadata = {
     icon: ["/icon-192.png", "/icon-512.png"],
     apple: "/apple-icon.png",
   },
+  openGraph: {
+    title: "Better Morning — Own Your First Hour",
+    description:
+      "A calm space to read your principles, follow your protocol, and name the one thing that matters today.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Better Morning — Own Your First Hour",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Better Morning — Own Your First Hour",
+    description:
+      "A calm space to read your principles, follow your protocol, and name the one thing that matters today.",
+    images: ["/og-image.png"],
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090b",
+  themeColor: "#2a1b3d",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -45,7 +65,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
-        <meta name="theme-color" content="#09090b" />
+        <meta name="theme-color" content="#2a1b3d" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Better Morning" />

@@ -30,18 +30,21 @@ export interface Database {
         Row: {
           id: string;
           language_preference: string;
+          plan: "free" | "paid";
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           language_preference?: string;
+          plan?: "free" | "paid";
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           language_preference?: string;
+          plan?: "free" | "paid";
           created_at?: string;
           updated_at?: string;
         };

@@ -882,3 +882,90 @@
     text-align: center;
   }
 }
+
+/* Legal pages (Privacy, Terms) */
+.landing .legal-page .page-wrapper {
+  padding-top: 20px;
+  padding-bottom: 60px;
+}
+
+.landing .legal-heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1.2;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.landing .legal-updated {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.landing .legal-section {
+  margin-bottom: 28px;
+}
+
+.landing .legal-section:last-child {
+  margin-bottom: 0;
+}
+
+.landing .legal-section h2 {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-warm);
+  margin-bottom: 12px;
+}
+
+.landing .legal-section h3 {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.landing .legal-section p,
+.landing .legal-section li {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin-bottom: 10px;
+}
+
+.landing .legal-section p:last-child,
+.landing .legal-section ul {
+  margin-bottom: 0;
+}
+
+.landing .legal-section ul {
+  padding-left: 20px;
+  margin-top: 8px;
+}
+
+.landing .legal-section li {
+  margin-bottom: 6px;
+}
+
+.landing .legal-back {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 24px;
+  transition: color 0.2s;
+}
+
+.landing .legal-back:hover {
+  color: var(--text-primary);
+}

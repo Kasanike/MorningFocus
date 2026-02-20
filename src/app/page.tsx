@@ -489,8 +489,8 @@ export default function LandingPage() {
             © {new Date().getFullYear()} Better Morning
           </div>
           <div className="footer-links">
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
             <a href="mailto:hello@bettermorning.app">Contact</a>
           </div>
         </footer>

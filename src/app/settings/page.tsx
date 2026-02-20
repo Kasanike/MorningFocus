@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
+import { PaywallBanner } from "@/components/PaywallBanner";
 import type { SupportedLocale } from "@/locales";
 
 export default function SettingsPage() {
@@ -56,6 +57,7 @@ export default function SettingsPage() {
       </header>
 
       <div className="space-y-8 px-4 pt-8 sm:px-8">
+        <PaywallBanner />
         <section
           className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"
           aria-label={t.language_label}

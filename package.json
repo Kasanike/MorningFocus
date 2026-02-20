@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "generate-icons": "node scripts/generate-pwa-icons.js"
+    "generate-icons": "node scripts/generate-pwa-icons.js",
+    "generate-og": "node scripts/generate-og-image.js"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.7.0",
