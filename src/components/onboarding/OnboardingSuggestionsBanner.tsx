@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { Pencil } from "lucide-react";
+=======
+>>>>>>> 3d42fe17ea4011b6c2b7648f47e2622527fa9200
 import { getHasEditedContent } from "@/lib/constants";
 
 const STORAGE_KEY = "onboarding_just_completed";
