@@ -8,6 +8,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+/** Stripe API still returns these; SDK types may omit them in some versions. */
+type SubscriptionWithPeriod = Stripe.Subscription & {
+  current_period_start: number;
+  current_period_end: number;
+};
+
 async function setProfilePro(
   userId: string,
   updates: {
@@ -76,9 +82,9 @@ export async function POST(request: Request) {
           console.error("Webhook: no user id in session", session.id);
           return NextResponse.json({ received: true });
         }
-        const subscription = await stripe.subscriptions.retrieve(
+        const subscription = (await stripe.subscriptions.retrieve(
           session.subscription as string
-        );
+        )) as SubscriptionWithPeriod;
         const customerId =
           typeof session.customer === "string"
             ? session.customer
@@ -104,7 +110,7 @@ export async function POST(request: Request) {
             ? invoice.subscription
             : invoice.subscription?.id;
         if (!subId) return NextResponse.json({ received: true });
-        const subscription = await stripe.subscriptions.retrieve(subId);
+        const subscription = (await stripe.subscriptions.retrieve(subId)) as SubscriptionWithPeriod;
         const admin = createAdminClient();
         const { data: profile } = await admin
           .from("profiles")
@@ -126,7 +132,7 @@ export async function POST(request: Request) {
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription = event.data.object as SubscriptionWithPeriod;
         const admin = createAdminClient();
         const { data: profile } = await admin
           .from("profiles")

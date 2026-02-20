@@ -61,7 +61,10 @@ export async function POST() {
       );
     }
 
-    const sub = subscriptions.data[0];
+    const sub = subscriptions.data[0] as Stripe.Subscription & {
+      current_period_start: number;
+      current_period_end: number;
+    };
     const admin = createAdminClient();
     const { error } = await admin
       .from("profiles")
