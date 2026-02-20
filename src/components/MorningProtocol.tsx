@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Pencil, Trash2, Clock } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
-import { STORAGE_KEYS } from "@/lib/constants";
+import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import {
   fetchProtocolSteps,
   upsertProtocolStep,
@@ -159,6 +159,7 @@ export function MorningProtocol() {
         order_index: i,
       }).catch(console.error);
     });
+    setHasEditedContent();
   }, []);
 
   const persistCompleted = useCallback((next: Record<string, boolean>) => {
