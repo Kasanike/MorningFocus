@@ -34,20 +34,20 @@ export function HomeWithSunrise() {
         ) : (
           <div className="animate-fade-in mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
             <PaywallBanner />
-            <section aria-label="Quote from Stoics">
-              <StoicQuote />
-            </section>
-
             <section aria-label="Morning Protocol">
               <MorningProtocol />
+            </section>
+
+            <section aria-label="One Thing - Priority of the day">
+              <OneThing />
             </section>
 
             <section aria-label="Personal Constitution">
               <ConstitutionList />
             </section>
 
-            <section aria-label="One Thing - Priority of the day">
-              <OneThing />
+            <section aria-label="Quote from Stoics">
+              <StoicQuote />
             </section>
 
             <section aria-label="Streak">
