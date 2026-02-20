@@ -68,9 +68,18 @@ export function AlarmSetting() {
     saveAlarm({ time: value, days });
   };
 
+  const [savedFeedback, setSavedFeedback] = useState(false);
+
   const handleSetAlarm = () => {
     saveAlarm({ time, days });
     openNativeAlarm(time);
+    // On desktop nothing opens; show feedback
+    const platformNow =
+      typeof window !== "undefined" ? getDeepLinkSupport() : "desktop";
+    if (platformNow === "desktop") {
+      setSavedFeedback(true);
+      setTimeout(() => setSavedFeedback(false), 4000);
+    }
   };
 
   const platform =
@@ -160,9 +169,16 @@ export function AlarmSetting() {
         </button>
 
         {platform === "desktop" && (
-          <p className="text-center font-mono text-xs text-white/40">
-            On mobile, this opens your native clock app
-          </p>
+          <>
+            <p className="text-center font-mono text-xs text-white/40">
+              On mobile, this opens your native clock app
+            </p>
+            {savedFeedback && (
+              <p className="text-center font-mono text-sm text-white/70 animate-fade-in">
+                Alarm saved for {time}. Open this app on your phone to set it in your clock.
+              </p>
+            )}
+          </>
         )}
       </div>
     </section>
