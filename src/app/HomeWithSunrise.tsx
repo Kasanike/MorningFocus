@@ -1,7 +1,6 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { AlarmSetting } from "@/components/AlarmSetting";
 import { StoicQuote } from "@/components/StoicQuote";
 import { ConstitutionList } from "@/components/ConstitutionList";
 import { OneThing } from "@/components/OneThing";
@@ -27,10 +26,6 @@ export function HomeWithSunrise() {
           </div>
         ) : (
           <div className="animate-fade-in mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
-            <section aria-label="Alarm settings">
-              <AlarmSetting />
-            </section>
-
             <section aria-label="Quote from Stoics">
               <StoicQuote />
             </section>
