@@ -44,7 +44,7 @@ export default function SettingsPage() {
     <main className="mx-auto min-h-screen max-w-2xl pb-8">
       <header className="border-b border-app-border bg-app-bg/95 px-4 py-8 sm:px-8">
         <Link
-          href="/"
+          href="/home"
           className="mb-6 inline-flex items-center gap-2 text-sm text-app-muted transition-colors hover:text-app-fg"
         >
           <ArrowLeft className="h-4 w-4" />

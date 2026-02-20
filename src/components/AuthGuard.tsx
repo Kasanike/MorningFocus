@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 /** Set to false to re-enable login/signup requirement */
 const BYPASS_AUTH = true;
 
-const PROTECTED_ROUTES = ["/", "/settings"];
+const PROTECTED_ROUTES = ["/home", "/settings"];
 const AUTH_ROUTES = ["/login"];
 
 function isProtected(pathname: string): boolean {
@@ -52,15 +52,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         }
 
         if (BYPASS_AUTH && isAuthRoute(pathname)) {
-          router.replace("/");
+          router.replace("/home");
           return;
         }
 
         if (!BYPASS_AUTH && isAuthRoute(pathname) && user) {
           const redirect =
             typeof window !== "undefined"
-              ? new URLSearchParams(window.location.search).get("redirect") ?? "/"
-              : "/";
+              ? new URLSearchParams(window.location.search).get("redirect") ?? "/home"
+              : "/home";
           router.replace(redirect);
           return;
         }
