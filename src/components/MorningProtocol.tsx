@@ -9,12 +9,14 @@ import {
   fetchProtocolSteps,
   upsertProtocolStep,
   deleteProtocolStep,
+  saveTimerSession,
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { canAddProtocolStep, FREE_PROTOCOL_STEPS_LIMIT } from "@/lib/subscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
+import ProtocolTimer from "./ProtocolTimer";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { trackProtocolCompleted } from "@/lib/analytics";
 
@@ -98,6 +100,7 @@ export function MorningProtocol() {
   const [newLabel, setNewLabel] = useState("");
   const [newMinutes, setNewMinutes] = useState(5);
   const [mounted, setMounted] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -230,6 +233,14 @@ export function MorningProtocol() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowTimer(true)}
+            className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 font-mono text-[0.7rem] font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #d4856a, #c46b6b)' }}
+          >
+            ▶ Start Guided
+          </button>
           {totalMinutes > 0 && (
             <div className="flex items-center gap-1.5 text-sm text-white/60">
               <Clock className="h-4 w-4" />
@@ -270,6 +281,32 @@ export function MorningProtocol() {
           />
         ))}
       </ol>
+
+      {showTimer && (
+        <ProtocolTimer
+          steps={steps.map((s) => ({
+            id: s.id,
+            title: s.label,
+            duration: s.minutes,
+          }))}
+          onComplete={async (results) => {
+            const next = { ...completed };
+            results.completedSteps.forEach((step) => {
+              if (!step.skipped) next[step.id] = true;
+            });
+            persistCompleted(next);
+
+            try {
+              await saveTimerSession(results);
+            } catch {
+              // non-critical — session still marked complete locally
+            }
+
+            setShowTimer(false);
+          }}
+          onClose={() => setShowTimer(false)}
+        />
+      )}
 
       {isEditMode && (
         !canAdd ? (

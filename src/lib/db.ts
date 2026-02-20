@@ -173,6 +173,31 @@ export async function setOneThingCompleted(
   if (error) throw error;
 }
 
+// ── Timer Sessions ──────────────────────────────────────
+
+export async function saveTimerSession(results: {
+  completedSteps: { id: string; title: string; plannedDuration: number; actualDuration: number; skipped: boolean }[];
+  totalTime: number;
+  completionRate: number;
+}): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase.from("timer_sessions").insert({
+    user_id: user.id,
+    total_time_seconds: results.totalTime,
+    steps_completed: results.completedSteps.filter((s) => !s.skipped).length,
+    steps_total: results.completedSteps.length,
+    completion_rate: results.completionRate,
+    step_details: results.completedSteps,
+  });
+
+  if (error) console.error("Failed to save timer session:", error);
+}
+
 // ── Plan (subscription) ─────────────────────────────────
 
 export type Plan = "free" | "pro";
