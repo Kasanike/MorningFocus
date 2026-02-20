@@ -34,6 +34,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [trialInfo, setTrialInfo] = useState<Awaited<ReturnType<typeof fetchTrialInfo>>>(null);
+  const [trialLoaded, setTrialLoaded] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
@@ -53,7 +54,10 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    fetchTrialInfo().then(setTrialInfo);
+    fetchTrialInfo()
+      .then((info) => setTrialInfo(info))
+      .catch(() => {})
+      .finally(() => setTrialLoaded(true));
   }, []);
 
   const handleSignOut = async () => {
@@ -181,38 +185,63 @@ export default function SettingsPage() {
           <h2 className="font-sans text-xl font-semibold text-app-fg">
             Subscription
           </h2>
-          {trialInfo === null ? (
+          {!trialLoaded ? (
             <p className="mt-2 font-sans text-sm text-app-muted">…</p>
-          ) : (
-            <>
-              <p className="mt-2 font-sans text-sm text-app-muted">
-                Current plan: {planLabel(trialInfo.plan, trialInfo.trial_ends)}
-              </p>
-              {trialInfo.plan !== "pro" && (
-                <div className="mt-4 flex flex-col gap-3">
-                  <button
-                    type="button"
-                    onClick={handleUpgrade}
-                    disabled={checkoutLoading}
-                    className="min-h-[44px] w-full rounded-lg bg-app-fg px-4 py-2.5 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto sm:min-w-[200px]"
+          ) : (() => {
+            const label = trialInfo
+              ? planLabel(trialInfo.plan, trialInfo.trial_ends)
+              : "Free trial";
+            const isPro = trialInfo?.plan === "pro";
+
+            return (
+              <>
+                <div className="mt-3 flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 font-mono text-xs font-semibold ${
+                      isPro
+                        ? "bg-emerald-500/15 text-emerald-400"
+                        : "bg-amber-500/15 text-amber-400"
+                    }`}
                   >
-                    {checkoutLoading ? "Redirecting…" : "Upgrade to Pro — €29.99/year"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleRestore}
-                    disabled={restoreLoading}
-                    className="font-sans text-sm text-app-muted underline decoration-app-border underline-offset-2 transition-colors hover:text-app-fg disabled:opacity-60"
-                  >
-                    {restoreLoading ? "Checking…" : "Restore purchase"}
-                  </button>
-                  {restoreMessage && (
-                    <p className="font-sans text-xs text-app-muted">{restoreMessage}</p>
-                  )}
+                    {isPro ? "Pro" : "Trial"}
+                  </span>
+                  <span className="font-sans text-sm text-app-muted">
+                    {label}
+                  </span>
                 </div>
-              )}
-            </>
-          )}
+
+                {!isPro && (
+                  <div className="mt-5 flex flex-col gap-3">
+                    <button
+                      type="button"
+                      onClick={handleUpgrade}
+                      disabled={checkoutLoading}
+                      className="min-h-[44px] w-full rounded-xl bg-gradient-to-r from-[#d4856a] to-[#c46b6b] px-5 py-3 font-sans text-sm font-semibold text-white shadow-lg shadow-[#c46b6b]/20 transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto sm:min-w-[240px]"
+                    >
+                      {checkoutLoading ? "Redirecting…" : "Upgrade to Pro — €29.99/year"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRestore}
+                      disabled={restoreLoading}
+                      className="font-sans text-sm text-app-muted underline decoration-app-border underline-offset-2 transition-colors hover:text-app-fg disabled:opacity-60"
+                    >
+                      {restoreLoading ? "Checking…" : "Restore purchase"}
+                    </button>
+                    {restoreMessage && (
+                      <p className="font-sans text-xs text-app-muted">{restoreMessage}</p>
+                    )}
+                  </div>
+                )}
+
+                {isPro && (
+                  <p className="mt-3 font-sans text-xs text-app-muted">
+                    You have full access to all features.
+                  </p>
+                )}
+              </>
+            );
+          })()}
         </section>
 
         <section

@@ -12,6 +12,8 @@ import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingSuggestionsBanner } from "@/components/onboarding/OnboardingSuggestionsBanner";
 import { TrialBanner } from "@/components/TrialBanner";
+import { StreakCard } from "@/components/StreakCard";
+import { HistoryCard } from "@/components/HistoryCard";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { useDailyReset } from "@/hooks/useDailyReset";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
@@ -130,25 +132,11 @@ export function HomeWithSunrise() {
             </section>
 
             <section aria-label="Streak">
-              <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
-                <h2 className="font-mono text-xl font-semibold text-white/95">
-                  Streak
-                </h2>
-                <p className="mt-2 font-mono text-sm text-white/60">
-                  Your consistency streak will appear here.
-                </p>
-              </div>
+              <StreakCard />
             </section>
 
             <section aria-label="History">
-              <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
-                <h2 className="font-mono text-xl font-semibold text-white/95">
-                  History
-                </h2>
-                <p className="mt-2 font-mono text-sm text-white/60">
-                  Your morning history will appear here.
-                </p>
-              </div>
+              <HistoryCard />
             </section>
           </div>
         )}

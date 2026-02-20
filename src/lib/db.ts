@@ -198,6 +198,175 @@ export async function saveTimerSession(results: {
   if (error) throw new Error(`Failed to save timer session: ${error.message}`);
 }
 
+// ── Streak data ─────────────────────────────────────────
+
+export interface StreakData {
+  currentStreak: number;
+  bestStreak: number;
+  totalMornings: number;
+  /** ISO date strings (YYYY-MM-DD) of completed days for the current week */
+  weekCompletions: Set<string>;
+}
+
+export async function fetchStreakData(): Promise<StreakData> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { currentStreak: 0, bestStreak: 0, totalMornings: 0, weekCompletions: new Set() };
+
+  const [sessionsRes, oneThingRes] = await Promise.all([
+    supabase
+      .from("timer_sessions")
+      .select("date")
+      .eq("user_id", user.id),
+    supabase
+      .from("one_thing_history")
+      .select("date, text")
+      .eq("user_id", user.id),
+  ]);
+
+  const activeDates = new Set<string>();
+  for (const r of sessionsRes.data ?? []) {
+    if (r.date) activeDates.add(r.date);
+  }
+  for (const r of oneThingRes.data ?? []) {
+    if (r.date && (r.text ?? "").trim() !== "") activeDates.add(r.date);
+  }
+
+  const totalMornings = activeDates.size;
+
+  let currentStreak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    if (activeDates.has(d.toISOString().slice(0, 10))) currentStreak++;
+    else break;
+  }
+
+  let bestStreak = 0;
+  let runningStreak = 0;
+  const sorted = Array.from(activeDates).sort();
+  for (let i = 0; i < sorted.length; i++) {
+    if (i === 0) {
+      runningStreak = 1;
+    } else {
+      const prev = new Date(sorted[i - 1] + "T12:00:00");
+      const curr = new Date(sorted[i] + "T12:00:00");
+      const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+      runningStreak = diffDays === 1 ? runningStreak + 1 : 1;
+    }
+    if (runningStreak > bestStreak) bestStreak = runningStreak;
+  }
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const mondayOffset = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const weekCompletions = new Set<string>();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() - mondayOffset + i);
+    const key = d.toISOString().slice(0, 10);
+    if (activeDates.has(key)) weekCompletions.add(key);
+  }
+
+  return { currentStreak, bestStreak, totalMornings, weekCompletions };
+}
+
+// ── History data ────────────────────────────────────────
+
+export interface HistorySession {
+  date: string;
+  stepsCompleted: number;
+  stepsTotal: number;
+  totalTimeSeconds: number;
+}
+
+export interface HistoryOneThing {
+  date: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface HistoryDay {
+  date: string;
+  session: HistorySession | null;
+  oneThing: HistoryOneThing | null;
+}
+
+export async function fetchHistoryData(limit: number): Promise<HistoryDay[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const [sessionsRes, oneThingRes] = await Promise.all([
+    supabase
+      .from("timer_sessions")
+      .select("date, steps_completed, steps_total, total_time_seconds")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("one_thing_history")
+      .select("date, text, completed")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false })
+      .limit(limit),
+  ]);
+
+  const sessionMap = new Map<string, HistorySession>();
+  for (const r of sessionsRes.data ?? []) {
+    if (!r.date) continue;
+    const existing = sessionMap.get(r.date);
+    if (existing) {
+      existing.stepsCompleted += r.steps_completed ?? 0;
+      existing.stepsTotal += r.steps_total ?? 0;
+      existing.totalTimeSeconds += r.total_time_seconds ?? 0;
+    } else {
+      sessionMap.set(r.date, {
+        date: r.date,
+        stepsCompleted: r.steps_completed ?? 0,
+        stepsTotal: r.steps_total ?? 0,
+        totalTimeSeconds: r.total_time_seconds ?? 0,
+      });
+    }
+  }
+
+  const oneThingMap = new Map<string, HistoryOneThing>();
+  for (const r of oneThingRes.data ?? []) {
+    if (!r.date) continue;
+    oneThingMap.set(r.date, {
+      date: r.date,
+      text: r.text ?? "",
+      completed: r.completed ?? false,
+    });
+  }
+
+  const allDates = new Set<string>();
+  for (const d of sessionMap.keys()) allDates.add(d);
+  for (const d of oneThingMap.keys()) allDates.add(d);
+
+  const today = new Date();
+  for (let i = 0; i < limit; i++) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    allDates.add(d.toISOString().slice(0, 10));
+  }
+
+  const days: HistoryDay[] = Array.from(allDates)
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, limit)
+    .map((date) => ({
+      date,
+      session: sessionMap.get(date) ?? null,
+      oneThing: oneThingMap.get(date) ?? null,
+    }));
+
+  return days;
+}
+
 // ── Paywall stats (for trial-expired screen) ─────────────
 
 export interface PaywallStats {

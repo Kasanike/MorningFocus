@@ -52,6 +52,7 @@ export function OneThing() {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState<OneThingEntry[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -102,6 +103,8 @@ export function OneThing() {
         trackOneThingSet();
         setHasEditedContent();
       }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       console.error(e);
     }
@@ -144,7 +147,7 @@ export function OneThing() {
         <input
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => { setValue(e.target.value); setSaved(false); }}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
           placeholder={t.one_thing_placeholder}
           className="min-h-[44px] min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 text-base font-medium text-white placeholder:text-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -152,9 +155,13 @@ export function OneThing() {
         <button
           type="button"
           onClick={handleSave}
-          className="min-h-[44px] w-full shrink-0 rounded-full bg-white px-6 py-3 font-bold text-indigo-900 transition-opacity hover:opacity-90 sm:w-auto"
+          className={`min-h-[44px] w-full shrink-0 rounded-full px-6 py-3 font-bold transition-all duration-300 sm:w-auto ${
+            saved
+              ? "bg-emerald-400 text-emerald-950"
+              : "bg-white text-indigo-900 hover:opacity-90"
+          }`}
         >
-          {t.save}
+          {saved ? "Saved" : t.save}
         </button>
       </div>
 
