@@ -6,7 +6,7 @@ export function openNativeAlarm(time: string): void {
   if (isAndroid) {
     const [hours, minutes] = time.split(":").map(Number);
     const message = encodeURIComponent("Better Morning");
-    // Chrome Android intent format: intent://host/#Intent; i.=integer S.=string; package; end
+    // Implicit intent — no package so Samsung Clock / any default alarm app handles it
     const intent =
       `intent://alarm/#Intent;` +
       `action=android.intent.action.SET_ALARM;` +
@@ -14,7 +14,6 @@ export function openNativeAlarm(time: string): void {
       `i.android.intent.extra.alarm.MINUTES=${minutes};` +
       `S.android.intent.extra.alarm.MESSAGE=${message};` +
       `S.android.intent.extra.alarm.SKIP_UI=false;` +
-      `package=com.android.deskclock;` +
       `end`;
     window.location.href = intent;
   } else if (isIOS) {
