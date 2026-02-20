@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Target } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { fetchOneThing, saveOneThingDb } from "@/lib/db";
+import { createClient } from "@/utils/supabase/client";
 
 function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -24,7 +26,7 @@ function getStoredOneThing(): string {
   }
 }
 
-function saveOneThing(text: string) {
+function saveOneThingLocal(text: string) {
   if (typeof window === "undefined") return;
   localStorage.setItem(
     STORAGE_KEYS.ONE_THING,
@@ -39,11 +41,39 @@ export function OneThing() {
 
   useEffect(() => {
     setMounted(true);
-    setValue(getStoredOneThing());
+    const load = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const text = await fetchOneThing(getTodayKey());
+          if (text !== "") {
+            setValue(text);
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      setValue(getStoredOneThing());
+    };
+    load();
   }, []);
 
-  const handleSave = () => {
-    saveOneThing(value);
+  const handleSave = async () => {
+    const date = getTodayKey();
+    saveOneThingLocal(value);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) await saveOneThingDb(value.trim(), date);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   if (!mounted) {

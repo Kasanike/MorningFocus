@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
+import { createClient } from "@/utils/supabase/client";
 
 export interface Principle {
   id: string;
@@ -79,11 +81,30 @@ export function ConstitutionList() {
 
   useEffect(() => {
     setMounted(true);
-    const defaults = t.default_principles;
-    setPrinciples(getStoredPrinciples(defaults));
+    const load = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const data = await fetchPrinciples();
+          if (data.length > 0) {
+            setPrinciples(
+              data.map(({ id, text, subtitle }) => ({ id, text, subtitle }))
+            );
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      setPrinciples(getStoredPrinciples(t.default_principles));
+    };
+    load();
     const ackToday = isAcknowledgedToday();
     if (ackToday) {
-      const stored = getStoredPrinciples(defaults);
+      const stored = getStoredPrinciples(t.default_principles);
       const allChecked: Record<string, boolean> = {};
       stored.forEach((p) => {
         allChecked[p.id] = true;
@@ -97,6 +118,9 @@ export function ConstitutionList() {
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.PRINCIPLES, JSON.stringify(next));
     }
+    next.forEach((p, i) => {
+      upsertPrinciple({ ...p, order_index: i }).catch(console.error);
+    });
   }, []);
 
   const handleCheck = (id: string) => {
@@ -129,6 +153,7 @@ export function ConstitutionList() {
 
   const handleRemove = (id: string) => {
     savePrinciples(principles.filter((p) => p.id !== id));
+    deletePrinciple(id).catch(console.error);
     setEditId(null);
   };
 

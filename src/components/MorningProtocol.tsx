@@ -5,6 +5,12 @@ import { Plus, Pencil, Trash2, Clock } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { STORAGE_KEYS } from "@/lib/constants";
+import {
+  fetchProtocolSteps,
+  upsertProtocolStep,
+  deleteProtocolStep,
+} from "@/lib/db";
+import { createClient } from "@/utils/supabase/client";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 
 export type { ProtocolStep };
@@ -89,8 +95,31 @@ export function MorningProtocol() {
 
   useEffect(() => {
     setMounted(true);
-    setSteps(getStoredSteps(t.default_protocol_step_labels, DEFAULT_PROTOCOL_MINUTES));
-    setCompleted(getStoredCompleted());
+    const load = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const data = await fetchProtocolSteps();
+          if (data.length > 0) {
+            setSteps(
+              data.map(({ id, label, minutes }) => ({ id, label, minutes }))
+            );
+            setCompleted(getStoredCompleted());
+            return;
+          }
+        }
+      } catch {
+        // ignore
+      }
+      setSteps(
+        getStoredSteps(t.default_protocol_step_labels, DEFAULT_PROTOCOL_MINUTES)
+      );
+      setCompleted(getStoredCompleted());
+    };
+    load();
   }, [t.default_protocol_step_labels]);
 
   useEffect(() => {
@@ -101,6 +130,14 @@ export function MorningProtocol() {
   const persist = useCallback((next: ProtocolStep[]) => {
     setSteps(next);
     saveSteps(next);
+    next.forEach((s, i) => {
+      upsertProtocolStep({
+        id: s.id,
+        label: s.label,
+        minutes: s.minutes,
+        order_index: i,
+      }).catch(console.error);
+    });
   }, []);
 
   const persistCompleted = useCallback((next: Record<string, boolean>) => {
@@ -124,6 +161,7 @@ export function MorningProtocol() {
 
   const handleRemove = (id: string) => {
     persist(steps.filter((s) => s.id !== id));
+    deleteProtocolStep(id).catch(console.error);
     setEditId(null);
     const { [id]: _, ...rest } = completed;
     persistCompleted(rest);
