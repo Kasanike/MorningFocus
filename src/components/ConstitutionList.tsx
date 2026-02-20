@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { STORAGE_KEYS } from "@/lib/constants";
+import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
@@ -127,6 +127,7 @@ export function ConstitutionList() {
     next.forEach((p, i) => {
       upsertPrinciple({ ...p, order_index: i }).catch(console.error);
     });
+    setHasEditedContent();
   }, []);
 
   const handleCheck = (id: string) => {

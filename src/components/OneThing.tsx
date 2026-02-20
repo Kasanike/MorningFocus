@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Target } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { STORAGE_KEYS } from "@/lib/constants";
+import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import {
   fetchOneThing,
   saveOneThingDb,
@@ -98,7 +98,10 @@ export function OneThing() {
         await saveOneThingDb(value.trim(), date);
         await loadHistory();
       }
-      if (value.trim()) trackOneThingSet();
+      if (value.trim()) {
+        trackOneThingSet();
+        setHasEditedContent();
+      }
     } catch (e) {
       console.error(e);
     }

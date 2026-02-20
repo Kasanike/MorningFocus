@@ -198,6 +198,54 @@ export async function saveTimerSession(results: {
   if (error) console.error("Failed to save timer session:", error);
 }
 
+// ── Paywall stats (for trial-expired screen) ─────────────
+
+export interface PaywallStats {
+  streak: number;
+  stepsCompleted: number;
+  oneThingsDone: number;
+}
+
+/** Streak = consecutive days up to today with at least one timer_session. */
+export async function fetchPaywallStats(): Promise<PaywallStats | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const [sessionsRes, oneThingRes] = await Promise.all([
+    supabase
+      .from("timer_sessions")
+      .select("date, steps_completed")
+      .eq("user_id", user.id)
+      .order("date", { ascending: false }),
+    supabase
+      .from("one_thing_history")
+      .select("date, text")
+      .eq("user_id", user.id),
+  ]);
+
+  const sessions = sessionsRes.data ?? [];
+  const oneThings = oneThingRes.data ?? [];
+
+  const stepsCompleted = sessions.reduce((sum, r) => sum + (r.steps_completed ?? 0), 0);
+  const oneThingsDone = oneThings.filter((r) => (r.text ?? "").trim() !== "").length;
+
+  const sessionDates = new Set(sessions.map((r) => r.date));
+  const today = new Date().toISOString().slice(0, 10);
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 365; i++) {
+    const key = d.toISOString().slice(0, 10);
+    if (sessionDates.has(key)) streak++;
+    else break;
+    d.setDate(d.getDate() - 1);
+  }
+
+  return { streak, stepsCompleted, oneThingsDone };
+}
+
 // ── Plan (subscription) ─────────────────────────────────
 
 export type Plan = "free" | "pro";
@@ -237,6 +285,32 @@ export async function fetchProfilePlan(): Promise<ProfilePlan | null> {
   return {
     plan: data.plan === "pro" ? "pro" : "free",
     subscription_end: data.subscription_end ?? null,
+  };
+}
+
+/** Trial banner: plan + trial_start, trial_ends. Returns null if not on trial. */
+export interface TrialInfo {
+  plan: string;
+  trial_start: string | null;
+  trial_ends: string | null;
+}
+
+export async function fetchTrialInfo(): Promise<TrialInfo | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("plan, trial_start, trial_ends")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    plan: data.plan ?? "trial",
+    trial_start: data.trial_start ?? null,
+    trial_ends: data.trial_ends ?? null,
   };
 }
 

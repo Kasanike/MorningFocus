@@ -6,8 +6,25 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, LogOut, LogIn } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
-import { PaywallBanner } from "@/components/PaywallBanner";
+import { fetchTrialInfo } from "@/lib/db";
+import { getAccessStatus } from "@/lib/subscription";
 import type { SupportedLocale } from "@/locales";
+
+function planLabel(
+  plan: string,
+  trialEnds: string | null
+): string {
+  if (plan === "pro") return "Pro";
+  const access = getAccessStatus({
+    plan: plan as "trial" | "expired" | "pro",
+    trial_ends: trialEnds ?? new Date(0).toISOString(),
+  });
+  if (access === "pro") return "Pro";
+  if (typeof access === "object" && access.status === "trial") {
+    return `Free trial (${access.daysLeft} day${access.daysLeft === 1 ? "" : "s"} left)`;
+  }
+  return "Trial expired";
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -16,6 +33,10 @@ export default function SettingsPage() {
   const [selectedLocale, setSelectedLocale] = useState<SupportedLocale>(locale);
   const [email, setEmail] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
+  const [trialInfo, setTrialInfo] = useState<Awaited<ReturnType<typeof fetchTrialInfo>>>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedLocale(locale);
@@ -31,11 +52,51 @@ export default function SettingsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    fetchTrialInfo().then(setTrialInfo);
+  }, []);
+
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
+  };
+
+  const handleUpgrade = async () => {
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interval: "annual" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Checkout failed");
+      if (data.url) window.location.href = data.url;
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    setRestoreLoading(true);
+    setRestoreMessage(null);
+    try {
+      const res = await fetch("/api/restore", { method: "POST" });
+      const data = await res.json();
+      if (data.restored) {
+        await fetchTrialInfo().then(setTrialInfo);
+      } else {
+        setRestoreMessage(data.message || "No purchase found for this account.");
+      }
+    } catch {
+      setRestoreMessage("Something went wrong. Try again.");
+    } finally {
+      setRestoreLoading(false);
+    }
   };
 
   const handleSaveLanguage = async () => {
@@ -112,7 +173,47 @@ export default function SettingsPage() {
           )}
         </section>
 
-        <PaywallBanner />
+        <section
+          id="subscription"
+          className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"
+          aria-label="Subscription"
+        >
+          <h2 className="font-sans text-xl font-semibold text-app-fg">
+            Subscription
+          </h2>
+          {trialInfo === null ? (
+            <p className="mt-2 font-sans text-sm text-app-muted">…</p>
+          ) : (
+            <>
+              <p className="mt-2 font-sans text-sm text-app-muted">
+                Current plan: {planLabel(trialInfo.plan, trialInfo.trial_ends)}
+              </p>
+              {trialInfo.plan !== "pro" && (
+                <div className="mt-4 flex flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={handleUpgrade}
+                    disabled={checkoutLoading}
+                    className="min-h-[44px] w-full rounded-lg bg-app-fg px-4 py-2.5 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto sm:min-w-[200px]"
+                  >
+                    {checkoutLoading ? "Redirecting…" : "Upgrade to Pro — €29.99/year"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRestore}
+                    disabled={restoreLoading}
+                    className="font-sans text-sm text-app-muted underline decoration-app-border underline-offset-2 transition-colors hover:text-app-fg disabled:opacity-60"
+                  >
+                    {restoreLoading ? "Checking…" : "Restore purchase"}
+                  </button>
+                  {restoreMessage && (
+                    <p className="font-sans text-xs text-app-muted">{restoreMessage}</p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </section>
 
         <section
           className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"

@@ -1,28 +1,85 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
-import { PaywallBanner } from "@/components/PaywallBanner";
+import { Paywall } from "@/components/Paywall";
 import { StoicQuote } from "@/components/StoicQuote";
 import { ConstitutionList } from "@/components/ConstitutionList";
 import { OneThing } from "@/components/OneThing";
 import { MorningProtocol } from "@/components/MorningProtocol";
 import { SunriseBackground } from "@/components/SunriseBackground";
-import { ProGate } from "@/components/ProGate";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingSuggestionsBanner } from "@/components/onboarding/OnboardingSuggestionsBanner";
+import { TrialBanner } from "@/components/TrialBanner";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { useDailyReset } from "@/hooks/useDailyReset";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 import { useBootstrap } from "@/context/BootstrapContext";
+import { fetchTrialInfo } from "@/lib/db";
+import { fetchPaywallStats } from "@/lib/db";
+import { getAccessStatus } from "@/lib/subscription";
+
+type AccessGate =
+  | { status: "loading" }
+  | { status: "pro" }
+  | { status: "trial"; daysLeft: number }
+  | { status: "expired"; stats: Awaited<ReturnType<typeof fetchPaywallStats>> };
 
 export function HomeWithSunrise() {
   const { isReady } = useDailyReset();
   const { currentStep, totalSteps } = useProtocolProgress();
-  const { showWizard, loading: onboardingLoading, refresh: refreshOnboarding } = useOnboardingStatus();
+  const { showWizard, refresh: refreshOnboarding } = useOnboardingStatus();
   const bootstrap = useBootstrap();
   const showNewOnboarding =
     bootstrap?.onboardingStatus && !bootstrap.onboardingStatus.onboardingCompleted;
+
+  const [accessGate, setAccessGate] = useState<AccessGate>({ status: "loading" });
+
+  const showDashboardOrPaywall =
+    isReady && !bootstrap?.loading && !showNewOnboarding && !showWizard;
+
+  useEffect(() => {
+    if (!showDashboardOrPaywall) return;
+    let cancelled = false;
+    (async () => {
+      const trialInfo = await fetchTrialInfo();
+      if (cancelled) return;
+      if (!trialInfo) {
+        setAccessGate({ status: "pro" });
+        return;
+      }
+      const plan = trialInfo.plan as "trial" | "expired" | "pro";
+      const profile = {
+        plan,
+        trial_ends: trialInfo.trial_ends ?? new Date(0).toISOString(),
+      };
+      const access = getAccessStatus(profile);
+      if (access === "pro") {
+        setAccessGate({ status: "pro" });
+        return;
+      }
+      if (typeof access === "object" && access.status === "expired") {
+        const stats = await fetchPaywallStats();
+        if (cancelled) return;
+        setAccessGate({ status: "expired", stats });
+        return;
+      }
+      if (typeof access === "object" && access.status === "trial") {
+        setAccessGate({ status: "trial", daysLeft: access.daysLeft });
+        return;
+      }
+      setAccessGate({ status: "pro" });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showDashboardOrPaywall]);
+
+  const isExpired =
+    accessGate.status === "expired";
+  const isGateLoading =
+    showDashboardOrPaywall && accessGate.status === "loading";
 
   return (
     <>
@@ -39,10 +96,18 @@ export function HomeWithSunrise() {
           <OnboardingFlow onComplete={refreshOnboarding} />
         ) : showWizard ? (
           <OnboardingWizard onComplete={refreshOnboarding} />
+        ) : isGateLoading ? (
+          <div className="flex min-h-[50vh] items-center justify-center px-4">
+            <p className="font-mono text-sm text-white/50">Loading…</p>
+          </div>
+        ) : isExpired ? (
+          <Paywall userStats={accessGate.status === "expired" ? accessGate.stats : null} />
         ) : (
           <div className="animate-fade-in mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
+            {accessGate.status === "trial" && (
+              <TrialBanner daysLeft={accessGate.daysLeft} />
+            )}
             <OnboardingSuggestionsBanner />
-            <PaywallBanner />
             <section aria-label="Morning Protocol">
               <MorningProtocol />
             </section>
@@ -60,29 +125,25 @@ export function HomeWithSunrise() {
             </section>
 
             <section aria-label="Streak">
-              <ProGate featureName="Streak">
-                <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
-                  <h2 className="font-mono text-xl font-semibold text-white/95">
-                    Streak
-                  </h2>
-                  <p className="mt-2 font-mono text-sm text-white/60">
-                    Your consistency streak will appear here.
-                  </p>
-                </div>
-              </ProGate>
+              <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
+                <h2 className="font-mono text-xl font-semibold text-white/95">
+                  Streak
+                </h2>
+                <p className="mt-2 font-mono text-sm text-white/60">
+                  Your consistency streak will appear here.
+                </p>
+              </div>
             </section>
 
             <section aria-label="History">
-              <ProGate featureName="History">
-                <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
-                  <h2 className="font-mono text-xl font-semibold text-white/95">
-                    History
-                  </h2>
-                  <p className="mt-2 font-mono text-sm text-white/60">
-                    Your morning history will appear here.
-                  </p>
-                </div>
-              </ProGate>
+              <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
+                <h2 className="font-mono text-xl font-semibold text-white/95">
+                  History
+                </h2>
+                <p className="mt-2 font-mono text-sm text-white/60">
+                  Your morning history will appear here.
+                </p>
+              </div>
             </section>
           </div>
         )}

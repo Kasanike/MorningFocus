@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getHasEditedContent } from "@/lib/constants";
 
 const STORAGE_KEY = "onboarding_just_completed";
 
@@ -9,6 +10,7 @@ export function OnboardingSuggestionsBanner() {
 
   useEffect(() => {
     if (typeof sessionStorage === "undefined") return;
+    if (getHasEditedContent()) return;
     setShow(sessionStorage.getItem(STORAGE_KEY) === "1");
   }, []);
 
@@ -17,7 +19,7 @@ export function OnboardingSuggestionsBanner() {
     setShow(false);
   };
 
-  if (!show) return null;
+  if (getHasEditedContent() || !show) return null;
 
   return (
     <div
