@@ -93,6 +93,32 @@ export interface Database {
           updated_at?: string;
         };
       };
+      one_thing_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          date: string;
+          text: string;
+          completed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          date: string;
+          text?: string;
+          completed?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          date?: string;
+          text?: string;
+          completed?: boolean;
+          created_at?: string;
+        };
+      };
     };
   };
 }

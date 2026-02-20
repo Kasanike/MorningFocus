@@ -85,12 +85,19 @@ export async function deleteProtocolStep(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── One Thing ────────────────────────────────────────────
+// ── One Thing (history table) ─────────────────────────────
+
+export interface OneThingEntry {
+  id: string;
+  date: string;
+  text: string;
+  completed: boolean;
+}
 
 export async function fetchOneThing(date: string): Promise<string> {
   const supabase = createClient();
   const { data } = await supabase
-    .from("one_thing")
+    .from("one_thing_history")
     .select("text")
     .eq("date", date)
     .maybeSingle();
@@ -107,15 +114,62 @@ export async function saveOneThingDb(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
   const { error } = await supabase
-    .from("one_thing")
+    .from("one_thing_history")
     .upsert(
       {
         user_id: user.id,
-        text,
+        text: text.trim(),
         date,
       },
       { onConflict: "user_id,date" }
     );
+  if (error) throw error;
+}
+
+/** Last 7 days (including today), most recent first. */
+export async function fetchOneThingHistory(): Promise<OneThingEntry[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const today = new Date().toISOString().slice(0, 10);
+  const sevenDaysAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { data, error } = await supabase
+    .from("one_thing_history")
+    .select("id, date, text, completed")
+    .eq("user_id", user.id)
+    .gte("date", sevenDaysAgo)
+    .lte("date", today)
+    .order("date", { ascending: false });
+
+  if (error) return [];
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    date: row.date,
+    text: row.text,
+    completed: row.completed,
+  }));
+}
+
+export async function setOneThingCompleted(
+  date: string,
+  completed: boolean
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("one_thing_history")
+    .update({ completed })
+    .eq("user_id", user.id)
+    .eq("date", date);
   if (error) throw error;
 }
 

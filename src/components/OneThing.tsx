@@ -1,11 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Target } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
-import { fetchOneThing, saveOneThingDb } from "@/lib/db";
+import {
+  fetchOneThing,
+  saveOneThingDb,
+  fetchOneThingHistory,
+  setOneThingCompleted,
+  type OneThingEntry,
+} from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
+
+function formatDateShort(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -37,7 +48,17 @@ function saveOneThingLocal(text: string) {
 export function OneThing() {
   const { t } = useLanguage();
   const [value, setValue] = useState("");
+  const [history, setHistory] = useState<OneThingEntry[]>([]);
   const [mounted, setMounted] = useState(false);
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const list = await fetchOneThingHistory();
+      setHistory(list);
+    } catch {
+      setHistory([]);
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -51,8 +72,9 @@ export function OneThing() {
           const text = await fetchOneThing(getTodayKey());
           if (text !== "") {
             setValue(text);
-            return;
           }
+          await loadHistory();
+          if (text !== "") return;
         }
       } catch {
         // ignore
@@ -60,7 +82,7 @@ export function OneThing() {
       setValue(getStoredOneThing());
     };
     load();
-  }, []);
+  }, [loadHistory]);
 
   const handleSave = async () => {
     const date = getTodayKey();
@@ -70,7 +92,23 @@ export function OneThing() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) await saveOneThingDb(value.trim(), date);
+      if (user) {
+        await saveOneThingDb(value.trim(), date);
+        await loadHistory();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleCompleted = async (entry: OneThingEntry) => {
+    try {
+      await setOneThingCompleted(entry.date, !entry.completed);
+      setHistory((prev) =>
+        prev.map((e) =>
+          e.id === entry.id ? { ...e, completed: !e.completed } : e
+        )
+      );
     } catch (e) {
       console.error(e);
     }
@@ -120,6 +158,30 @@ export function OneThing() {
           {t.save}
         </button>
       </div>
+
+      {history.length > 0 && (
+        <ul className="mt-6 space-y-2 border-t border-white/10 pt-6" aria-label="Last 7 days">
+          {history.map((entry) => (
+            <li key={entry.id}>
+              <button
+                type="button"
+                onClick={() => handleToggleCompleted(entry)}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left font-mono text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white/95"
+              >
+                <span className="shrink-0 text-white/50">
+                  {formatDateShort(entry.date)} —
+                </span>
+                <span className={entry.completed ? "line-through opacity-70" : ""}>
+                  {entry.text || "—"}
+                </span>
+                {entry.completed && (
+                  <span className="ml-1 shrink-0 text-white/90" aria-hidden>✓</span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
