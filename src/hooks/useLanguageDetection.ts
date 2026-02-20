@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useMemo } from "react";
 import type { SupportedLocale } from "@/locales";
 
 /**
@@ -19,9 +19,12 @@ export function detectBrowserLanguage(): SupportedLocale {
  * Use on first login/registration to set initial language_preference in Supabase.
  */
 export function useLanguageDetection() {
-  const detected = useCallback(detectBrowserLanguage, []);
+  const detectedLanguage = useMemo(
+    () => detectBrowserLanguage(),
+    []
+  );
 
   return {
-    detectedLanguage: detected(),
+    detectedLanguage,
   };
 }

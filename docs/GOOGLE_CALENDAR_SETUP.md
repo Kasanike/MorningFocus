@@ -1,6 +1,6 @@
 # Google Calendar Integration Setup
 
-This guide walks you through configuring Google OAuth with Calendar access for Morning Focus.
+This guide walks you through configuring Google OAuth with Calendar access for Better Morning.
 
 ---
 
@@ -10,7 +10,7 @@ This guide walks you through configuring Google OAuth with Calendar access for M
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click the project dropdown → **New Project** (or select an existing one)
-3. Name it e.g. "Morning Focus" → **Create**
+3. Name it e.g. "Better Morning" → **Create**
 
 ### 2. Enable APIs
 
@@ -24,7 +24,7 @@ This guide walks you through configuring Google OAuth with Calendar access for M
 2. Click **+ Create Credentials** → **OAuth client ID**
 3. If prompted, configure the **OAuth consent screen**:
    - User Type: **External** (for any Google account)
-   - App name: **Morning Focus**
+   - App name: **Better Morning**
    - User support email: your email
    - Developer contact: your email
    - Scopes: Add `https://www.googleapis.com/auth/calendar.readonly`
@@ -32,7 +32,7 @@ This guide walks you through configuring Google OAuth with Calendar access for M
 
 4. Back to **Create OAuth client ID**:
    - Application type: **Web application**
-   - Name: e.g. "Morning Focus Web"
+   - Name: e.g. "Better Morning Web"
    - **Authorized JavaScript origins**:
      - `http://localhost:3000`
      - `http://localhost:3001`
@@ -66,7 +66,7 @@ Supabase's Google provider uses standard scopes (email, profile). Our app reques
 
 ## Part 3: Verify Setup
 
-1. Sign out of Morning Focus if logged in
+1. Sign out of Better Morning if logged in
 2. Go to `/login` and click **Continue with Google**
 3. On the Google consent screen, you should see a request for **View your calendar events**
 4. After signing in, the Battle Plan section will show your real Google Calendar events for today

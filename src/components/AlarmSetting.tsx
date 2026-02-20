@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { openNativeAlarm, getDeepLinkSupport } from "@/lib/alarm-deeplink";
 
 export type AlarmSettings = {
   time: string;
@@ -66,6 +67,14 @@ export function AlarmSetting() {
     setTime(value);
     saveAlarm({ time: value, days });
   };
+
+  const handleSetAlarm = () => {
+    saveAlarm({ time, days });
+    openNativeAlarm(time);
+  };
+
+  const platform =
+    typeof window !== "undefined" ? getDeepLinkSupport() : "desktop";
 
   if (!mounted) {
     return (
@@ -136,6 +145,25 @@ export function AlarmSetting() {
             })}
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={handleSetAlarm}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
+        >
+          <ExternalLink className="h-4 w-4" />
+          {platform === "desktop"
+            ? "Open Clock App"
+            : platform === "ios"
+              ? "Open Clock App → Set Your Alarm"
+              : `Set Alarm for ${time}`}
+        </button>
+
+        {platform === "desktop" && (
+          <p className="text-center font-mono text-xs text-white/40">
+            On mobile, this opens your native clock app
+          </p>
+        )}
       </div>
     </section>
   );

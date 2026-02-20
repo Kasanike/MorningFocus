@@ -1,5 +1,5 @@
 {
-  "name": "morning-focus",
+  "name": "better-morning",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -12,14 +12,17 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.7.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "framer-motion": "^11.11.17",
     "geist": "^1.7.0",
     "lucide-react": "^0.460.0",
     "next": "^16.1.6",
+    "next-pwa": "^5.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "stripe": "^20.3.1",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

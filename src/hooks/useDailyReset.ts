@@ -43,7 +43,7 @@ export function useDailyReset() {
       localStorage.setItem(STORAGE_KEYS.LAST_VISIT_DATE, today);
     }
 
-    setIsReady(true);
+    queueMicrotask(() => setIsReady(true));
   }, []);
 
   return { isReady };

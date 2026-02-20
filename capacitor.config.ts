@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.morningfocus.alarm",
-  appName: "Morning Focus Alarm",
+  appName: "Better Morning",
   webDir: "out",
   server: {
     // In dev, point to Next.js (optional)
@@ -19,7 +19,7 @@ const config: CapacitorConfig = {
       sound: "alarm_sound",
       channelId: "morning_focus_alarm",
       channelName: "Alarm",
-      channelDescription: "Morning Focus wake-up alarm",
+      channelDescription: "Better Morning wake-up alarm",
       visibility: 1, // Public (show on lock screen)
       importance: 5, // Max — wake device, heads-up, sound
     },

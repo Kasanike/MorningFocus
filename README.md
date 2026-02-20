@@ -1,4 +1,4 @@
-# Morning Focus
+# Better Morning
 
 A modern, mobile-first web app to help you start your day with discipline, clarity, and purpose.
 

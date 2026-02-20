@@ -1,26 +1,14 @@
 {
-  "name": "Morning Focus",
-  "short_name": "Morning Focus",
-  "description": "Start your day with discipline, clarity, and purpose. A daily companion for men.",
+  "name": "Better Morning",
+  "short_name": "Better Morning",
+  "description": "Your personal morning protocol",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
-  "orientation": "portrait-primary",
-  "scope": "/",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "portrait",
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "categories": ["lifestyle", "productivity"]
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }

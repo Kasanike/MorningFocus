@@ -1,6 +1,6 @@
 export const en = {
   // Header
-  greeting: "Morning Focus.",
+  greeting: "Better Morning.",
   weekdays: [
     "Sunday",
     "Monday",

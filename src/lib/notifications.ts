@@ -1,5 +1,5 @@
 /**
- * Morning Focus Alarm — Local Notifications (Capacitor)
+ * Better Morning — Local Notifications (Capacitor)
  *
  * - Creates Android channel with importance 5 (max) and visibility 1 (public / lock screen).
  * - Uses custom sound from res/raw (e.g. alarm_sound.mp3).
@@ -24,7 +24,7 @@ export async function ensureAlarmChannel(): Promise<void> {
   await LocalNotifications.createChannel({
     id: ALARM_CHANNEL_ID,
     name: "Alarm",
-    description: "Morning Focus wake-up alarm",
+    description: "Better Morning wake-up alarm",
     importance: 5, // Max — wake device, heads-up, sound
     visibility: 1, // Public — show on lock screen
     sound: "alarm_sound", // res/raw/alarm_sound.mp3 (no extension in channel; use .mp3 or .wav in res/raw)
@@ -46,7 +46,7 @@ export async function scheduleAlarmNotification(at: Date): Promise<void> {
 
   const notification: LocalNotificationSchema = {
     id: ALARM_NOTIFICATION_ID,
-    title: "Morning Focus",
+    title: "Better Morning",
     body: "Slide to begin your day.",
     channelId: ALARM_CHANNEL_ID,
     schedule: {

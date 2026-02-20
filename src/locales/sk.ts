@@ -2,7 +2,7 @@ import type { LocaleKeys } from "./en";
 
 export const sk: LocaleKeys = {
   // Header
-  greeting: "Morning Focus.",
+  greeting: "Better Morning.",
   weekdays: [
     "Nedeľa",
     "Pondelok",

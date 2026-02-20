@@ -1,4 +1,4 @@
-# Morning Focus Alarm — Implementation Guide
+# Better Morning Alarm — Implementation Guide
 
 ## 1. Folder Structure
 
