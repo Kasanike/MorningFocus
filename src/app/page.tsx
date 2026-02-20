@@ -56,18 +56,98 @@ const ChevronIcon = () => (
   </svg>
 );
 
+function LandingPricing() {
+  const [interval, setInterval] = useState<"monthly" | "annual">("annual");
+  const [loading, setLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interval }),
+      });
+      const data = await res.json();
+      if (res.status === 401) {
+        window.location.href = "/login?next=/home";
+        return;
+      }
+      if (!res.ok) throw new Error(data.error || "Checkout failed");
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="pricing-section fade-in">
+      <div className="pricing-toggle">
+        <button
+          type="button"
+          className={`pricing-toggle-btn ${interval === "monthly" ? "active" : ""}`}
+          onClick={() => setInterval("monthly")}
+        >
+          Monthly
+        </button>
+        <button
+          type="button"
+          className={`pricing-toggle-btn ${interval === "annual" ? "active" : ""}`}
+          onClick={() => setInterval("annual")}
+        >
+          Annual
+          <span className="pricing-best-value">Best value</span>
+        </button>
+      </div>
+      <div className="pricing-card">
+        <div className="pricing-tag">
+          {interval === "annual" ? "Billed yearly" : "Billed monthly"}
+        </div>
+        <div className="pricing-amount">
+          <span className="pricing-currency">€</span>
+          <span className="pricing-value">
+            {interval === "annual" ? "29.99" : "3.99"}
+          </span>
+        </div>
+        <div className="pricing-period">
+          {interval === "annual" ? "per year" : "per month"}
+        </div>
+        <ul className="pricing-features">
+          <li><span className="pf-check">✓</span> Unlimited principles & protocol steps</li>
+          <li><span className="pf-check">✓</span> Daily One Thing & Stoic quotes</li>
+          <li><span className="pf-check">✓</span> Streak & history</li>
+          <li><span className="pf-check">✓</span> Works on all devices</li>
+          <li><span className="pf-check">✓</span> Cancel anytime</li>
+        </ul>
+        <button
+          type="button"
+          onClick={handleCheckout}
+          disabled={loading}
+          className="pricing-cta"
+        >
+          {loading ? "Redirecting…" : (interval === "annual" ? "Get Better Morning — €29.99/year" : "Get Better Morning — €3.99/mo")}
+        </button>
+        <div className="pricing-compare">
+          {interval === "annual" && "Two months free vs monthly. "}
+          Headspace: €12.99/mo. Calm: €14.99/mo.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const FAQ_ITEMS = [
   {
     q: "What exactly do I get?",
-    a: "A personal morning dashboard with three tools: your Constitution (principles to read daily), your Protocol (your ideal first-hour routine), and the One Thing (daily focus setter). Takes less than 5 minutes.",
+    a: "A personal morning dashboard with three tools: your Constitution (principles to read daily), your Protocol (your ideal first-hour routine), and the One Thing (daily focus setter). Pro adds unlimited items, streak, and history.",
   },
   {
-    q: "Why one-time instead of subscription?",
-    a: "A morning routine tool shouldn't feel like another bill. You pay once, it's yours. We believe great tools should respect your wallet as much as your time.",
+    q: "Monthly or annual?",
+    a: "Choose monthly (€3.99/mo) or annual (€29.99/year — best value, two months free). Cancel anytime.",
   },
   {
     q: "Can I try it before paying?",
-    a: "Yes. Sign up free and explore the full interface. Pay when you're ready to unlock everything.",
+    a: "Yes. Sign up free and explore the full interface. Upgrade to Pro when you're ready for unlimited principles, protocol steps, streak, and history.",
   },
   {
     q: "Is my data private?",
@@ -129,7 +209,7 @@ export default function LandingPage() {
             <ArrowIcon />
           </Link>
           <div className="hero-meta">
-            Free to try · €4.99 one-time to unlock everything
+            Free to try · From €3.99/mo to unlock everything
           </div>
         </section>
 
@@ -392,50 +472,14 @@ export default function LandingPage() {
         <div className="fade-in">
           <div className="section-eyebrow">Pricing</div>
           <div className="section-title">
-            One price. <em>Forever yours.</em>
+            Simple plans. <em>Cancel anytime.</em>
           </div>
           <div className="section-sub" style={{ marginBottom: 32 }}>
-            No subscriptions. No upsells. No &ldquo;premium tier.&rdquo;
+            Start free. Upgrade when you&apos;re ready for unlimited principles, protocol steps, streak & history.
           </div>
         </div>
 
-        <div className="pricing-card fade-in">
-          <div className="pricing-tag">One-time payment</div>
-          <div className="pricing-amount">
-            <span className="pricing-currency">€</span>
-            <span className="pricing-value">4.99</span>
-          </div>
-          <div className="pricing-period">
-            Pay once. Use forever. No strings.
-          </div>
-          <ul className="pricing-features">
-            <li>
-              <span className="pf-check">✓</span> Personal Constitution builder
-            </li>
-            <li>
-              <span className="pf-check">✓</span> Customizable Morning Protocol
-            </li>
-            <li>
-              <span className="pf-check">✓</span> Daily One Thing focus
-            </li>
-            <li>
-              <span className="pf-check">✓</span> Daily Stoic quotes
-            </li>
-            <li>
-              <span className="pf-check">✓</span> Works on all devices
-            </li>
-            <li>
-              <span className="pf-check">✓</span> All future updates included
-            </li>
-          </ul>
-          <Link href="/home" className="pricing-cta">
-            Get Better Morning — €4.99
-          </Link>
-          <div className="pricing-compare">
-            Headspace: €12.99/mo. Calm: €14.99/mo. Your morning routine
-            shouldn&apos;t cost more than your coffee.
-          </div>
-        </div>
+        <LandingPricing />
 
         <div className="spacer" />
         <div className="fade-in">

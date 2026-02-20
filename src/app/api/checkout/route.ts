@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-11-20.acacia",
 });
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const {
@@ -20,7 +20,14 @@ export async function POST() {
       );
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID;
+    const body = await request.json().catch(() => ({}));
+    const interval = (body.interval as string) === "annual" ? "annual" : "monthly";
+
+    const priceId =
+      interval === "annual"
+        ? process.env.STRIPE_PRICE_ANNUAL
+        : process.env.STRIPE_PRICE_MONTHLY;
+
     if (!priceId || !process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json(
         { error: "Payment is not configured" },
@@ -31,7 +38,7 @@ export async function POST() {
     const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
       payment_method_types: ["card"],
       line_items: [
         {
@@ -43,6 +50,11 @@ export async function POST() {
       cancel_url: `${origin}/home`,
       client_reference_id: user.id,
       customer_email: user.email ?? undefined,
+      subscription_data: {
+        metadata: {
+          user_id: user.id,
+        },
+      },
       metadata: {
         user_id: user.id,
       },

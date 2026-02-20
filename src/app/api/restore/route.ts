@@ -28,32 +28,55 @@ export async function POST() {
       );
     }
 
-    const sessions = await stripe.checkout.sessions.list({
-      status: "complete",
-      limit: 100,
-    });
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", user.id)
+      .maybeSingle();
 
-    const completedForUser = sessions.data.find(
-      (s) => s.client_reference_id === user.id
-    );
-
-    if (!completedForUser) {
+    const customerId = profile?.stripe_customer_id;
+    if (!customerId) {
       return NextResponse.json(
-        { restored: false, message: "No purchase found for this account." },
+        {
+          restored: false,
+          message: "No subscription found for this account.",
+        },
         { status: 200 }
       );
     }
 
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      return NextResponse.json(
+        {
+          restored: false,
+          message: "No active subscription found.",
+        },
+        { status: 200 }
+      );
+    }
+
+    const sub = subscriptions.data[0];
     const admin = createAdminClient();
     const { error } = await admin
       .from("profiles")
-      .update({ plan: "paid" })
+      .update({
+        plan: "pro",
+        subscription_start: new Date(sub.current_period_start * 1000).toISOString(),
+        subscription_end: new Date(sub.current_period_end * 1000).toISOString(),
+        stripe_subscription_id: sub.id,
+      })
       .eq("id", user.id);
 
     if (error) {
       console.error("Restore: failed to update profile", error);
       return NextResponse.json(
-        { error: "Failed to restore purchase" },
+        { error: "Failed to restore subscription" },
         { status: 500 }
       );
     }

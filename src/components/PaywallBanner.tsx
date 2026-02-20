@@ -9,10 +9,14 @@ export function PaywallBanner() {
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (interval: "monthly" | "annual" = "monthly") => {
     setCheckoutLoading(true);
     try {
-      const res = await fetch("/api/checkout", { method: "POST" });
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interval }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Checkout failed");
       if (data.url) window.location.href = data.url;
@@ -40,20 +44,20 @@ export function PaywallBanner() {
     }
   };
 
-  if (loading || plan === "paid") return null;
+  if (loading || plan === "pro") return null;
 
   return (
     <div className="rounded-xl border border-app-border bg-app-card/90 p-4 sm:p-5">
       <p className="font-sans text-sm font-medium text-app-fg">
-        Unlock everything — one-time €4.99
+        Go Pro — unlimited principles, protocol steps, streak & history
       </p>
       <p className="mt-1 font-sans text-xs text-app-muted">
-        Full access to Constitution, Protocol, and One Thing. No subscription.
+        From €3.99/month or €29.99/year. Cancel anytime.
       </p>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={handleUpgrade}
+          onClick={() => handleUpgrade("monthly")}
           disabled={checkoutLoading}
           className="rounded-lg bg-app-fg px-4 py-2 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-60"
         >

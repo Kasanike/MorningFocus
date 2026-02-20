@@ -7,6 +7,7 @@ import { ConstitutionList } from "@/components/ConstitutionList";
 import { OneThing } from "@/components/OneThing";
 import { MorningProtocol } from "@/components/MorningProtocol";
 import { SunriseBackground } from "@/components/SunriseBackground";
+import { ProGate } from "@/components/ProGate";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { useDailyReset } from "@/hooks/useDailyReset";
 
@@ -42,6 +43,32 @@ export function HomeWithSunrise() {
 
             <section aria-label="One Thing - Priority of the day">
               <OneThing />
+            </section>
+
+            <section aria-label="Streak">
+              <ProGate featureName="Streak">
+                <div className="card-glass rounded-2xl border border-white/10 px-8 py-10">
+                  <h2 className="font-mono text-xl font-semibold text-white/95">
+                    Streak
+                  </h2>
+                  <p className="mt-2 font-mono text-sm text-white/60">
+                    Your consistency streak will appear here.
+                  </p>
+                </div>
+              </ProGate>
+            </section>
+
+            <section aria-label="History">
+              <ProGate featureName="History">
+                <div className="card-glass rounded-2xl border border-white/10 px-8 py-10">
+                  <h2 className="font-mono text-xl font-semibold text-white/95">
+                    History
+                  </h2>
+                  <p className="mt-2 font-mono text-sm text-white/60">
+                    Your morning history will appear here.
+                  </p>
+                </div>
+              </ProGate>
             </section>
           </div>
         )}

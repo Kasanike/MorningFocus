@@ -11,6 +11,9 @@ import {
   deleteProtocolStep,
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
+import { usePlan } from "@/hooks/usePlan";
+import { canAddProtocolStep, FREE_PROTOCOL_STEPS_LIMIT } from "@/lib/subscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 
 export type { ProtocolStep };
@@ -82,6 +85,7 @@ function saveCompleted(completed: Record<string, boolean>) {
 export function MorningProtocol() {
   const { t } = useLanguage();
   const { setProgress } = useProtocolProgress();
+  const { profile } = usePlan();
   const [steps, setSteps] = useState<ProtocolStep[]>([]);
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -149,7 +153,10 @@ export function MorningProtocol() {
     persistCompleted({ ...completed, [id]: !completed[id] });
   };
 
+  const canAdd = canAddProtocolStep(steps.length, profile);
+
   const handleAdd = () => {
+    if (!canAdd) return;
     const trimmed = newLabel.trim();
     if (!trimmed) return;
     const id = `step-${Date.now()}`;
@@ -258,7 +265,13 @@ export function MorningProtocol() {
       </ol>
 
       {isEditMode && (
-        isAdding ? (
+        !canAdd ? (
+          <div className="mt-4">
+            <UpgradePrompt
+              message={`Free accounts can have up to ${FREE_PROTOCOL_STEPS_LIMIT} protocol steps. Upgrade to Pro for unlimited.`}
+            />
+          </div>
+        ) : isAdding ? (
           <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
             <input
               type="text"

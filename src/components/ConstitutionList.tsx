@@ -7,6 +7,9 @@ import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
+import { usePlan } from "@/hooks/usePlan";
+import { canAddPrinciple, FREE_PRINCIPLES_LIMIT } from "@/lib/subscription";
+import { UpgradePrompt } from "@/components/UpgradePrompt";
 
 export interface Principle {
   id: string;
@@ -70,6 +73,7 @@ function isAcknowledgedToday(): boolean {
 
 export function ConstitutionList() {
   const { t } = useLanguage();
+  const { profile, isPro } = usePlan();
   const [principles, setPrinciples] = useState<Principle[]>([]);
   const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
   const [isEditing, setIsEditing] = useState(false);
@@ -137,7 +141,10 @@ export function ConstitutionList() {
     });
   };
 
+  const canAdd = canAddPrinciple(principles.length, profile);
+
   const handleAdd = () => {
+    if (!canAdd) return;
     const trimmed = newPrinciple.trim();
     if (!trimmed) return;
     const id = `principle-${Date.now()}`;
@@ -301,30 +308,38 @@ export function ConstitutionList() {
 
       {isEditing && (
         <div className="mt-4 flex flex-col gap-2">
-          <input
-            type="text"
-            value={newPrinciple}
-            onChange={(e) => setNewPrinciple(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={t.add_principle_placeholder}
-            className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
-          />
-          <input
-            type="text"
-            value={newSubtitle}
-            onChange={(e) => setNewSubtitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            placeholder={t.add_principle_subtitle_placeholder}
-            className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-mono text-sm text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
-          />
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="flex w-fit items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
-          >
-            <Plus className="h-4 w-4" />
-            {t.add}
-          </button>
+          {!canAdd ? (
+            <UpgradePrompt
+              message={`Free accounts can have up to ${FREE_PRINCIPLES_LIMIT} principles. Upgrade to Pro for unlimited.`}
+            />
+          ) : (
+            <>
+              <input
+                type="text"
+                value={newPrinciple}
+                onChange={(e) => setNewPrinciple(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                placeholder={t.add_principle_placeholder}
+                className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+              />
+              <input
+                type="text"
+                value={newSubtitle}
+                onChange={(e) => setNewSubtitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                placeholder={t.add_principle_subtitle_placeholder}
+                className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-mono text-sm text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+              />
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex w-fit items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
+              >
+                <Plus className="h-4 w-4" />
+                {t.add}
+              </button>
+            </>
+          )}
         </div>
       )}
     </section>

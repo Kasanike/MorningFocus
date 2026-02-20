@@ -119,9 +119,14 @@ export async function saveOneThingDb(
   if (error) throw error;
 }
 
-// ── Plan (payment) ─────────────────────────────────────
+// ── Plan (subscription) ─────────────────────────────────
 
-export type Plan = "free" | "paid";
+export type Plan = "free" | "pro";
+
+export interface ProfilePlan {
+  plan: Plan;
+  subscription_end: string | null;
+}
 
 export async function fetchPlan(): Promise<Plan> {
   const supabase = createClient();
@@ -135,5 +140,23 @@ export async function fetchPlan(): Promise<Plan> {
     .eq("id", user.id)
     .maybeSingle();
   const plan = data?.plan;
-  return plan === "paid" ? "paid" : "free";
+  return plan === "pro" ? "pro" : "free";
+}
+
+export async function fetchProfilePlan(): Promise<ProfilePlan | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("plan, subscription_end")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    plan: data.plan === "pro" ? "pro" : "free",
+    subscription_end: data.subscription_end ?? null,
+  };
 }
