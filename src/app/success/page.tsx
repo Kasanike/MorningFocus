@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [status, setStatus] = useState<"loading" | "success" | "missing">(
@@ -64,5 +64,23 @@ export default function SuccessPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function SuccessFallback() {
+  return (
+    <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-4 py-16">
+      <div className="w-full rounded-xl border border-app-border bg-app-card p-8 text-center shadow-lg">
+        <p className="font-sans text-app-muted">Confirming your purchase…</p>
+      </div>
+    </main>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<SuccessFallback />}>
+      <SuccessContent />
+    </Suspense>
   );
 }
