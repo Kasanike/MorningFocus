@@ -136,7 +136,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       </div>
 
       {step === 1 && (
-        <div className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
+        <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
           <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
             Write your principles
           </h2>
@@ -154,14 +154,14 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   value={p.text}
                   onChange={(e) => handlePrincipleChange(i, "text", e.target.value)}
                   placeholder="Principle"
-                  className="w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                  className="min-h-[44px] w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
                 />
                 <input
                   type="text"
                   value={p.subtitle ?? ""}
                   onChange={(e) => handlePrincipleChange(i, "subtitle", e.target.value)}
                   placeholder="Subtitle (optional)"
-                  className="mt-2 w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2 font-mono text-sm text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                  className="mt-2 min-h-[44px] w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2 font-mono text-base text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none"
                 />
               </div>
             ))}
@@ -170,7 +170,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             type="button"
             onClick={saveStep1}
             disabled={saving}
-            className="mt-8 flex items-center gap-2 rounded-xl bg-white/20 px-5 py-3 font-medium text-white/95 transition-colors hover:bg-white/30 disabled:opacity-60"
+            className="mt-8 flex min-h-[44px] items-center gap-2 rounded-xl bg-white/20 px-5 py-3 font-medium text-white/95 transition-colors hover:bg-white/30 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Next"}
             <ChevronRight className="h-4 w-4" />
@@ -179,7 +179,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       )}
 
       {step === 2 && (
-        <div className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
+        <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
           <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
             Build your protocol
           </h2>
@@ -197,7 +197,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   value={s.label}
                   onChange={(e) => handleProtocolChange(i, "label", e.target.value)}
                   placeholder="Activity"
-                  className="flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                  className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
                 />
                 <div className="flex items-center gap-2 sm:w-28">
                   <input
@@ -207,7 +207,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     onChange={(e) =>
                       handleProtocolChange(i, "minutes", e.target.value)
                     }
-                    className="w-16 rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-white/95 focus:border-white/40 focus:outline-none"
+                    className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
                   />
                   <span className="text-sm text-white/60">min</span>
                 </div>
@@ -218,7 +218,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             type="button"
             onClick={saveStep2}
             disabled={saving}
-            className="mt-8 flex items-center gap-2 rounded-xl bg-white/20 px-5 py-3 font-medium text-white/95 transition-colors hover:bg-white/30 disabled:opacity-60"
+            className="mt-8 flex min-h-[44px] items-center gap-2 rounded-xl bg-white/20 px-5 py-3 font-medium text-white/95 transition-colors hover:bg-white/30 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Next"}
             <ChevronRight className="h-4 w-4" />
@@ -227,7 +227,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       )}
 
       {step === 3 && (
-        <div className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
+        <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
           <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
             Name today’s One Thing
           </h2>
@@ -239,14 +239,14 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
             value={oneThing}
             onChange={(e) => setOneThing(e.target.value)}
             placeholder="e.g. Ship the report, call Mum, finish the proposal"
-            className="mt-6 w-full rounded-xl border border-white/20 bg-black/20 px-4 py-3 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+            className="mt-6 min-h-[44px] w-full rounded-xl border border-white/20 bg-black/20 px-4 py-3 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
             autoFocus
           />
           <button
             type="button"
             onClick={saveStep3}
             disabled={saving}
-            className="mt-8 flex items-center gap-2 rounded-xl bg-white/20 px-5 py-3 font-medium text-white/95 transition-colors hover:bg-white/30 disabled:opacity-60"
+            className="mt-8 flex min-h-[44px] items-center gap-2 rounded-xl bg-white/20 px-5 py-3 font-medium text-white/95 transition-colors hover:bg-white/30 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Finish"}
             <ChevronRight className="h-4 w-4" />

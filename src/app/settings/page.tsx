@@ -71,7 +71,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setSelectedLocale(e.target.value as SupportedLocale)
               }
-              className="w-full rounded-lg border border-app-border bg-app-bg px-4 py-2.5 font-sans text-app-fg focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg sm:w-auto"
+              className="min-h-[44px] w-full rounded-lg border border-app-border bg-app-bg px-4 py-2.5 font-sans text-base text-app-fg focus:border-app-fg focus:outline-none focus:ring-1 focus:ring-app-fg sm:w-auto"
             >
               <option value="en">{t.language_english}</option>
               <option value="sk">{t.language_slovak}</option>
@@ -80,7 +80,7 @@ export default function SettingsPage() {
               type="button"
               onClick={handleSaveLanguage}
               disabled={saving || selectedLocale === locale}
-              className="rounded-lg bg-app-fg px-4 py-2.5 font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="min-h-[44px] rounded-lg bg-app-fg px-4 py-2.5 font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {saving ? t.loading : t.save_settings}
             </button>

@@ -29,7 +29,7 @@ export function Header() {
         </div>
         <Link
           href="/settings"
-          className="flex shrink-0 items-center justify-center rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+          className="touch-target flex shrink-0 items-center justify-center rounded-xl text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
           aria-label={t.settings_title}
         >
           <Settings className="h-5 w-5" strokeWidth={1.5} />

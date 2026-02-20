@@ -247,7 +247,7 @@ export async function fetchOnboardingStatus(): Promise<OnboardingStatus | null> 
   ]);
 
   const onboardingCompleted =
-    profileRes.data?.onboarding_completed === true ?? false;
+    profileRes.data?.onboarding_completed === true;
   const hasPrinciples = (principlesRes.count ?? 0) > 0;
   const hasProtocol = (stepsRes.count ?? 0) > 0;
 

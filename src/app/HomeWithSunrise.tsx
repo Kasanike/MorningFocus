@@ -52,7 +52,7 @@ export function HomeWithSunrise() {
 
             <section aria-label="Streak">
               <ProGate featureName="Streak">
-                <div className="card-glass rounded-2xl border border-white/10 px-8 py-10">
+                <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
                   <h2 className="font-mono text-xl font-semibold text-white/95">
                     Streak
                   </h2>
@@ -65,7 +65,7 @@ export function HomeWithSunrise() {
 
             <section aria-label="History">
               <ProGate featureName="History">
-                <div className="card-glass rounded-2xl border border-white/10 px-8 py-10">
+                <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 sm:px-8">
                   <h2 className="font-mono text-xl font-semibold text-white/95">
                     History
                   </h2>

@@ -148,12 +148,12 @@ export function OneThing() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
           placeholder={t.one_thing_placeholder}
-          className="min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 font-medium text-white placeholder:text-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="min-h-[44px] min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 text-base font-medium text-white placeholder:text-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/50"
         />
         <button
           type="button"
           onClick={handleSave}
-          className="w-full shrink-0 rounded-full bg-white px-6 py-3 font-bold text-indigo-900 transition-opacity hover:opacity-90 sm:w-auto"
+          className="min-h-[44px] w-full shrink-0 rounded-full bg-white px-6 py-3 font-bold text-indigo-900 transition-opacity hover:opacity-90 sm:w-auto"
         >
           {t.save}
         </button>
@@ -166,12 +166,12 @@ export function OneThing() {
               <button
                 type="button"
                 onClick={() => handleToggleCompleted(entry)}
-                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left font-mono text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white/95"
+                className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left font-mono text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white/95"
               >
                 <span className="shrink-0 text-white/50">
                   {formatDateShort(entry.date)} —
                 </span>
-                <span className={entry.completed ? "line-through opacity-70" : ""}>
+                <span className={"min-w-0 flex-1 break-words text-left " + (entry.completed ? "line-through opacity-70" : "")}>
                   {entry.text || "—"}
                 </span>
                 {entry.completed && (

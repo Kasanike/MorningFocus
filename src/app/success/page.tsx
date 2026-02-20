@@ -39,7 +39,7 @@ export default function SuccessPage() {
             </p>
             <Link
               href="/home"
-              className="mt-8 inline-block rounded-lg bg-app-fg px-6 py-3 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90"
+              className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-lg bg-app-fg px-6 py-3 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90"
             >
               Go to your morning
             </Link>
@@ -56,7 +56,7 @@ export default function SuccessPage() {
             </p>
             <Link
               href="/home"
-              className="mt-8 inline-block rounded-lg border border-app-border bg-app-card px-6 py-3 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg"
+              className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-lg border border-app-border bg-app-card px-6 py-3 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg"
             >
               Back to home
             </Link>

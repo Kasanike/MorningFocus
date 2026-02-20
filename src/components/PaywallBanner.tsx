@@ -59,7 +59,7 @@ export function PaywallBanner() {
           type="button"
           onClick={() => handleUpgrade("monthly")}
           disabled={checkoutLoading}
-          className="rounded-lg bg-app-fg px-4 py-2 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="min-h-[44px] rounded-lg bg-app-fg px-4 py-2 font-sans text-sm font-medium text-app-bg transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {checkoutLoading ? "Redirecting…" : "Upgrade now"}
         </button>
@@ -67,7 +67,7 @@ export function PaywallBanner() {
           type="button"
           onClick={handleRestore}
           disabled={restoreLoading}
-          className="rounded-lg border border-app-border bg-transparent px-4 py-2 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg disabled:opacity-60"
+          className="min-h-[44px] rounded-lg border border-app-border bg-transparent px-4 py-2 font-sans text-sm font-medium text-app-fg transition-colors hover:bg-app-bg disabled:opacity-60"
         >
           {restoreLoading ? "Checking…" : "Restore purchase"}
         </button>

@@ -258,18 +258,18 @@ export function ConstitutionList() {
                       <div className="flex flex-1 flex-col gap-1">
                         <div className="flex items-start justify-between gap-4">
                           <p
-                            className={`font-sans text-base font-normal leading-relaxed drop-shadow-md ${
+                            className={`min-w-0 break-words font-sans text-base font-normal leading-relaxed drop-shadow-md ${
                               acknowledged[p.id] ? "opacity-40 line-through text-white/95" : "text-white/95"
                             }`}
                           >
                             {p.text}
                           </p>
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-1">
                           {isEditing && (
                             <button
                               type="button"
                               onClick={() => handleStartEdit(p)}
-                              className="rounded-lg p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+                              className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
                               aria-label={`${t.edit_principle}: ${p.text}`}
                             >
                               <Pencil className="h-4 w-4" />
@@ -278,16 +278,18 @@ export function ConstitutionList() {
                           <button
                             type="button"
                             onClick={() => handleCheck(p.id)}
-                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors hover:border-white/60 focus:outline-none focus:ring-2 focus:ring-white/40 ${
+                            className={`touch-target flex shrink-0 items-center justify-center rounded-full border-2 transition-colors hover:border-white/60 focus:outline-none focus:ring-2 focus:ring-white/40 ${
                               acknowledged[p.id]
                                 ? "border-white/90 bg-white/95"
                                 : "border-white/40"
                             }`}
                             aria-label={`${t.acknowledge}: ${p.text}`}
                           >
-                            {acknowledged[p.id] ? (
-                              <Check className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
-                            ) : null}
+                            <span className="flex h-6 w-6 items-center justify-center">
+                              {acknowledged[p.id] ? (
+                                <Check className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
+                              ) : null}
+                            </span>
                           </button>
                         </div>
                         </div>
@@ -320,7 +322,7 @@ export function ConstitutionList() {
                 onChange={(e) => setNewPrinciple(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                 placeholder={t.add_principle_placeholder}
-                className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                className="min-h-[44px] rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
               />
               <input
                 type="text"
@@ -328,7 +330,7 @@ export function ConstitutionList() {
                 onChange={(e) => setNewSubtitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                 placeholder={t.add_principle_subtitle_placeholder}
-                className="rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-mono text-sm text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                className="min-h-[44px] rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-mono text-base text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
               />
               <button
                 type="button"

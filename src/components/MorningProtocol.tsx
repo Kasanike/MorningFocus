@@ -279,7 +279,7 @@ export function MorningProtocol() {
               onChange={(e) => setNewLabel(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               placeholder={t.protocol_step_placeholder}
-              className="flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+              className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
               autoFocus
             />
             <div className="flex items-center gap-2">
@@ -288,7 +288,7 @@ export function MorningProtocol() {
                 min={0}
                 value={newMinutes}
                 onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                className="w-16 rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-white/95 focus:border-white/40 focus:outline-none"
+                className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
               />
               <span className="text-sm text-white/60">{t.minutes}</span>
             </div>
@@ -296,7 +296,7 @@ export function MorningProtocol() {
               <button
                 type="button"
                 onClick={handleAdd}
-                className="rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
+                className="min-h-[44px] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
               >
                 {t.add}
               </button>
@@ -307,7 +307,7 @@ export function MorningProtocol() {
                   setNewLabel("");
                   setNewMinutes(5);
                 }}
-                className="rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
+                className="min-h-[44px] rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
               >
                 {t.cancel}
               </button>
@@ -316,7 +316,7 @@ export function MorningProtocol() {
         ) : (
           <button
             type="button"
-            className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-3.5 text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
+            className="touch-target mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-3.5 text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
             onClick={() => setIsAdding(true)}
           >
             <Plus className="h-4 w-4" />

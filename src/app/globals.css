@@ -63,6 +63,7 @@
     color: #e4e4e7 !important;
     font-family: var(--font-sans);
     letter-spacing: -0.02em;
+    overflow-wrap: break-word;
   }
 }
 
@@ -81,10 +82,31 @@ body {
 /* Ensure form inputs are full-width in constrained containers */
 input[type="email"],
 input[type="password"],
-input[type="text"] {
+input[type="text"],
+input[type="number"] {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+}
+
+/* Min 16px font-size on inputs to prevent iOS zoom on focus */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+@media (min-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: inherit;
+  }
+}
+
+/* Touch target: min 44x44px for tap areas (checkboxes, icon buttons) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* Prevent SVG icons in buttons from growing */
