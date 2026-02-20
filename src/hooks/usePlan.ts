@@ -8,31 +8,52 @@ import {
   type ProfilePlan,
 } from "@/lib/db";
 import { isPro as checkIsPro } from "@/lib/subscription";
+import { useBootstrap } from "@/context/BootstrapContext";
 
 export function usePlan() {
-  const [plan, setPlan] = useState<Plan>("free");
-  const [profile, setProfile] = useState<ProfilePlan | null>(null);
-  const [loading, setLoading] = useState(true);
+  const bootstrap = useBootstrap();
+  const [fallbackPlan, setFallbackPlan] = useState<Plan>("free");
+  const [fallbackProfile, setFallbackProfile] = useState<ProfilePlan | null>(null);
+  const [fallbackLoading, setFallbackLoading] = useState(!bootstrap);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
+    if (bootstrap) {
+      await bootstrap.refresh();
+      return;
+    }
+    setFallbackLoading(true);
     try {
       const [p, prof] = await Promise.all([
         fetchPlan(),
         fetchProfilePlan(),
       ]);
-      setPlan(p);
-      setProfile(prof);
+      setFallbackPlan(p);
+      setFallbackProfile(prof);
     } finally {
-      setLoading(false);
+      setFallbackLoading(false);
     }
-  }, []);
+  }, [bootstrap]);
 
   useEffect(() => {
+    if (bootstrap) return;
     void refresh();
-  }, [refresh]);
+  }, [bootstrap, refresh]);
 
-  const isPro = checkIsPro(profile);
-
-  return { plan, profile, isPro, loading, refresh };
+  if (bootstrap) {
+    return {
+      plan: bootstrap.plan,
+      profile: bootstrap.profile,
+      isPro: bootstrap.isPro,
+      loading: bootstrap.loading,
+      refresh: bootstrap.refresh,
+    };
+  }
+  const isPro = checkIsPro(fallbackProfile);
+  return {
+    plan: fallbackPlan,
+    profile: fallbackProfile,
+    isPro,
+    loading: fallbackLoading,
+    refresh,
+  };
 }

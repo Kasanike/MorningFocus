@@ -223,17 +223,25 @@ export interface OnboardingStatus {
   hasProtocol: boolean;
 }
 
-export async function fetchOnboardingStatus(): Promise<OnboardingStatus | null> {
+/** Single round-trip: user + profile (plan, onboarding) + principle/protocol counts. */
+export interface BootstrapData {
+  profile: ProfilePlan | null;
+  onboardingStatus: OnboardingStatus | null;
+}
+
+export async function fetchBootstrap(): Promise<BootstrapData> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) {
+    return { profile: null, onboardingStatus: null };
+  }
 
   const [profileRes, principlesRes, stepsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("onboarding_completed")
+      .select("onboarding_completed, plan, subscription_end")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -246,16 +254,28 @@ export async function fetchOnboardingStatus(): Promise<OnboardingStatus | null> 
       .eq("user_id", user.id),
   ]);
 
-  const onboardingCompleted =
-    profileRes.data?.onboarding_completed === true;
+  const row = profileRes.data;
+  const profile: ProfilePlan | null = row
+    ? {
+        plan: row.plan === "pro" ? "pro" : "free",
+        subscription_end: row.subscription_end ?? null,
+      }
+    : null;
+  const onboardingCompleted = row?.onboarding_completed === true;
   const hasPrinciples = (principlesRes.count ?? 0) > 0;
   const hasProtocol = (stepsRes.count ?? 0) > 0;
-
-  return {
+  const onboardingStatus: OnboardingStatus = {
     onboardingCompleted,
     hasPrinciples,
     hasProtocol,
   };
+
+  return { profile, onboardingStatus };
+}
+
+export async function fetchOnboardingStatus(): Promise<OnboardingStatus | null> {
+  const { onboardingStatus } = await fetchBootstrap();
+  return onboardingStatus;
 }
 
 export async function setOnboardingCompleted(): Promise<void> {

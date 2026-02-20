@@ -25,7 +25,7 @@ export function HomeWithSunrise() {
       <main className="relative z-10 mx-auto min-h-screen max-w-2xl pb-16">
         <Header />
 
-        {!isReady || onboardingLoading ? (
+        {!isReady ? (
           <div className="flex min-h-[50vh] items-center justify-center px-4">
             <p className="font-mono text-sm text-white/50">Loading…</p>
           </div>
