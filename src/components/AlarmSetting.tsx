@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { Bell, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS } from "@/lib/constants";
-import { openNativeAlarm, getDeepLinkSupport } from "@/lib/alarm-deeplink";
+import {
+  getNativeAlarmUrl,
+  getDeepLinkSupport,
+} from "@/lib/alarm-deeplink";
 
 export type AlarmSettings = {
   time: string;
@@ -68,18 +71,13 @@ export function AlarmSetting() {
     saveAlarm({ time: value, days });
   };
 
-  const [savedFeedback, setSavedFeedback] = useState(false);
+  const [feedback, setFeedback] = useState<"idle" | "saved" | "opening">("idle");
 
   const handleSetAlarm = () => {
     saveAlarm({ time, days });
-    openNativeAlarm(time);
-    // On desktop nothing opens; show feedback
-    const platformNow =
-      typeof window !== "undefined" ? getDeepLinkSupport() : "desktop";
-    if (platformNow === "desktop") {
-      setSavedFeedback(true);
-      setTimeout(() => setSavedFeedback(false), 4000);
-    }
+    setFeedback("opening");
+    setTimeout(() => setFeedback("saved"), 300);
+    setTimeout(() => setFeedback("idle"), 4000);
   };
 
   const platform =
@@ -155,30 +153,39 @@ export function AlarmSetting() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSetAlarm}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
-        >
-          <ExternalLink className="h-4 w-4" />
-          {platform === "desktop"
-            ? "Open Clock App"
-            : platform === "ios"
+        {platform !== "desktop" ? (
+          <a
+            href={getNativeAlarmUrl(time)}
+            onClick={handleSetAlarm}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {platform === "ios"
               ? "Open Clock App → Set Your Alarm"
               : `Set Alarm for ${time}`}
-        </button>
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={handleSetAlarm}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-4 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/25"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open Clock App
+          </button>
+        )}
 
-        {platform === "desktop" && (
-          <>
-            <p className="text-center font-mono text-xs text-white/40">
-              On mobile, this opens your native clock app
-            </p>
-            {savedFeedback && (
-              <p className="text-center font-mono text-sm text-white/70 animate-fade-in">
-                Alarm saved for {time}. Open this app on your phone to set it in your clock.
-              </p>
-            )}
-          </>
+        <p className="text-center font-mono text-xs text-white/40">
+          {platform === "desktop"
+            ? "On mobile, this opens your native clock app"
+            : "Opens your device clock app with this time"}
+        </p>
+        {feedback !== "idle" && (
+          <p className="text-center font-mono text-sm text-white/70 animate-fade-in">
+            {feedback === "opening"
+              ? "Opening clock app…"
+              : `Alarm saved for ${time}.`}
+          </p>
         )}
       </div>
     </section>
