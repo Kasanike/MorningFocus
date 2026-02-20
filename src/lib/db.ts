@@ -160,3 +160,59 @@ export async function fetchProfilePlan(): Promise<ProfilePlan | null> {
     subscription_end: data.subscription_end ?? null,
   };
 }
+
+// ── Onboarding ──────────────────────────────────────────
+
+export interface OnboardingStatus {
+  onboardingCompleted: boolean;
+  hasPrinciples: boolean;
+  hasProtocol: boolean;
+}
+
+export async function fetchOnboardingStatus(): Promise<OnboardingStatus | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const [profileRes, principlesRes, stepsRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("principles")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+    supabase
+      .from("protocol_steps")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id),
+  ]);
+
+  const onboardingCompleted =
+    profileRes.data?.onboarding_completed === true ?? false;
+  const hasPrinciples = (principlesRes.count ?? 0) > 0;
+  const hasProtocol = (stepsRes.count ?? 0) > 0;
+
+  return {
+    onboardingCompleted,
+    hasPrinciples,
+    hasProtocol,
+  };
+}
+
+export async function setOnboardingCompleted(): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ onboarding_completed: true })
+    .eq("id", user.id);
+  if (error) throw error;
+}
