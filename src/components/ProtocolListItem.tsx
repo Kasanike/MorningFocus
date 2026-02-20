@@ -103,33 +103,34 @@ export function ProtocolListItem({
     );
   }
 
+  const itemTransition = { duration: 0.2, ease: "easeOut" as const };
+
   return (
     <motion.li
       layout
       onClick={handleRowClick}
-      className="flex cursor-pointer items-center gap-4 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm transition-colors hover:bg-black/30 sm:p-6"
+      className={`flex cursor-pointer items-center gap-4 rounded-xl border border-white/10 p-6 backdrop-blur-sm transition-[background-color,border-color] duration-200 hover:bg-black/30 sm:p-6 ${isCompleted ? "bg-black/30" : "bg-black/20"}`}
       whileTap={{ scale: 0.995 }}
     >
       <div className="min-w-0 flex-1 overflow-hidden">
         <MotionP
-          className="break-words font-sans text-base font-normal leading-relaxed drop-shadow-md"
+          className="break-words font-sans text-base font-normal leading-relaxed drop-shadow-md transition-opacity duration-200"
           initial={false}
           animate={{
             opacity: isCompleted ? 0.4 : 1,
             textDecorationLine: isCompleted ? "line-through" : "none",
           }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={itemTransition}
         >
           {step.label}
         </MotionP>
         <MotionP
-          className="mt-0.5 font-mono text-sm text-white/60 drop-shadow-md"
+          className="mt-0.5 font-mono text-sm text-white/60 drop-shadow-md transition-opacity duration-200"
           initial={false}
           animate={{
-            opacity: isCompleted ? 0.4 : 1,
-            textDecorationLine: isCompleted ? "line-through" : "none",
+            opacity: isCompleted ? 0.3 : 1,
           }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={itemTransition}
         >
           {step.minutes > 0 ? `${step.minutes} ${minutesLabel}` : "—"}
         </MotionP>
@@ -150,23 +151,22 @@ export function ProtocolListItem({
             <Pencil className="h-4 w-4" />
           </button>
         )}
-        {/* Custom circular checkbox - 44px touch target, visual 24px */}
         <MotionDiv
           className="touch-target flex shrink-0 items-center justify-center rounded-full border-2"
           initial={false}
           animate={{
-            borderColor: isCompleted ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)",
-            backgroundColor: isCompleted ? "rgba(255,255,255,0.95)" : "transparent",
+            borderColor: isCompleted ? "#d4856a" : "rgba(255,255,255,0.4)",
+            backgroundColor: isCompleted ? "#d4856a" : "transparent",
           }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
+          transition={itemTransition}
         >
           <span className="flex h-6 w-6 items-center justify-center">
             <MotionDiv
               initial={false}
               animate={{ opacity: isCompleted ? 1 : 0, scale: isCompleted ? 1 : 0.5 }}
-              transition={{ duration: 0.2 }}
+              transition={itemTransition}
             >
-              <Check className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
+              <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
             </MotionDiv>
           </span>
         </MotionDiv>

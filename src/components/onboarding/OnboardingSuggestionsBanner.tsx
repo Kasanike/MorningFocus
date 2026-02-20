@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Pencil } from "lucide-react";
 import { getHasEditedContent } from "@/lib/constants";
 
 const STORAGE_KEY = "onboarding_just_completed";
@@ -26,8 +27,10 @@ export function OnboardingSuggestionsBanner() {
       role="status"
       className="animate-fade-in mx-4 mt-4 flex items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur sm:mx-8 sm:mt-6"
     >
-      <p className="font-sans text-sm text-white/90">
-        These are suggestions. Tap <span className="font-semibold">✎</span> to make them yours.
+      <p className="flex flex-wrap items-center gap-1.5 font-sans text-sm text-white/90">
+        These are suggestions. Tap{" "}
+        <Pencil className="inline-block h-4 w-4 text-white/90" strokeWidth={1.5} aria-hidden />{" "}
+        to make them yours.
       </p>
       <button
         type="button"

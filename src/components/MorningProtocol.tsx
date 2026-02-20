@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Pencil, Trash2, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
@@ -214,6 +214,8 @@ export function MorningProtocol() {
   };
 
   const totalMinutes = steps.reduce((acc, s) => acc + s.minutes, 0);
+  const completedCount = Object.values(completed).filter(Boolean).length;
+  const allDone = steps.length > 0 && completedCount === steps.length;
 
   if (!mounted) {
     return <SkeletonCard variant="list" lines={5} />;
@@ -224,39 +226,42 @@ export function MorningProtocol() {
       className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.morning_protocol_aria}
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="drop-shadow-md">
-          <h2 className="font-mono text-xl font-semibold text-white/95">
-            {t.morning_protocol_title}
-          </h2>
-          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
-            {t.morning_protocol_prompt}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowTimer(true)}
-            className="flex items-center gap-1.5 rounded-lg px-3.5 py-2 font-mono text-[0.7rem] font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #d4856a, #c46b6b)' }}
-          >
-            ▶ Start Guided
-          </button>
-          {totalMinutes > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-white/60">
-              <Clock className="h-4 w-4" />
-              <span>{t.total_minutes.replace("{{total}}", String(totalMinutes))}</span>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setIsEditMode(!isEditMode)}
-            className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
-            aria-label={isEditMode ? t.done_editing : t.edit_principles}
-          >
-            <Pencil className="h-5 w-5" />
-          </button>
-        </div>
+      {/* Row 1: title + edit icon */}
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="font-mono text-xl font-semibold text-white/95">
+          {t.morning_protocol_title}
+        </h2>
+        <button
+          type="button"
+          onClick={() => setIsEditMode(!isEditMode)}
+          className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+          aria-label={isEditMode ? t.done_editing : t.edit_principles}
+        >
+          <Pencil className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Row 2: meta bar — progress + Start Guided */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <span
+          className={`font-mono text-xs tracking-wider ${allDone ? "text-[#7bc47f]" : "text-white/50"}`}
+        >
+          {allDone
+            ? `✓ Protocol complete — ${totalMinutes} min`
+            : `⏱ ${totalMinutes} min · ${completedCount}/${steps.length} complete`}
+        </span>
+        <button
+          type="button"
+          onClick={() => setShowTimer(true)}
+          className="rounded-md border font-mono text-[0.7rem] transition-colors hover:bg-[rgba(212,133,106,0.1)]"
+          style={{
+            color: "#d4856a",
+            borderColor: "rgba(212, 133, 106, 0.25)",
+            padding: "5px 12px",
+          }}
+        >
+          ▶ Start Guided
+        </button>
       </div>
 
       <ol className="mt-6 space-y-3">
