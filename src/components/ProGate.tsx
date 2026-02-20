@@ -2,6 +2,7 @@
 
 import { Lock } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 interface ProGateProps {
   children: React.ReactNode;
@@ -11,9 +12,12 @@ interface ProGateProps {
 
 /**
  * Renders children when user is Pro, otherwise shows upgrade prompt.
+ * Shows skeleton while plan is loading to avoid flash.
  */
 export function ProGate({ children, fallback, featureName }: ProGateProps) {
-  const { isPro } = usePlan();
+  const { isPro, loading } = usePlan();
+
+  if (loading) return <SkeletonCard variant="card" lines={2} />;
 
   if (isPro) return <>{children}</>;
 

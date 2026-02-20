@@ -15,6 +15,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { canAddProtocolStep, FREE_PROTOCOL_STEPS_LIMIT } from "@/lib/subscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 export type { ProtocolStep };
 
@@ -198,14 +199,7 @@ export function MorningProtocol() {
   const totalMinutes = steps.reduce((acc, s) => acc + s.minutes, 0);
 
   if (!mounted) {
-    return (
-      <section className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
-        <h2 className="font-mono text-xl font-semibold text-white/95">
-          {t.morning_protocol_title}
-        </h2>
-        <p className="mt-3 text-white/60 animate-pulse">{t.loading}</p>
-      </section>
-    );
+    return <SkeletonCard variant="list" lines={5} />;
   }
 
   return (

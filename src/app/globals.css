@@ -25,6 +25,21 @@
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* Skeleton: pulsing dark bars on dark background (no white flash) */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.animate-skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
 /* Premium glassmorphism for content cards - increased opacity for better text contrast */
 .card-glass {
   background: rgba(0, 0, 0, 0.4);

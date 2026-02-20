@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: ["/icon-192.png", "/icon-512.png"],
-    apple: "/apple-icon.png",
+    apple: "/icon-192.png",
   },
   openGraph: {
     title: "Better Morning — Own Your First Hour",

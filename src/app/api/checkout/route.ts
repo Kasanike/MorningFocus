@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createClient } from "@/utils/supabase/server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-});
+import { getStripe } from "@/lib/stripe-server";
 
 export async function POST(request: Request) {
   try {
@@ -35,6 +31,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const stripe = getStripe();
     const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const session = await stripe.checkout.sessions.create({

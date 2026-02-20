@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePlan } from "@/hooks/usePlan";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 export function PaywallBanner() {
   const { plan, loading, refresh } = usePlan();
@@ -44,7 +45,8 @@ export function PaywallBanner() {
     }
   };
 
-  if (loading || plan === "pro") return null;
+  if (loading) return <SkeletonCard variant="banner" />;
+  if (plan === "pro") return null;
 
   return (
     <div className="rounded-xl border border-app-border bg-app-card/90 p-4 sm:p-5">

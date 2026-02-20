@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-});
+import { getStripe } from "@/lib/stripe-server";
 
 export async function POST() {
   try {
@@ -28,6 +25,7 @@ export async function POST() {
       );
     }
 
+    const stripe = getStripe();
     const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id")

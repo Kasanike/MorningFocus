@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createAdminClient } from "@/utils/supabase/admin";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-});
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+import { getStripe, getStripeWebhookSecret } from "@/lib/stripe-server";
 
 /** Stripe API still returns these; SDK types may omit them in some versions. */
 type SubscriptionWithPeriod = Stripe.Subscription & {
@@ -46,6 +41,7 @@ async function setProfileFree(userId: string, subscription_end?: string) {
 }
 
 export async function POST(request: Request) {
+  const webhookSecret = getStripeWebhookSecret();
   if (!webhookSecret) {
     console.error("STRIPE_WEBHOOK_SECRET is not set");
     return NextResponse.json(
@@ -59,6 +55,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
+  const stripe = getStripe();
   let event: Stripe.Event;
   try {
     const body = await request.text();

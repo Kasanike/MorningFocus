@@ -12,6 +12,7 @@ import {
   type OneThingEntry,
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
+import { SkeletonCard } from "@/components/SkeletonCard";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -115,14 +116,7 @@ export function OneThing() {
   };
 
   if (!mounted) {
-    return (
-      <section className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
-        <h2 className="font-mono text-xl font-semibold text-white/95">
-          {t.one_thing_title}
-        </h2>
-        <p className="mt-3 text-white/60 animate-pulse">{t.loading}</p>
-      </section>
-    );
+    return <SkeletonCard variant="oneThing" />;
   }
 
   return (
