@@ -87,8 +87,7 @@ function playChime() {
     osc2.start(ctx.currentTime + 0.15);
     osc2.stop(ctx.currentTime + 1.0);
 
-    // Cleanup
-    setTimeout(() => ctx.close(), 1500);
+    osc2.onended = () => ctx.close().catch(() => {});
   } catch (e) {
     // Web Audio not available, silent fail
   }
@@ -114,8 +113,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
   const autoAdvanceRef = useRef<NodeJS.Timeout | null>(null);
   const stepStartTimeRef = useRef<number>(0);
 
-  const currentStep = steps[currentStepIndex];
-  const totalPlannedTime = steps.reduce((acc, s) => acc + s.duration * 60, 0);
+  const currentStep = steps[currentStepIndex] ?? steps[0];
   const isLastStep = currentStepIndex === steps.length - 1;
 
   // ============================================================
@@ -153,23 +151,21 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
     }, 1000);
   }, [clearAllTimers, soundEnabled, timeElapsedInStep]);
 
-  // Auto-advance countdown after step completion
+  const completeCurrentStepRef = useRef(completeCurrentStep);
+  completeCurrentStepRef.current = completeCurrentStep;
+
   useEffect(() => {
-    if (phase === 'step-complete' && autoAdvanceCountdown > 0) {
+    if (phase !== 'step-complete') return;
+    if (autoAdvanceCountdown > 0) {
       autoAdvanceRef.current = setTimeout(() => {
         setAutoAdvanceCountdown(prev => prev - 1);
       }, 1000);
+      return () => {
+        if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+      };
     }
-    if (phase === 'step-complete' && autoAdvanceCountdown === 0 && !isLastStep) {
-      completeCurrentStep(false);
-    }
-    if (phase === 'step-complete' && autoAdvanceCountdown === 0 && isLastStep) {
-      completeCurrentStep(false);
-    }
-    return () => {
-      if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
-    };
-  }, [phase, autoAdvanceCountdown, isLastStep]);
+    completeCurrentStepRef.current(false);
+  }, [phase, autoAdvanceCountdown]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -250,7 +246,9 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
   };
 
   const handleFinish = () => {
-    const completionRate = completedSteps.filter(s => !s.skipped).length / steps.length;
+    const completionRate = steps.length > 0
+      ? completedSteps.filter(s => !s.skipped).length / steps.length
+      : 0;
     onComplete({
       completedSteps,
       totalTime: totalElapsed,

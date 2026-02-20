@@ -43,34 +43,38 @@ export function HomeWithSunrise() {
     if (!showDashboardOrPaywall) return;
     let cancelled = false;
     (async () => {
-      const trialInfo = await fetchTrialInfo();
-      if (cancelled) return;
-      if (!trialInfo) {
-        setAccessGate({ status: "pro" });
-        return;
-      }
-      const plan = trialInfo.plan as "trial" | "expired" | "pro";
-      const profile = {
-        plan,
-        trial_ends: trialInfo.trial_ends ?? new Date(0).toISOString(),
-      };
-      const access = getAccessStatus(profile);
-      if (access === "pro") {
-        setAccessGate({ status: "pro" });
-        return;
-      }
-      if (typeof access === "object" && access.status === "expired") {
-        const stats = await fetchPaywallStats();
+      try {
+        const trialInfo = await fetchTrialInfo();
         if (cancelled) return;
-        setAccessGate({ status: "expired", stats });
-        return;
+        if (!trialInfo) {
+          setAccessGate({ status: "pro" });
+          return;
+        }
+        const plan = trialInfo.plan as "trial" | "expired" | "pro";
+        const profile = {
+          plan,
+          trial_ends: trialInfo.trial_ends ?? new Date(0).toISOString(),
+        };
+        const access = getAccessStatus(profile);
+        if (access === "pro") {
+          setAccessGate({ status: "pro" });
+          return;
+        }
+        if (typeof access === "object" && access.status === "expired") {
+          const stats = await fetchPaywallStats();
+          if (cancelled) return;
+          setAccessGate({ status: "expired", stats });
+          return;
+        }
+        if (typeof access === "object" && access.status === "trial") {
+          const daysLeft = access.daysLeft ?? 1;
+          setAccessGate({ status: "trial", daysLeft });
+          return;
+        }
+        setAccessGate({ status: "pro" });
+      } catch {
+        if (!cancelled) setAccessGate({ status: "pro" });
       }
-      if (typeof access === "object" && access.status === "trial") {
-        const daysLeft = access.daysLeft ?? 1;
-        setAccessGate({ status: "trial", daysLeft });
-        return;
-      }
-      setAccessGate({ status: "pro" });
     })();
     return () => {
       cancelled = true;

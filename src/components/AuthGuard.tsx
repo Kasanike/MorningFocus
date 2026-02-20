@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
-/** Set to true to skip login and go straight to /home (e.g. for local dev). */
-const BYPASS_AUTH = false;
+const BYPASS_AUTH =
+  process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" &&
+  process.env.NODE_ENV === "development";
 
 const PROTECTED_ROUTES = ["/home", "/settings"];
 const AUTH_ROUTES = ["/login"];
@@ -29,25 +30,18 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    const timeout = 3000; // Don't block render for more than 3s (e.g. slow/unreachable Supabase)
 
     async function check() {
-      const timeoutId = setTimeout(() => {
-        if (!cancelled) setChecked(true);
-      }, timeout);
-
       try {
         const supabase = createClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
-        clearTimeout(timeoutId);
         if (cancelled) return;
 
         if (!BYPASS_AUTH && isProtected(pathname) && !user) {
-          const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
-          router.replace(loginUrl);
+          router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
           return;
         }
 
@@ -64,11 +58,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           router.replace(redirect);
           return;
         }
-      } catch {
-        // If Supabase fails, allow through (e.g. env vars missing)
-      } finally {
-        clearTimeout(timeoutId);
+
         if (!cancelled) setChecked(true);
+      } catch {
+        if (cancelled) return;
+        if (isProtected(pathname)) {
+          router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
+        } else {
+          setChecked(true);
+        }
       }
     }
 

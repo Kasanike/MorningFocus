@@ -8,9 +8,11 @@ import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://bettermorning.app"),
   title: "Better Morning — Own Your First Hour",
   description:
     "A calm space to read your principles, follow your protocol, and name the one thing that matters today.",
+  robots: { index: true, follow: true },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

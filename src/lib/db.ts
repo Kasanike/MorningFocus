@@ -195,7 +195,7 @@ export async function saveTimerSession(results: {
     step_details: results.completedSteps,
   });
 
-  if (error) console.error("Failed to save timer session:", error);
+  if (error) throw new Error(`Failed to save timer session: ${error.message}`);
 }
 
 // ── Paywall stats (for trial-expired screen) ─────────────
@@ -233,14 +233,13 @@ export async function fetchPaywallStats(): Promise<PaywallStats | null> {
   const oneThingsDone = oneThings.filter((r) => (r.text ?? "").trim() !== "").length;
 
   const sessionDates = new Set(sessions.map((r) => r.date));
-  const today = new Date().toISOString().slice(0, 10);
   let streak = 0;
-  const d = new Date();
   for (let i = 0; i < 365; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
     if (sessionDates.has(key)) streak++;
     else break;
-    d.setDate(d.getDate() - 1);
   }
 
   return { streak, stepsCompleted, oneThingsDone };

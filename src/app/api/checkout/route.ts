@@ -32,7 +32,13 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
-    const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = process.env.NEXT_PUBLIC_APP_URL;
+    if (!origin) {
+      return NextResponse.json(
+        { error: "App URL is not configured" },
+        { status: 503 }
+      );
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

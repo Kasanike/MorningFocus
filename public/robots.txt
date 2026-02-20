@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /home
+Disallow: /settings
+Disallow: /success
+
+Sitemap: https://bettermorning.app/sitemap.xml

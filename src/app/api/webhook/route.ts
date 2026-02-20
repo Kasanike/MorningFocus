@@ -76,7 +76,7 @@ export async function POST(request: Request) {
         const userId =
           session.client_reference_id ?? session.metadata?.user_id;
         if (!userId) {
-          console.error("Webhook: no user id in session", session.id);
+          console.error(`Webhook ${event.id}: no user_id in session ${session.id}`);
           return NextResponse.json({ received: true });
         }
         const subscription = (await stripe.subscriptions.retrieve(
@@ -151,7 +151,7 @@ export async function POST(request: Request) {
         break;
     }
   } catch (err) {
-    console.error("Webhook handler error:", err);
+    console.error(`Webhook ${event.id} handler error:`, err);
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 }
