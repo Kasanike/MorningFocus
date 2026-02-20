@@ -151,21 +151,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
     }, 1000);
   }, [clearAllTimers, soundEnabled, timeElapsedInStep]);
 
-  const completeCurrentStepRef = useRef(completeCurrentStep);
-  completeCurrentStepRef.current = completeCurrentStep;
-
-  useEffect(() => {
-    if (phase !== 'step-complete') return;
-    if (autoAdvanceCountdown > 0) {
-      autoAdvanceRef.current = setTimeout(() => {
-        setAutoAdvanceCountdown(prev => prev - 1);
-      }, 1000);
-      return () => {
-        if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
-      };
-    }
-    completeCurrentStepRef.current(false);
-  }, [phase, autoAdvanceCountdown]);
+  const completeCurrentStepRef = useRef<(skipped: boolean) => void>(() => {});
 
   // Cleanup on unmount
   useEffect(() => {
@@ -216,14 +202,12 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
     setCompletedSteps(newCompleted);
 
     if (isLastStep) {
-      // All done
       setPhase('finished');
       if (soundEnabled) {
         playChime();
         setTimeout(playChime, 400);
       }
     } else {
-      // Move to next step
       const nextIndex = currentStepIndex + 1;
       setCurrentStepIndex(nextIndex);
       setTimeRemaining(steps[nextIndex].duration * 60);
@@ -233,6 +217,22 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
       stepStartTimeRef.current = Date.now();
     }
   };
+
+  completeCurrentStepRef.current = completeCurrentStep;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (phase !== 'step-complete') return;
+    if (autoAdvanceCountdown > 0) {
+      autoAdvanceRef.current = setTimeout(() => {
+        setAutoAdvanceCountdown(prev => prev - 1);
+      }, 1000);
+      return () => {
+        if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+      };
+    }
+    completeCurrentStepRef.current(false);
+  }, [phase, autoAdvanceCountdown]);
 
   const skipStep = () => {
     setTotalElapsed(prev => prev + (currentStep.duration * 60 - timeRemaining));
