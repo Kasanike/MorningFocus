@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Target } from "lucide-react";
+import { Target, Pencil } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import {
   fetchKeystone,
   saveKeystoneDb,
   fetchKeystoneHistory,
-  setKeystoneCompleted,
   type KeystoneEntry,
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
@@ -48,12 +47,17 @@ function saveKeystoneLocal(text: string) {
   );
 }
 
-export function Keystone() {
+interface KeystoneProps {
+  onGoToProgress?: () => void;
+}
+
+export function Keystone({ onGoToProgress }: KeystoneProps) {
   const { t } = useLanguage();
   const [value, setValue] = useState("");
   const [history, setHistory] = useState<KeystoneEntry[]>([]);
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -105,20 +109,8 @@ export function Keystone() {
         setHasEditedContent();
       }
       setSaved(true);
+      setIsEditing(false);
       setTimeout(() => setSaved(false), 2000);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleToggleCompleted = async (entry: KeystoneEntry) => {
-    try {
-      await setKeystoneCompleted(entry.date, !entry.completed);
-      setHistory((prev) =>
-        prev.map((e) =>
-          e.id === entry.id ? { ...e, completed: !e.completed } : e
-        )
-      );
     } catch (e) {
       console.error(e);
     }
@@ -129,6 +121,7 @@ export function Keystone() {
   }
 
   const hasSetKeystone = value.trim() !== "";
+  const showLockedCard = hasSetKeystone && !isEditing;
 
   return (
     <>
@@ -147,55 +140,112 @@ export function Keystone() {
           {t.keystone_prompt}
         </p>
       </div>
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => { setValue(e.target.value); setSaved(false); }}
-          onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          placeholder={t.keystone_placeholder}
-          className="min-h-[44px] min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 text-base font-medium text-white placeholder:text-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/50"
-        />
-        <button
-          type="button"
-          onClick={handleSave}
-          className={`min-h-[44px] w-full shrink-0 rounded-full px-6 py-3 font-bold transition-all duration-300 sm:w-auto ${
-            saved
-              ? "bg-emerald-400 text-emerald-950"
-              : "bg-white text-indigo-900 hover:opacity-90"
-          }`}
-        >
-          {saved ? "Saved" : t.save}
-        </button>
-      </div>
 
-      {history.length > 0 && (
-        <ul className="mt-6 space-y-2 border-t border-white/10 pt-6" aria-label="Last 7 days">
-          {history.map((entry) => (
-            <li key={entry.id}>
-              <button
-                type="button"
-                onClick={() => handleToggleCompleted(entry)}
-                className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left font-mono text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white/95"
-              >
-                <span className="shrink-0 text-white/50">
-                  {formatDateShort(entry.date)} —
-                </span>
-                <span className={"min-w-0 flex-1 break-words text-left " + (entry.completed ? "line-through opacity-70" : "")}>
-                  {entry.text || "—"}
-                </span>
-                {entry.completed && (
-                  <span className="ml-1 shrink-0 text-white/90" aria-hidden>✓</span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
+      {showLockedCard ? (
+        <div className="animate-fade-scale-in mt-6 rounded-xl border border-white/15 bg-white/5 px-5 py-4 backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-mono text-xs font-medium uppercase tracking-wider text-white/50">
+              {t.keystone_todays_commitment}
+            </span>
+            <span className="animate-slide-in-right shrink-0 rounded-full bg-emerald-500/20 px-2.5 py-1 font-mono text-xs font-medium text-emerald-300">
+              {t.keystone_locked_badge}
+            </span>
+          </div>
+          <p className="mt-2 font-medium text-white/95">{value.trim()}</p>
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="flex min-h-[40px] items-center gap-2 rounded-lg px-3 py-2 font-mono text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
+              aria-label={t.keystone_edit}
+            >
+              <Pencil className="h-4 w-4" />
+              {t.keystone_edit}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setSaved(false); }}
+            onKeyDown={(e) => e.key === "Enter" && handleSave()}
+            placeholder={t.keystone_placeholder}
+            className="min-h-[44px] min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 text-base font-medium text-white placeholder:text-white/50 backdrop-blur-md transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:shadow-[0_0_0_4px_rgba(255,255,255,0.08)]"
+          />
+          <button
+            type="button"
+            onClick={handleSave}
+            className={`min-h-[44px] w-full shrink-0 rounded-full px-6 py-3 font-bold transition-all duration-300 active:scale-[0.98] sm:w-auto ${
+              saved
+                ? "bg-emerald-500/30 text-emerald-300"
+                : "bg-white text-indigo-900 hover:opacity-90"
+            }`}
+          >
+            {saved ? t.keystone_locked_badge : t.keystone_lock_button}
+          </button>
+        </div>
       )}
     </section>
 
+    {/* Recent keystones — last 3 as cards; "See all" to Progress */}
+    {(() => {
+      const todayKey = getTodayKey();
+      const pastEntries = history.filter((e) => e.date !== todayKey).slice(0, 3);
+      if (pastEntries.length === 0 && !onGoToProgress) return null;
+      return (
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h3 className="font-mono text-[10px] font-semibold uppercase tracking-widest text-white/50">
+              {t.keystone_recent_title}
+            </h3>
+            {onGoToProgress && (
+              <button
+                type="button"
+                onClick={onGoToProgress}
+                className="font-mono text-xs font-medium text-[#d4856a] transition-colors hover:text-[#e09a7a]"
+              >
+                {t.keystone_see_all}
+              </button>
+            )}
+          </div>
+          {pastEntries.length > 0 && (
+            <ul className="space-y-2.5" aria-label={t.keystone_recent_title}>
+              {pastEntries.map((entry) => (
+                <li key={entry.id}>
+                  <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full bg-[#d4856a]"
+                      aria-hidden
+                    />
+                    <span className="shrink-0 font-mono text-xs text-white/50">
+                      {formatDateShort(entry.date)}
+                    </span>
+                    <span
+                      className={
+                        "min-w-0 flex-1 truncate font-mono text-xs text-white/70 " +
+                        (entry.completed ? "line-through opacity-60" : "")
+                      }
+                    >
+                      {entry.text || "—"}
+                    </span>
+                    {entry.completed && (
+                      <span className="shrink-0 text-white/50" aria-hidden>
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    })()}
+
     {hasSetKeystone && (
-      <div className="mt-6" role="complementary" aria-label="Quote of the day — your send-off">
+      <div className="mt-6" role="complementary" aria-label={t.quote_remember_today}>
         <StoicQuote />
       </div>
     )}

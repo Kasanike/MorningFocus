@@ -25,6 +25,38 @@
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* Keystone: commit card reveal + badge slide */
+@keyframes fade-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-scale-in {
+  animation: fade-scale-in 0.35s ease-out forwards;
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
 /* Skeleton: pulsing dark bars on dark background (no white flash) */
 @keyframes skeleton-pulse {
   0%,

@@ -105,7 +105,7 @@ export function HomeWithSunrise() {
         ) : isExpired ? (
           <Paywall userStats={accessGate.status === "expired" ? accessGate.stats : null} />
         ) : (
-          <div className="animate-fade-in mt-8 px-4 sm:px-8 sm:mt-10">
+          <div className="animate-fade-in mt-2 px-4 sm:px-8 sm:mt-3">
             {accessGate.status === "trial" && (
               <TrialBanner daysLeft={accessGate.daysLeft} />
             )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { X, Star } from "lucide-react";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { fetchPaywallStats } from "@/lib/db";
 
@@ -25,15 +25,6 @@ function dismissForToday(): void {
   localStorage.setItem(STORAGE_KEYS.TRIAL_BANNER_DISMISSED_DATE, getTodayKey());
 }
 
-const glassStyle = {
-  background: "rgba(30, 15, 25, 0.4)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: 10,
-  padding: "12px 16px",
-  fontFamily: "'IBM Plex Mono', monospace",
-  fontSize: "0.75rem",
-  color: "var(--app-muted)",
-} as const;
 
 export function TrialBanner({ daysLeft, streak: streakProp }: TrialBannerProps) {
   const [dismissed, setDismissed] = useState(false);
@@ -74,24 +65,30 @@ export function TrialBanner({ daysLeft, streak: streakProp }: TrialBannerProps) 
   if (dismissed) return null;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div
         role="status"
         aria-live="polite"
-        className="flex items-center justify-between gap-3"
-        style={glassStyle}
+        className="flex items-center justify-between gap-2 rounded-lg border border-white/10 px-3 py-2"
+        style={{
+          background: "rgba(60, 30, 80, 0.5)",
+          boxShadow: "0 1px 0 rgba(255,255,255,0.04)",
+        }}
       >
-        <span>{message}</span>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Star className="h-4 w-4 shrink-0 text-amber-400/90" strokeWidth={1.5} fill="currentColor" />
+          <span className="font-mono text-xs text-white/90">{message}</span>
+        </div>
         <button
           type="button"
           onClick={() => {
             dismissForToday();
             setDismissed(true);
           }}
-          className="shrink-0 rounded p-1 text-[var(--app-muted)] transition-colors hover:bg-white/10 hover:text-app-fg"
+          className="shrink-0 rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
           aria-label="Dismiss"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
       {showUpsell && (

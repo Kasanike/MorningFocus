@@ -57,10 +57,10 @@ function TabBar({
           <button
             key={tab.id}
             onClick={() => onSelect(tab.id)}
-            className="flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 px-2 transition-all duration-200"
+            className="flex flex-1 flex-col items-center gap-0.5 rounded-lg py-2 px-1.5 transition-all duration-200"
             style={isActive ? { background: GRAD, color: "white", boxShadow: "0 4px 20px rgba(167,139,250,0.3)" } : { color: "rgba(240,234,248,0.68)" }}
           >
-            <tab.Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+            <tab.Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
             <span className="text-[10px] font-semibold tracking-wide uppercase">{tab.label}</span>
           </button>
         );
@@ -87,7 +87,7 @@ export function HomeTabs() {
       {/* Tab nav — hidden on mobile, shown on sm+; hidden when guided mode is active */}
       {!guidedModeActive && (
         <div
-          className="mb-6 hidden gap-1 rounded-2xl p-1 sm:flex"
+          className="mb-3 hidden gap-0.5 rounded-xl p-0.5 sm:flex"
           style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           <TabBar activeTab={activeTab} onSelect={handleSelectTab} />
@@ -107,7 +107,7 @@ export function HomeTabs() {
 
         {activeTab === "keystone" && (
           <div key="keystone" className="animate-fade-in space-y-6">
-            <Keystone />
+            <Keystone onGoToProgress={() => handleSelectTab("progress")} />
           </div>
         )}
 

@@ -21,7 +21,7 @@ export function StoicQuote() {
       aria-label={t.stoic_oracle_aria}
     >
       <h2 className="mb-6 font-mono text-xl font-semibold text-white/95">
-        Quote of the day
+        {t.quote_remember_today}
       </h2>
 
       <blockquote className="text-center drop-shadow-md">
