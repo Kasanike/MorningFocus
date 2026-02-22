@@ -17,10 +17,18 @@ export function StoicQuote() {
 
   return (
     <section
-      className="card-glass rounded-2xl border border-white/10 p-8 shadow-2xl shadow-black/20 sm:p-10 sm:py-14"
+      className="rounded-[22px] border backdrop-blur-xl sm:py-14"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        borderColor: "rgba(255,255,255,0.06)",
+        padding: "22px 20px 28px",
+      }}
       aria-label={t.stoic_oracle_aria}
     >
-      <h2 className="mb-6 font-mono text-xl font-semibold text-white/95">
+      <h2
+        className="mb-6 font-bold text-white/95"
+        style={{ fontSize: 22, letterSpacing: "-0.01em" }}
+      >
         {t.quote_remember_today}
       </h2>
 
@@ -30,7 +38,9 @@ export function StoicQuote() {
         >
           &ldquo;{quote.text}&rdquo;
         </p>
-        <footer className="mt-10 font-mono text-xs font-medium uppercase tracking-[0.2em] text-white/60">
+        <footer
+          className="mt-10 text-xs font-medium uppercase tracking-[0.2em] text-white/60"
+        >
           — {quote.author}
         </footer>
       </blockquote>

@@ -311,30 +311,44 @@ export function MorningProtocol({
 
   return (
     <section
-      className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
+      className="relative overflow-hidden rounded-[22px] border backdrop-blur-xl"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        borderColor: "rgba(255,255,255,0.06)",
+        padding: "22px 20px 24px",
+      }}
       aria-label={t.morning_protocol_aria}
     >
-      {/* Row 1: title + edit icon (edit only when showing steps) */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="drop-shadow-md">
-          <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
-            {t.morning_protocol_title}
-          </h2>
-          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
-            {t.morning_protocol_subtitle}
-          </p>
-        </div>
+      {/* Row 1: title + edit icon */}
+      <div className="mb-1 flex items-start justify-between">
+        <h2
+          className="font-bold text-white"
+          style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
+        >
+          {t.morning_protocol_title}
+        </h2>
         {!showCompletionCard && (
           <button
             type="button"
             onClick={() => setIsEditMode(!isEditMode)}
-            className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+            className="border-0 bg-transparent p-0.5 text-[rgba(255,255,255,0.25)] transition-colors hover:text-white/50"
+            style={{ fontSize: 16 }}
             aria-label={isEditMode ? t.done_editing : t.edit_principles}
           >
-            <Pencil className="h-5 w-5" />
+            ✎
           </button>
         )}
       </div>
+      <p
+        style={{
+          fontSize: 13,
+          color: "rgba(255,255,255,0.3)",
+          margin: "0 0 16px",
+          lineHeight: 1.4,
+        }}
+      >
+        {t.morning_protocol_subtitle}
+      </p>
 
       <AnimatePresence mode="wait">
         {showCompletionCard ? (
@@ -344,30 +358,28 @@ export function MorningProtocol({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="mt-6 flex flex-col items-center justify-center py-8 text-center"
+            className="animate-completion-reveal rounded-2xl border p-5 text-center"
+            style={{
+              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(74,222,128,0.04))",
+              borderColor: "rgba(34,197,94,0.12)",
+              marginBottom: 16,
+            }}
           >
-            <div
-              className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full"
-              style={{
-                background: "linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%)",
-              }}
-            >
-              <CheckCircle2 className="h-9 w-9 text-white" strokeWidth={2} />
-            </div>
-            <h3 className="font-mono text-lg font-semibold text-white/95">
-              Protocol Complete
-            </h3>
-            <p className="mt-1 font-mono text-sm text-white/60">
-              {timeTakenLabel} · {steps.length} steps
+            <div className="mb-2 text-[32px]">🌅</div>
+            <p className="mb-1 font-bold text-white" style={{ fontSize: 16, margin: "0 0 4px" }}>
+              Morning complete
+            </p>
+            <p className="text-[13px] text-white/40" style={{ margin: 0 }}>
+              You showed up for yourself today. That matters.
             </p>
             {onGoToConstitution && (
               <button
                 type="button"
                 onClick={onGoToConstitution}
-                className="mt-6 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 font-mono text-sm font-medium text-white transition-colors hover:opacity-90"
+                className="mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
                 style={{
-                  background: "linear-gradient(135deg, #a78bfa, #f472b6)",
-                  boxShadow: "0 4px 20px rgba(167,139,250,0.3)",
+                  background: "linear-gradient(135deg, #f97316, #ec4899)",
+                  boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
                 }}
               >
                 Go to Constitution
@@ -377,7 +389,7 @@ export function MorningProtocol({
             <button
               type="button"
               onClick={handleRedo}
-              className="mt-4 font-mono text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
+              className="mt-3 text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
             >
               Redo protocol
             </button>
@@ -389,36 +401,68 @@ export function MorningProtocol({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="mt-3"
           >
-            {/* Meta bar — progress + Start Guided */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span
-                className={`font-mono text-xs tracking-wider ${allDone ? "text-[#7bc47f]" : "text-white/50"}`}
+            {/* Progress bar */}
+            <div className="mb-4">
+              <div
+                className="mb-3 h-1 w-full overflow-hidden rounded"
+                style={{ background: "rgba(255,255,255,0.06)" }}
               >
-                {allDone
-                  ? `✓ Protocol complete — ${totalMinutes} min`
-                  : `⏱ ${totalMinutes} min · ${completedCount}/${steps.length} complete`}
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowTimer(true)}
-                className="rounded-md border font-sans text-[0.7rem] font-medium transition-colors hover:bg-[rgba(212,133,106,0.1)]"
-                style={{
-                  color: "#d4856a",
-                  borderColor: "rgba(212, 133, 106, 0.25)",
-                  padding: "5px 12px",
-                }}
-              >
-                ▶ Start Guided
-              </button>
+                <div
+                  className="h-full rounded transition-all duration-500"
+                  style={{
+                    width: `${(completedCount / Math.max(1, steps.length)) * 100}%`,
+                    background: allDone
+                      ? "linear-gradient(90deg, #22c55e, #4ade80)"
+                      : "linear-gradient(90deg, #f97316, #ec4899)",
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-xs font-medium transition-colors"
+                    style={{
+                      color: allDone ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.3)",
+                    }}
+                  >
+                    {allDone
+                      ? "✓ Protocol complete"
+                      : `${completedCount}/${steps.length} complete`}
+                  </span>
+                  <span
+                    className="rounded-full"
+                    style={{
+                      width: 3,
+                      height: 3,
+                      background: "rgba(255,255,255,0.12)",
+                    }}
+                  />
+                  <span className="text-xs font-medium text-white/25">
+                    {totalMinutes} {t.minutes}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTimer(true)}
+                  className="flex items-center gap-1.5 rounded-[10px] border px-3.5 py-1.5 text-xs font-semibold transition-colors"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(236,72,153,0.1))",
+                    borderColor: "rgba(249,115,22,0.2)",
+                    color: "rgba(249,115,22,0.85)",
+                  }}
+                >
+                  ▶ Start Guided
+                </button>
+              </div>
             </div>
 
-            <ol className="mt-6 space-y-3">
-              {steps.map((s) => (
+            <ol className="flex flex-col gap-2">
+              {steps.map((s, i) => (
                 <ProtocolListItem
                   key={s.id}
                   step={s}
+                  stepIndex={i}
                   isCompleted={!!completed[s.id]}
                   isEditing={editId === s.id}
                   isEditMode={isEditMode}

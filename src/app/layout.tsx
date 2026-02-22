@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Providers } from "@/components/Providers";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-dm-sans",
+});
 import { AuthGuard } from "@/components/AuthGuard";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { Analytics } from "@/components/Analytics";
@@ -61,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${dmSans.variable} ${GeistSans.variable} ${GeistMono.variable}`}
       style={{ color: "#e4e4e7" }}
     >
       <head>
@@ -76,8 +83,11 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Better Morning" />
       </head>
       <body
-        className="font-sans antialiased min-h-screen bg-[#09090b]"
-        style={{ color: "#e4e4e7" }}
+        className="min-h-screen bg-[#09090b] antialiased"
+        style={{
+          fontFamily: "var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif",
+          color: "#e4e4e7",
+        }}
       >
         <Providers>
           <Analytics />

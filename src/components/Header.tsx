@@ -25,32 +25,43 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-10 bg-transparent px-4 pt-3 pb-1.5 backdrop-blur-sm sm:px-8 sm:pt-4 sm:pb-2">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 drop-shadow-md">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-white/50">
-            {formattedDate}
-          </p>
-          <h1 className="mt-0.5 font-sans text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            {t.greeting}
-          </h1>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1.5">
+    <header
+      className="sticky top-0 z-10 bg-transparent backdrop-blur-sm"
+      style={{ padding: "52px 24px 16px" }}
+    >
+      <p
+        className="text-[11px] font-semibold uppercase tracking-[0.15em]"
+        style={{ color: "rgba(255,255,255,0.4)", margin: 0 }}
+      >
+        {formattedDate}
+      </p>
+      <div className="flex items-center justify-between" style={{ marginTop: 4 }}>
+        <h1
+          className="font-bold tracking-tight text-white"
+          style={{ fontSize: 32, margin: 0, letterSpacing: "-0.02em" }}
+        >
+          {t.greeting}
+        </h1>
+        <div className="flex items-center gap-3">
           <span
-            className="flex items-center gap-1 rounded-lg border border-white/10 px-2.5 py-1.5 text-white/90"
-            style={{ background: "rgba(40, 15, 60, 0.9)" }}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-white"
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
             aria-label={streakCount !== null ? `Current streak: ${streakCount} days` : "Streak"}
           >
-            <Flame className="h-3.5 w-3.5 shrink-0 text-[#d4856a]" strokeWidth={2} />
-            <span className="font-mono text-xs font-semibold tabular-nums">{streakCount ?? "…"}</span>
+            <Flame className="h-4 w-4 shrink-0 text-[#f97316]" strokeWidth={2} />
+            <span className="tabular-nums">{streakCount ?? "…"}</span>
           </span>
           <Link
             href="/settings"
-            className="touch-target flex h-9 w-9 items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/70"
+            className="touch-target flex items-center justify-center text-[rgba(255,255,255,0.4)] transition-colors hover:text-white/70"
+            style={{ fontSize: 18 }}
             aria-label={t.settings_title}
           >
-            <Settings className="h-4 w-4" strokeWidth={1.5} />
+            <Settings className="h-5 w-5" strokeWidth={1.5} />
           </Link>
         </div>
       </div>

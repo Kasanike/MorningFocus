@@ -40,7 +40,7 @@ const TABS: { id: Tab; label: string; Icon: typeof Timer }[] = [
   { id: "progress", label: "Progress", Icon: Flame },
 ];
 
-const GRAD = "linear-gradient(135deg, #a78bfa, #f472b6, #fb923c)";
+const GRAD_ACTIVE = "linear-gradient(135deg, rgba(249,115,22,0.8), rgba(236,72,153,0.7))";
 
 function TabBar({
   activeTab,
@@ -58,7 +58,7 @@ function TabBar({
             key={tab.id}
             onClick={() => onSelect(tab.id)}
             className="flex flex-1 flex-col items-center gap-0.5 rounded-lg py-2 px-1.5 transition-all duration-200"
-            style={isActive ? { background: GRAD, color: "white", boxShadow: "0 4px 20px rgba(167,139,250,0.3)" } : { color: "rgba(240,234,248,0.68)" }}
+            style={isActive ? { background: GRAD_ACTIVE, color: "#fff" } : { color: "rgba(255,255,255,0.35)" }}
           >
             <tab.Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
             <span className="text-[10px] font-semibold tracking-wide uppercase">{tab.label}</span>
@@ -87,8 +87,11 @@ export function HomeTabs() {
       {/* Tab nav — hidden on mobile, shown on sm+; hidden when guided mode is active */}
       {!guidedModeActive && (
         <div
-          className="mb-3 hidden gap-0.5 rounded-xl p-0.5 sm:flex"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+          className="mb-3 hidden gap-0.5 rounded-xl p-1 sm:flex"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.06)",
+          }}
         >
           <TabBar activeTab={activeTab} onSelect={handleSelectTab} />
         </div>
@@ -127,12 +130,20 @@ export function HomeTabs() {
       {/* Bottom nav — mobile only; hidden when guided mode (full-screen timer) is active */}
       {!guidedModeActive && (
         <nav
-          className="fixed bottom-0 left-0 right-0 z-50 flex gap-1 border-t px-4 pb-6 pt-2 sm:hidden"
+          className="fixed bottom-0 left-0 right-0 z-50 flex w-full gap-0 pb-3 pt-2 sm:hidden"
           style={{
-            background: "rgba(9,9,11,0.85)",
+            width: "100%",
+            maxWidth: 430,
+            marginLeft: "auto",
+            marginRight: "auto",
+            paddingLeft: "max(12px, env(safe-area-inset-left))",
+            paddingRight: "max(12px, env(safe-area-inset-right))",
+            paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+            background: "rgba(20,8,35,0.85)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderColor: "rgba(255,255,255,0.08)",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            boxSizing: "border-box",
           }}
         >
           <TabBar activeTab={activeTab} onSelect={handleSelectTab} />

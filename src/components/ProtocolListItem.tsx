@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Check } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 const MotionDiv = motion.div;
 const MotionP = motion.p;
@@ -12,8 +13,21 @@ export interface ProtocolStep {
   minutes: number;
 }
 
+/** Cool → warm step colors (reference design) */
+const STEP_COLORS = [
+  { bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.12)", num: "rgba(167,139,250,0.6)" },
+  { bg: "rgba(110,195,244,0.07)", border: "rgba(110,195,244,0.10)", num: "rgba(110,195,244,0.55)" },
+  { bg: "rgba(180,210,140,0.06)", border: "rgba(180,210,140,0.10)", num: "rgba(180,210,140,0.5)" },
+  { bg: "rgba(251,146,60,0.08)", border: "rgba(251,146,60,0.12)", num: "rgba(251,146,60,0.6)" },
+];
+
+function getStepColor(index: number) {
+  return STEP_COLORS[index % STEP_COLORS.length] ?? STEP_COLORS[0];
+}
+
 interface ProtocolListItemProps {
   step: ProtocolStep;
+  stepIndex: number;
   isCompleted: boolean;
   isEditing: boolean;
   isEditMode: boolean;
@@ -31,8 +45,64 @@ interface ProtocolListItemProps {
   editPrincipleLabel: string;
 }
 
+function AnimatedCheck({
+  checked,
+  onToggle,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  const [animating, setAnimating] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!checked) setAnimating(true);
+    onToggle();
+    if (!checked) setTimeout(() => setAnimating(false), 500);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="flex shrink-0 cursor-pointer items-center justify-center border-0 p-0"
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        border: checked ? "none" : "2px solid rgba(255,255,255,0.12)",
+        background: checked
+          ? "linear-gradient(135deg, #f97316, #ec4899)"
+          : "rgba(255,255,255,0.03)",
+        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        transform: animating ? "scale(1.2)" : "scale(1)",
+        boxShadow: checked ? "0 4px 16px rgba(249,115,22,0.3)" : "none",
+      }}
+    >
+      {checked && (
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          style={{ animation: "checkDraw 0.3s ease-out" }}
+        >
+          <path
+            d="M4 10.5L8 14.5L16 6.5"
+            stroke="white"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 export function ProtocolListItem({
   step,
+  stepIndex,
   isCompleted,
   isEditing,
   editLabel,
@@ -49,6 +119,7 @@ export function ProtocolListItem({
   editPrincipleLabel,
   isEditMode,
 }: ProtocolListItemProps) {
+  const color = getStepColor(stepIndex);
   const handleRowClick = (e: React.MouseEvent) => {
     if (isEditing) return;
     const target = e.target as HTMLElement;
@@ -109,27 +180,45 @@ export function ProtocolListItem({
     <motion.li
       layout
       onClick={handleRowClick}
-      className={`flex cursor-pointer items-center gap-4 rounded-xl border border-white/10 p-6 backdrop-blur-sm transition-[background-color,border-color] duration-200 hover:bg-black/30 sm:p-6 ${isCompleted ? "bg-black/30" : "bg-black/20"}`}
+      className="flex cursor-pointer items-center gap-3 rounded-[14px] border transition-all duration-300"
+      style={{
+        padding: "14px",
+        background: isCompleted ? "rgba(255,255,255,0.02)" : color.bg,
+        borderColor: isCompleted ? "rgba(255,255,255,0.04)" : color.border,
+        opacity: isCompleted ? 0.5 : 1,
+      }}
       whileTap={{ scale: 0.995 }}
     >
+      <span
+        className="flex shrink-0 text-center font-mono text-xs font-bold transition-colors"
+        style={{
+          width: 24,
+          color: isCompleted ? "rgba(255,255,255,0.15)" : color.num,
+        }}
+      >
+        {String(stepIndex + 1).padStart(2, "0")}
+      </span>
+
       <div className="min-w-0 flex-1 overflow-hidden">
         <MotionP
-          className="break-words font-sans text-base font-normal leading-relaxed drop-shadow-md transition-opacity duration-200"
+          className="break-words text-[15px] font-medium transition-all duration-300"
           initial={false}
           animate={{
-            opacity: isCompleted ? 0.4 : 1,
-            textDecorationLine: isCompleted ? "line-through" : "none",
+            color: isCompleted ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.85)",
+            textDecoration: isCompleted ? "line-through" : "none",
+            textDecorationColor: "rgba(255,255,255,0.15)",
           }}
           transition={itemTransition}
         >
           {step.label}
         </MotionP>
         <MotionP
-          className="mt-0.5 font-mono text-sm text-white/60 drop-shadow-md transition-opacity duration-200"
+          className="text-xs transition-colors duration-300"
           initial={false}
           animate={{
-            opacity: isCompleted ? 0.3 : 1,
+            color: isCompleted ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.3)",
           }}
+          style={{ margin: "2px 0 0" }}
           transition={itemTransition}
         >
           {step.minutes > 0 ? `${step.minutes} ${minutesLabel}` : "—"}
@@ -151,25 +240,7 @@ export function ProtocolListItem({
             <Pencil className="h-4 w-4" />
           </button>
         )}
-        <MotionDiv
-          className="touch-target flex shrink-0 items-center justify-center rounded-full border-2"
-          initial={false}
-          animate={{
-            borderColor: isCompleted ? "#d4856a" : "rgba(255,255,255,0.4)",
-            backgroundColor: isCompleted ? "#d4856a" : "transparent",
-          }}
-          transition={itemTransition}
-        >
-          <span className="flex h-6 w-6 items-center justify-center">
-            <MotionDiv
-              initial={false}
-              animate={{ opacity: isCompleted ? 1 : 0, scale: isCompleted ? 1 : 0.5 }}
-              transition={itemTransition}
-            >
-              <Check className="h-3.5 w-3.5 text-white" strokeWidth={2.5} />
-            </MotionDiv>
-          </span>
-        </MotionDiv>
+        <AnimatedCheck checked={isCompleted} onToggle={onToggle} />
       </div>
     </motion.li>
   );

@@ -11,18 +11,17 @@ import {
 } from "@/lib/streak";
 import { fetchStreakData } from "@/lib/db";
 
-const GLASS_CARD_STYLE = {
-  background: "rgba(30, 13, 25, 0.53)",
+const CARD_STYLE = {
+  background: "rgba(255,255,255,0.04)",
   backdropFilter: "blur(20px)",
   WebkitBackdropFilter: "blur(20px)" as const,
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 16,
-  padding: "20px 16px",
+  border: "1px solid rgba(255,255,255,0.06)",
+  borderRadius: 22,
+  padding: "22px 20px 24px",
 };
 
-const GRADIENT_FULL =
-  "linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%)";
-const PARTIAL_BG = "rgba(139, 92, 246, 0.4)";
+const GRADIENT_FULL = "linear-gradient(135deg, #f97316, #ec4899)";
+const PARTIAL_BG = "rgba(249, 115, 22, 0.4)";
 const MISSED_BG = "rgba(255,255,255,0.08)";
 const MISSED_TEXT = "rgba(255,255,255,0.3)";
 const TODAY = () => new Date().toISOString().slice(0, 10);
@@ -235,53 +234,62 @@ export function ProgressTab() {
   return (
     <div className="space-y-6">
       {/* A) Hero stats row */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div
-          className="flex flex-col items-center justify-center rounded-2xl text-center shadow-lg"
-          style={GLASS_CARD_STYLE}
+          className="flex flex-col items-center justify-center rounded-[14px] border text-center"
+          style={{
+            ...CARD_STYLE,
+            padding: "18px 12px",
+            borderRadius: 14,
+          }}
         >
           <span className="text-2xl leading-none" aria-hidden>🔥</span>
-          <span className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
+          <span className="mt-1.5 text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
             {loading ? "…" : currentStreak}
           </span>
-          <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-white/50">
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-white/50">
             Current
           </span>
         </div>
         <div
-          className="flex flex-col items-center justify-center rounded-2xl text-center shadow-lg"
-          style={GLASS_CARD_STYLE}
+          className="flex flex-col items-center justify-center rounded-[14px] border text-center"
+          style={{
+            ...CARD_STYLE,
+            padding: "18px 12px",
+            borderRadius: 14,
+          }}
         >
           <span className="text-2xl leading-none" aria-hidden>🏆</span>
-          <span className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
+          <span className="mt-1.5 text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
             {loading ? "…" : longestStreak}
           </span>
-          <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-white/50">
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-white/50">
             Longest
           </span>
         </div>
         <div
-          className="flex flex-col items-center justify-center rounded-2xl text-center shadow-lg"
-          style={GLASS_CARD_STYLE}
+          className="flex flex-col items-center justify-center rounded-[14px] border text-center"
+          style={{
+            ...CARD_STYLE,
+            padding: "18px 12px",
+            borderRadius: 14,
+          }}
         >
           <span className="text-2xl leading-none" aria-hidden>☀️</span>
-          <span className="mt-1.5 font-mono text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
+          <span className="mt-1.5 text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
             {loading ? "…" : totalMornings}
           </span>
-          <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-white/50">
+          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-white/50">
             Total
           </span>
         </div>
       </div>
 
-      {/* B) Calendar: 14-day strip when total < 30, else monthly heatmap */}
-      <div
-        className="rounded-2xl p-4 sm:p-5"
-        style={GLASS_CARD_STYLE}
-      >
+      {/* B) Calendar */}
+      <div className="rounded-[22px] border backdrop-blur-xl" style={CARD_STYLE}>
         {totalMornings >= 30 ? (
           <>
-            <h2 className="mb-3 font-mono text-sm font-semibold uppercase tracking-wider text-white/70">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/70">
               {monthLabel}
             </h2>
             <div className="overflow-x-auto">
@@ -318,7 +326,7 @@ export function ProgressTab() {
                         return (
                           <div
                             key={dateStr}
-                            className={`aspect-square min-w-0 rounded-lg border-2 transition-all ${
+                            className={`aspect-square min-w-0 rounded-[10px] border-2 transition-all ${
                               isToday ? "border-white/60 ring-2 ring-white/20" : "border-transparent"
                             } ${isFuture ? "opacity-40" : ""}`}
                             style={{
@@ -326,8 +334,8 @@ export function ProgressTab() {
                                 status === "full"
                                   ? GRADIENT_FULL
                                   : status === "partial"
-                                    ? "rgba(167, 139, 250, 0.35)"
-                                    : "rgba(0,0,0,0.25)",
+                                    ? PARTIAL_BG
+                                    : "rgba(255,255,255,0.04)",
                             }}
                             title={dateStr}
                             aria-label={`${dateStr}${status !== "none" ? `, ${status}` : ""}`}
@@ -342,7 +350,7 @@ export function ProgressTab() {
           </>
         ) : (
           <>
-            <h2 className="mb-3 font-mono text-sm font-semibold uppercase tracking-wider text-white/70">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/70">
               Last 7 days
             </h2>
             <div className="flex justify-between gap-2 overflow-x-auto pb-1">
@@ -368,7 +376,7 @@ export function ProgressTab() {
                       {getDayLabel(dateStr)}
                     </span>
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border-2 transition-all ${
                         isToday ? "border-white ring-2 ring-white/40" : "border-transparent"
                       }`}
                       style={{ background: bg }}
@@ -390,44 +398,59 @@ export function ProgressTab() {
         )}
       </div>
 
-      {/* C) Dynamic message card: quote / checklist / morning complete */}
+      {/* C) Quote / checklist / morning complete */}
       <div
-        className="rounded-2xl px-5 py-4 text-center"
-        style={GLASS_CARD_STYLE}
+        className="rounded-[22px] border px-5 py-5 text-center backdrop-blur-xl"
+        style={CARD_STYLE}
       >
         {todayDetail === undefined ? (
-          <p className="font-serif text-lg text-white/70 sm:text-xl" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <p className="text-lg text-white/70 sm:text-xl" style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
             …
           </p>
         ) : todayDetail === null || (!todayDetail.fully_completed && !todayDetail.protocol_done && !todayDetail.constitution_done && !todayDetail.keystone_done) ? (
-          <p className="font-serif text-lg text-white/90 sm:text-xl" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+          <p className="text-lg leading-relaxed text-white/90 sm:text-xl" style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
             {getQuoteForToday()}
           </p>
         ) : todayDetail.fully_completed ? (
-          <div className="space-y-2">
-            <p className="font-serif text-lg text-white/95 sm:text-xl" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
-              Morning complete 🌅
-            </p>
-            <p className="font-mono text-sm text-white/70">
-              {getStreakMilestone(currentStreak)}
-            </p>
+          <div
+            className="rounded-2xl border p-5"
+            style={{
+              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(74,222,128,0.04))",
+              borderColor: "rgba(34,197,94,0.12)",
+            }}
+          >
+            <p className="text-lg font-bold text-white sm:text-xl">Morning complete 🌅</p>
+            <p className="mt-1 text-sm text-white/70">{getStreakMilestone(currentStreak)}</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2 text-left">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-white/50">Today</span>
-            <ul className="flex flex-col gap-1.5 w-full max-w-[200px]">
-              <li className="flex items-center gap-2 font-mono text-sm text-white/90">
-                <span aria-hidden>{todayDetail.protocol_done ? "✓" : "○"}</span>
-                Protocol
-              </li>
-              <li className="flex items-center gap-2 font-mono text-sm text-white/90">
-                <span aria-hidden>{todayDetail.constitution_done ? "✓" : "○"}</span>
-                Constitution
-              </li>
-              <li className="flex items-center gap-2 font-mono text-sm text-white/90">
-                <span aria-hidden>{todayDetail.keystone_done ? "✓" : "○"}</span>
-                Keystone
-              </li>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">Today</span>
+            <ul className="flex w-full max-w-[220px] flex-col gap-2">
+              {[
+                { done: todayDetail.protocol_done, label: "Protocol" },
+                { done: todayDetail.constitution_done, label: "Constitution" },
+                { done: todayDetail.keystone_done, label: "Keystone" },
+              ].map(({ done, label }) => (
+                <li
+                  key={label}
+                  className="flex items-center gap-3 rounded-[14px] border px-4 py-3 text-sm text-white/90"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    borderColor: "rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-white"
+                    style={{
+                      background: done ? "linear-gradient(135deg, #f97316, #ec4899)" : "rgba(255,255,255,0.06)",
+                      border: done ? "none" : "1px solid rgba(255,255,255,0.1)",
+                    }}
+                  >
+                    {done ? "✓" : "○"}
+                  </span>
+                  {label}
+                </li>
+              ))}
             </ul>
           </div>
         )}

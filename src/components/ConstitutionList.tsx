@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Plus, Pencil, Trash2, CheckCircle2, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -219,17 +219,37 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
   const showCard = showCompletionCard && !reviewing;
   const affirmedCount = principles.length;
 
+  const cardStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: 22,
+    padding: "22px 20px 24px",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)" as const,
+  };
+
   return (
     <section
-      className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
+      className="relative overflow-hidden rounded-[22px] backdrop-blur-xl"
+      style={cardStyle}
       aria-label={t.principles_title}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="drop-shadow-md">
-          <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
+      <div className="mb-1 flex items-start justify-between">
+        <div>
+          <h2
+            className="font-bold text-white"
+            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
+          >
             {t.principles_title}
           </h2>
-          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+          <p
+            style={{
+              fontSize: 13,
+              color: "rgba(255,255,255,0.3)",
+              margin: "4px 0 0",
+              lineHeight: 1.4,
+            }}
+          >
             {t.principles_subtitle}
           </p>
         </div>
@@ -237,10 +257,11 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+            className="border-0 bg-transparent p-0.5 text-[rgba(255,255,255,0.25)] transition-colors hover:text-white/50"
+            style={{ fontSize: 16 }}
             aria-label={isEditing ? t.done_editing : t.edit_principles}
           >
-            <Pencil className="h-5 w-5" />
+            ✎
           </button>
         )}
       </div>
@@ -253,30 +274,27 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="mt-6 flex flex-col items-center justify-center py-8 text-center"
+            className="animate-completion-reveal mt-6 flex flex-col items-center justify-center rounded-2xl border p-5 text-center"
+            style={{
+              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(74,222,128,0.04))",
+              borderColor: "rgba(34,197,94,0.12)",
+            }}
           >
-            <div
-              className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full"
-              style={{
-                background: "linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%)",
-              }}
-            >
-              <CheckCircle2 className="h-9 w-9 text-white" strokeWidth={2} />
-            </div>
-            <h3 className="font-mono text-lg font-semibold text-white/95">
-              Constitution Complete
-            </h3>
-            <p className="mt-1 font-mono text-sm text-white/60">
+            <div className="mb-2 text-[32px]">🌅</div>
+            <p className="mb-1 font-bold text-white" style={{ fontSize: 16, margin: "0 0 4px" }}>
+              Constitution complete
+            </p>
+            <p className="text-[13px] text-white/40" style={{ margin: 0 }}>
               {affirmedCount} {affirmedCount === 1 ? "principle" : "principles"} affirmed
             </p>
             {onGoToKeystone && (
               <button
                 type="button"
                 onClick={onGoToKeystone}
-                className="mt-6 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 font-mono text-sm font-medium text-white transition-colors hover:opacity-90"
+                className="mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
                 style={{
-                  background: "linear-gradient(135deg, #a78bfa, #f472b6)",
-                  boxShadow: "0 4px 20px rgba(167,139,250,0.3)",
+                  background: "linear-gradient(135deg, #f97316, #ec4899)",
+                  boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
                 }}
               >
                 Set Your Keystone
@@ -286,7 +304,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
             <button
               type="button"
               onClick={() => setReviewing(true)}
-              className="mt-4 font-mono text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
+              className="mt-3 text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
             >
               Review
             </button>
@@ -309,12 +327,17 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                 ← Back to summary
               </button>
             )}
-      <ul className="space-y-3">
+      <ul className="mt-6 flex flex-col gap-2">
                 {principles.map((p) => (
                   <motion.li
                     key={p.id}
                     layout
-                    className="flex items-start gap-4 rounded-xl border border-white/10 bg-black/20 p-5 backdrop-blur-sm transition-colors hover:bg-black/30 sm:p-6"
+                    className="flex items-start gap-4 rounded-[14px] border transition-all duration-300"
+                    style={{
+                      padding: 14,
+                      background: "rgba(255,255,255,0.04)",
+                      borderColor: "rgba(255,255,255,0.06)",
+                    }}
                   >
                     {editId === p.id ? (
                       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -323,21 +346,26 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                           value={editText}
                           onChange={(e) => setEditText(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
-                          className="flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                          className="flex-1 rounded-[14px] border px-4 py-2.5 text-white/95 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                          style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
                           autoFocus
                         />
                         <div className="flex gap-2">
                           <button
                             type="button"
                             onClick={handleSaveEdit}
-                            className="rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
+                            className="rounded-[14px] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                            style={{
+                              background: "linear-gradient(135deg, #f97316, #ec4899)",
+                              boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
+                            }}
                           >
                             {t.save}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleRemove(p.id)}
-                            className="rounded-lg p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+                            className="rounded-[14px] p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
                             aria-label={t.remove}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -368,18 +396,24 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                           <button
                             type="button"
                             onClick={() => handleCheck(p.id)}
-                            className={`touch-target flex shrink-0 items-center justify-center rounded-full border-2 transition-colors hover:border-white/60 focus:outline-none focus:ring-2 focus:ring-white/40 ${
-                              acknowledged[p.id]
-                                ? "border-white/90 bg-white/95"
-                                : "border-white/40"
-                            }`}
+                            className="touch-target flex shrink-0 items-center justify-center border-0 p-0 transition-all duration-300"
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: 14,
+                              border: acknowledged[p.id] ? "none" : "2px solid rgba(255,255,255,0.12)",
+                              background: acknowledged[p.id]
+                                ? "linear-gradient(135deg, #f97316, #ec4899)"
+                                : "rgba(255,255,255,0.03)",
+                              boxShadow: acknowledged[p.id] ? "0 4px 16px rgba(249,115,22,0.3)" : "none",
+                            }}
                             aria-label={`${t.acknowledge}: ${p.text}`}
                           >
-                            <span className="flex h-6 w-6 items-center justify-center">
-                              {acknowledged[p.id] ? (
-                                <Check className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
-                              ) : null}
-                            </span>
+                            {acknowledged[p.id] && (
+                              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "checkDraw 0.3s ease-out" }}>
+                                <path d="M4 10.5L8 14.5L16 6.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
                           </button>
                         </div>
                         </div>
@@ -412,7 +446,8 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                 onChange={(e) => setNewPrinciple(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                 placeholder={t.add_principle_placeholder}
-                className="min-h-[44px] rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                className="min-h-[44px] rounded-[14px] border px-4 py-2.5 text-base text-white/95 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
               />
               <input
                 type="text"
@@ -420,12 +455,17 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                 onChange={(e) => setNewSubtitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                 placeholder={t.add_principle_subtitle_placeholder}
-                className="min-h-[44px] rounded-xl border border-white/20 bg-black/20 px-4 py-2.5 font-mono text-base text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                className="min-h-[44px] rounded-[14px] border px-4 py-2.5 text-base text-white/80 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
               />
               <button
                 type="button"
                 onClick={handleAdd}
-                className="flex w-fit items-center gap-2 rounded-xl bg-white/20 px-4 py-2.5 font-medium text-white/95 transition-colors hover:bg-white/30"
+                className="flex w-fit items-center gap-2 rounded-[14px] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #f97316, #ec4899)",
+                  boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
+                }}
               >
                 <Plus className="h-4 w-4" />
                 {t.add}

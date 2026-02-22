@@ -57,6 +57,33 @@
   opacity: 0;
 }
 
+/* Protocol: check draw + completion reveal (reference design) */
+@keyframes checkDraw {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes completionReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-completion-reveal {
+  animation: completionReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Skeleton: pulsing dark bars on dark background (no white flash) */
 @keyframes skeleton-pulse {
   0%,
