@@ -6,7 +6,7 @@ import { trackOnboardingCompleted } from "@/lib/analytics";
 import {
   upsertPrinciple,
   upsertProtocolStep,
-  saveOneThingDb,
+  saveKeystoneDb,
   setOnboardingCompleted,
 } from "@/lib/db";
 
@@ -42,7 +42,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     }))
   );
 
-  const [oneThing, setOneThing] = useState("");
+  const [keystone, setKeystone] = useState("");
 
   const handlePrincipleChange = (index: number, field: "text" | "subtitle", value: string) => {
     setPrinciples((prev) =>
@@ -110,7 +110,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
     setSaving(true);
     try {
       const today = new Date().toISOString().slice(0, 10);
-      await saveOneThingDb(oneThing.trim() || "—", today);
+      await saveKeystoneDb(keystone.trim() || "—", today);
       await setOnboardingCompleted();
       trackOnboardingCompleted();
       onComplete();
@@ -231,15 +231,15 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       {step === 3 && (
         <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
           <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
-            Name today’s One Thing
+            Name today’s Keystone
           </h2>
           <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
             What is the one action that would create the biggest impact on your day?
           </p>
           <input
             type="text"
-            value={oneThing}
-            onChange={(e) => setOneThing(e.target.value)}
+            value={keystone}
+            onChange={(e) => setKeystone(e.target.value)}
             placeholder="e.g. Ship the report, call Mum, finish the proposal"
             className="mt-6 min-h-[44px] w-full rounded-xl border border-white/20 bg-black/20 px-4 py-3 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
             autoFocus

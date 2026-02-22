@@ -84,8 +84,8 @@ export function Paywall({ userStats, onMaybeLater }: PaywallProps) {
           />
           <StatCard
             icon={<Target className="h-5 w-5 text-white/80" />}
-            value={loading ? "—" : String(stats?.oneThingsDone ?? 0)}
-            label="One Things done"
+            value={loading ? "—" : String(stats?.keystonesDone ?? 0)}
+            label="Keystones set"
           />
         </div>
 

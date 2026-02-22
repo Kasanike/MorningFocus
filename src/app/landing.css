@@ -478,7 +478,7 @@
   color: var(--accent-warm);
 }
 
-.landing .one-thing-card {
+.landing .keystone-card {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
@@ -487,36 +487,36 @@
   margin-bottom: 20px;
 }
 
-.landing .one-thing-header {
+.landing .keystone-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
 }
 
-.landing .one-thing-icon {
+.landing .keystone-icon {
   font-size: 1rem;
 }
 
-.landing .one-thing-title {
+.landing .keystone-title {
   font-family: var(--font-mono);
   font-size: 1.05rem;
   font-weight: 600;
 }
 
-.landing .one-thing-desc {
+.landing .keystone-desc {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   color: var(--text-muted);
   margin-bottom: 16px;
 }
 
-.landing .one-thing-input-row {
+.landing .keystone-input-row {
   display: flex;
   gap: 10px;
 }
 
-.landing .one-thing-input {
+.landing .keystone-input {
   flex: 1;
   background: var(--item-bg);
   border: 1px solid var(--item-border);
@@ -527,7 +527,7 @@
   color: var(--text-muted);
 }
 
-.landing .one-thing-save {
+.landing .keystone-save {
   background: linear-gradient(135deg, var(--accent-warm), var(--accent-rose));
   color: #fff;
   border: none;
@@ -919,7 +919,7 @@
   .landing .glass-card,
   .landing .feature-card,
   .landing .pricing-card,
-  .landing .one-thing-card,
+  .landing .keystone-card,
   .landing .testimonial-card,
   .landing .quote-card {
     padding: 24px 20px;
@@ -931,7 +931,7 @@
   .landing .proof-stat {
     min-width: 45%;
   }
-  .landing .one-thing-input-row {
+  .landing .keystone-input-row {
     flex-direction: column;
   }
   .landing footer {

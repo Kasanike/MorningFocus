@@ -6,8 +6,8 @@
  * Use while fetching data from Supabase; swap to real content when loaded.
  */
 interface SkeletonCardProps {
-  /** "card" = title + lines (default). "list" = title + list rows. "oneThing" = title + input bar. "banner" = compact. */
-  variant?: "card" | "list" | "oneThing" | "banner";
+  /** "card" = title + lines (default). "list" = title + list rows. "keystone" = title + input bar. "banner" = compact. */
+  variant?: "card" | "list" | "keystone" | "banner";
   /** Number of content lines/bars (card: default 4, list: default 5). */
   lines?: number;
   className?: string;
@@ -44,7 +44,7 @@ export function SkeletonCard({
     "card-glass rounded-2xl border border-white/10 shadow-2xl shadow-black/20 px-4 py-10 sm:px-10 sm:py-12 " +
     className;
 
-  if (variant === "oneThing") {
+  if (variant === "keystone") {
     return (
       <section className={baseCardClass} aria-hidden>
         <div className="flex items-center gap-3">

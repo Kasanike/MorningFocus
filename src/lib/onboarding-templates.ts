@@ -1,6 +1,6 @@
 /**
  * Onboarding template presets by profession and age.
- * Returns constitution principles, protocol steps, and one One Thing example.
+ * Returns constitution principles, protocol steps, and one Keystone example.
  * User can edit/delete all after onboarding — "We've suggested some starting points. Make them yours."
  */
 
@@ -17,7 +17,7 @@ export interface ProtocolTemplate {
 export interface OnboardingTemplates {
   constitution: ConstitutionTemplate[];
   protocol: ProtocolTemplate[];
-  oneThingExample: string;
+  keystoneExample: string;
 }
 
 type AgeRange = "18-24" | "25-34" | "35-44" | "45+";
@@ -48,7 +48,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Deep work block", duration: 45 },
       { title: "Break", duration: 5 },
     ],
-    oneThingExample: "Finish the problem set for Chapter 4",
+    keystoneExample: "Finish the problem set for Chapter 4",
   },
 
   "student_18-24": {
@@ -67,7 +67,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Deep work", duration: 50 },
       { title: "Break", duration: 5 },
     ],
-    oneThingExample: "Submit the essay draft",
+    keystoneExample: "Submit the essay draft",
   },
 
   creative: {
@@ -86,7 +86,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break & walk", duration: 10 },
       { title: "Admin or emails", duration: 20 },
     ],
-    oneThingExample: "Ship the first draft of the piece",
+    keystoneExample: "Ship the first draft of the piece",
   },
 
   developer: {
@@ -105,7 +105,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 5 },
       { title: "Second focus block", duration: 45 },
     ],
-    oneThingExample: "Ship the auth fix to staging",
+    keystoneExample: "Ship the auth fix to staging",
   },
 
   manager: {
@@ -124,7 +124,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 5 },
       { title: "Meetings or 1:1s", duration: 60 },
     ],
-    oneThingExample: "Send the Q2 goals draft to the team",
+    keystoneExample: "Send the Q2 goals draft to the team",
   },
 
   educator: {
@@ -143,7 +143,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 10 },
       { title: "Grading or admin", duration: 45 },
     ],
-    oneThingExample: "Finalize the lesson plan for Unit 3",
+    keystoneExample: "Finalize the lesson plan for Unit 3",
   },
 
   healthcare: {
@@ -162,7 +162,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 15 },
       { title: "Admin or follow-ups", duration: 30 },
     ],
-    oneThingExample: "Complete the discharge summary for Room 4",
+    keystoneExample: "Complete the discharge summary for Room 4",
   },
 
   entrepreneur: {
@@ -181,7 +181,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 5 },
       { title: "Calls or sales", duration: 45 },
     ],
-    oneThingExample: "Close the partnership call with Acme",
+    keystoneExample: "Close the partnership call with Acme",
   },
 
   "entrepreneur_35-44": {
@@ -200,7 +200,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 5 },
       { title: "Team or partner calls", duration: 45 },
     ],
-    oneThingExample: "Sign off the Q2 roadmap",
+    keystoneExample: "Sign off the Q2 roadmap",
   },
 
   other: {
@@ -219,7 +219,7 @@ const PRESETS: Record<string, OnboardingTemplates> = {
       { title: "Break", duration: 5 },
       { title: "Second block or tasks", duration: 45 },
     ],
-    oneThingExample: "Complete the most important task for today",
+    keystoneExample: "Complete the most important task for today",
   },
 };
 

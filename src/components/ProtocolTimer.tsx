@@ -9,7 +9,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, SkipForward, CheckCircle2, X, Timer, RotateCcw, Volume2, VolumeX, ChevronRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Play, Pause, SkipForward, Check, CheckCircle2, X, Timer, RotateCcw, Volume2, VolumeX, ChevronRight } from 'lucide-react';
 
 // ============================================================
 // TYPES
@@ -107,6 +108,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
   const [completedSteps, setCompletedSteps] = useState<CompletedStep[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Refs
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -185,6 +187,17 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 
   const resumeTimer = () => {
     setPhase('running');
+  };
+
+  const requestExit = () => {
+    clearAllTimers();
+    setPhase('paused');
+    setShowExitConfirm(true);
+  };
+
+  const confirmExit = () => {
+    setShowExitConfirm(false);
+    onClose();
   };
 
   const completeCurrentStep = (skipped: boolean) => {
@@ -266,34 +279,52 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 
   const overallProgress = (currentStepIndex + stepProgress) / steps.length;
 
-  // Circle progress for the timer
-  const circumference = 2 * Math.PI * 120;
+  // Circle progress for the timer (r=126 for larger ring, 6px stroke)
+  const timerRingRadius = 126;
+  const circumference = 2 * Math.PI * timerRingRadius;
   const strokeDashoffset = circumference * (1 - stepProgress);
 
   // ============================================================
   // RENDER: READY SCREEN
   // ============================================================
 
+  const overlayContent = (content: React.ReactNode) => {
+    if (typeof document === 'undefined') return content;
+    return createPortal(content, document.body);
+  };
+
   if (phase === 'ready') {
-    return (
+    return overlayContent(
       <div style={styles.overlay}>
-        <div style={styles.container}>
-          {/* Close button */}
-          <button onClick={onClose} style={styles.closeButton}>
-            <X size={20} />
-          </button>
+        <div style={styles.readyContainer}>
+          {/* Top bar: sound (left), exit (right) */}
+          <div style={styles.readyTopBar}>
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              style={styles.soundIconButton}
+              aria-label={soundEnabled ? 'Sound on' : 'Sound off'}
+            >
+              {soundEnabled ? <Volume2 size={22} /> : <VolumeX size={22} />}
+            </button>
+            <button onClick={onClose} style={styles.exitButton}>
+              <X size={18} />
+              <span>Exit</span>
+            </button>
+          </div>
 
-          <div style={styles.readyContent}>
+          {/* Compact header */}
+          <div style={styles.readyHeader}>
             <div style={styles.readyIcon}>
-              <Timer size={48} strokeWidth={1.5} color="#d4856a" />
+              <Timer size={32} strokeWidth={1.5} color="#d4856a" />
             </div>
-
             <h1 style={styles.readyTitle}>Guided Morning</h1>
             <p style={styles.readySubtitle}>
-              {steps.length} steps · {steps.reduce((a, s) => a + s.duration, 0)} minutes
+              {steps.length} steps · {steps.reduce((a, s) => a + s.duration, 0)} min
             </p>
+          </div>
 
-            {/* Step preview */}
+          {/* Scrollable steps list */}
+          <div style={styles.readyStepsScroll}>
             <div style={styles.stepPreviewList}>
               {steps.map((step, i) => (
                 <div key={step.id} style={styles.stepPreviewItem}>
@@ -303,17 +334,10 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Sound toggle */}
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              style={styles.soundToggle}
-            >
-              {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              <span>{soundEnabled ? 'Sound on' : 'Sound off'}</span>
-            </button>
-
-            {/* Start button */}
+          {/* Fixed bottom button with safe area */}
+          <div style={styles.readyBottom}>
             <button onClick={beginMorning} style={styles.startButton}>
               <Play size={20} fill="white" />
               <span>Begin your morning</span>
@@ -332,9 +356,16 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
     const completedCount = completedSteps.filter(s => !s.skipped).length;
     const skippedCount = completedSteps.filter(s => s.skipped).length;
 
-    return (
+    return overlayContent(
       <div style={styles.overlay}>
         <div style={styles.container}>
+          <div style={styles.readyTopBar}>
+            <div />
+            <button onClick={onClose} style={styles.exitButton}>
+              <X size={18} />
+              <span>Exit</span>
+            </button>
+          </div>
           <div style={styles.finishedContent}>
             <div style={styles.finishedIcon}>
               <CheckCircle2 size={64} strokeWidth={1.5} color="#7bc47f" />
@@ -397,13 +428,18 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
   // RENDER: RUNNING / PAUSED / STEP-COMPLETE
   // ============================================================
 
-  return (
+  return overlayContent(
     <div style={styles.overlay}>
       <div style={styles.container}>
-        {/* Top bar */}
+        {/* Top bar: Exit/Cancel (left), progress, sound (right) */}
         <div style={styles.topBar}>
-          <button onClick={onClose} style={styles.closeButton}>
+          <button
+            onClick={requestExit}
+            style={styles.topBarExitButton}
+            aria-label="Cancel timer and exit to checklist"
+          >
             <X size={20} />
+            <span>Exit</span>
           </button>
 
           {/* Overall progress */}
@@ -421,19 +457,32 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            style={styles.soundButtonSmall}
+            style={styles.topBarIconButton}
+            aria-label={soundEnabled ? 'Sound on' : 'Sound off'}
           >
-            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            {soundEnabled ? <Volume2 size={22} /> : <VolumeX size={22} />}
           </button>
         </div>
 
         {/* Main timer area */}
         <div style={styles.timerArea}>
-          {/* Step label */}
+          {/* Step label + dot progress */}
           <div style={styles.stepLabel}>
             <span style={styles.stepLabelNum}>
               Step {currentStepIndex + 1} of {steps.length}
             </span>
+            <div style={styles.stepDots}>
+              {steps.map((_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    ...styles.stepDot,
+                    ...(i === currentStepIndex ? styles.stepDotActive : {}),
+                  }}
+                  aria-hidden
+                />
+              ))}
+            </div>
           </div>
 
           <h2 style={styles.stepTitle}>{currentStep.title}</h2>
@@ -444,24 +493,30 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 
           {/* Circular timer */}
           <div style={styles.timerCircleWrapper}>
-            <svg width="264" height="264" viewBox="0 0 264 264">
+            <svg width="280" height="280" viewBox="0 0 280 280">
+              <defs>
+                <linearGradient id="timerRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8B5CF6" />
+                  <stop offset="100%" stopColor="#F4A261" />
+                </linearGradient>
+              </defs>
               {/* Background circle */}
               <circle
-                cx="132" cy="132" r="120"
+                cx="140" cy="140" r={timerRingRadius}
                 fill="none"
                 stroke="rgba(255,255,255,0.06)"
-                strokeWidth="4"
+                strokeWidth="6"
               />
-              {/* Progress circle */}
+              {/* Progress circle — gradient stroke */}
               <circle
-                cx="132" cy="132" r="120"
+                cx="140" cy="140" r={timerRingRadius}
                 fill="none"
-                stroke={phase === 'step-complete' ? '#7bc47f' : '#d4856a'}
-                strokeWidth="4"
+                stroke={phase === 'step-complete' ? '#7bc47f' : 'url(#timerRingGradient)'}
+                strokeWidth="6"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
-                transform="rotate(-90 132 132)"
+                transform="rotate(-90 140 140)"
                 style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease' }}
               />
             </svg>
@@ -491,45 +546,69 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
           {/* Controls */}
           <div style={styles.controls}>
             {phase === 'step-complete' ? (
-              <button
-                onClick={() => completeCurrentStep(false)}
-                style={styles.startButton}
-              >
-                <span>{isLastStep ? 'Finish morning' : 'Next step'}</span>
-                <ChevronRight size={18} />
-              </button>
+              <div style={styles.stepCompleteActions}>
+                <button
+                  onClick={() => completeCurrentStep(false)}
+                  style={styles.startButton}
+                >
+                  <span>{isLastStep ? 'Finish morning' : 'Next step'}</span>
+                  <ChevronRight size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={requestExit}
+                  style={styles.backToChecklistLink}
+                >
+                  ← Back to checklist
+                </button>
+              </div>
             ) : (
               <>
-                <button onClick={skipStep} style={styles.secondaryButton}>
-                  <SkipForward size={24} />
-                  <span>Skip</span>
+                <button onClick={skipStep} style={styles.circleButtonSmall} aria-label="Skip step">
+                  <SkipForward size={22} color="white" />
                 </button>
 
                 {phase === 'paused' ? (
-                  <button onClick={resumeTimer} style={styles.primaryRoundButton}>
+                  <button onClick={resumeTimer} style={styles.primaryRoundButton} aria-label="Resume">
                     <Play size={24} fill="white" />
                   </button>
                 ) : (
-                  <button onClick={pauseTimer} style={styles.primaryRoundButton}>
+                  <button onClick={pauseTimer} style={styles.primaryRoundButton} aria-label="Pause">
                     <Pause size={24} fill="white" />
                   </button>
                 )}
 
-                <button onClick={finishEarly} style={styles.secondaryButton}>
-                  <CheckCircle2 size={24} />
-                  <span>Done</span>
+                <button onClick={finishEarly} style={styles.circleButtonSmall} aria-label="Mark done">
+                  <Check size={22} color="white" />
                 </button>
               </>
             )}
           </div>
 
-          {phase === 'paused' && (
+          {phase === 'paused' && !showExitConfirm && (
             <div style={styles.pausedBadge}>
               Paused
             </div>
           )}
         </div>
       </div>
+
+      {/* Exit confirmation bottom sheet */}
+      {showExitConfirm && (
+        <div style={styles.bottomSheetBackdrop} onClick={() => setShowExitConfirm(false)} aria-hidden>
+          <div style={styles.bottomSheet} onClick={(e) => e.stopPropagation()}>
+            <p style={styles.bottomSheetTitle}>Leave guided mode?</p>
+            <div style={styles.bottomSheetActions}>
+              <button type="button" onClick={() => setShowExitConfirm(false)} style={styles.bottomSheetButtonSecondary}>
+                Continue
+              </button>
+              <button type="button" onClick={confirmExit} style={styles.bottomSheetButtonPrimary}>
+                Exit to checklist
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -539,99 +618,153 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 // STYLES — Matching Better Morning design language
 // ============================================================
 
+// Dark purple app background for timer overlay (readability, no peach gradient)
+const TIMER_OVERLAY_BG = '#1e0d19';
+
 const styles: { [key: string]: React.CSSProperties } = {
   overlay: {
     position: 'fixed',
     inset: 0,
     zIndex: 9999,
-    background: 'linear-gradient(170deg, #2a1b3d 0%, #44254a 15%, #5e3352 28%, #7a4058 40%, #8f4d5c 50%, #a66b62 62%, #bf8a6e 75%, #d4a67a 88%, #e0bd8a 100%)',
+    background: TIMER_OVERLAY_BG,
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'auto',
+    flexDirection: 'column',
+    justifyContent: 'stretch',
+    alignItems: 'stretch',
+    overflow: 'hidden',
   },
   container: {
     width: '100%',
     maxWidth: '480px',
-    minHeight: '100vh',
+    margin: '0 auto',
+    minHeight: '100%',
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
-    position: 'relative',
+    position: 'relative' as const,
+    flex: 1,
   },
 
-  // Close button
+  // Close / Exit button (running + finished)
   closeButton: {
-    background: 'rgba(30, 15, 25, 0.5)',
+    background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '10px',
-    color: 'rgba(240, 232, 224, 0.6)',
+    color: 'rgba(255, 255, 255, 0.7)',
     padding: '10px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backdropFilter: 'blur(10px)',
-    WebkitBackdropFilter: 'blur(10px)',
   },
 
-  // ---- READY SCREEN ----
-  readyContent: {
-    flex: 1,
+  // ---- READY SCREEN (full-screen layout) ----
+  readyContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    minHeight: '100dvh',
+    maxWidth: '480px',
+    margin: '0 auto',
+    width: '100%',
+    paddingTop: 'env(safe-area-inset-top)',
+    paddingLeft: 'env(safe-area-inset-left)',
+    paddingRight: 'env(safe-area-inset-right)',
+  },
+  readyTopBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '12px 16px 8px',
+    flexShrink: 0,
+  },
+  soundIconButton: {
+    background: 'none',
+    border: 'none',
+    color: 'rgba(255, 255, 255, 0.7)',
+    cursor: 'pointer',
+    padding: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exitButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    background: 'none',
+    border: 'none',
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontFamily: "'IBM Plex Mono', monospace",
+    fontSize: '0.8rem',
+    cursor: 'pointer',
+    padding: '8px 12px',
+  },
+  readyHeader: {
+    flexShrink: 0,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: '40px',
+    padding: '8px 20px 16px',
   },
   readyIcon: {
-    width: '80px',
-    height: '80px',
-    borderRadius: '20px',
-    background: 'rgba(212, 133, 106, 0.12)',
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+    background: 'rgba(212, 133, 106, 0.15)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '24px',
+    marginBottom: '12px',
   },
   readyTitle: {
-    fontFamily: "'DM Serif Display', Georgia, serif",
-    fontSize: '2rem',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '1.35rem',
     color: '#f0e8e0',
-    marginBottom: '8px',
+    marginBottom: '4px',
     textAlign: 'center' as const,
   },
   readySubtitle: {
     fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: '0.8rem',
+    fontSize: '0.75rem',
     color: 'rgba(240, 232, 224, 0.5)',
-    marginBottom: '36px',
+    marginBottom: 0,
+  },
+  readyStepsScroll: {
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
+    padding: '0 20px',
+    WebkitOverflowScrolling: 'touch',
+  },
+  readyBottom: {
+    flexShrink: 0,
+    padding: '16px 20px',
+    paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
   },
 
   // Step preview list
   stepPreviewList: {
     width: '100%',
-    background: 'rgba(30, 15, 25, 0.55)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '16px',
-    padding: '8px',
+    borderRadius: '14px',
+    padding: '6px',
     marginBottom: '24px',
   },
   stepPreviewItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    padding: '14px 16px',
+    padding: '12px 14px',
     borderRadius: '10px',
-    background: 'rgba(60, 30, 40, 0.3)',
+    background: 'rgba(255,255,255,0.04)',
     marginBottom: '4px',
   },
   stepPreviewNum: {
     fontFamily: "'IBM Plex Mono', monospace",
     fontSize: '0.65rem',
-    color: 'rgba(240, 232, 224, 0.3)',
+    color: 'rgba(240, 232, 224, 0.35)',
     minWidth: '20px',
   },
   stepPreviewTitle: {
@@ -643,32 +776,64 @@ const styles: { [key: string]: React.CSSProperties } = {
   stepPreviewDuration: {
     fontFamily: "'IBM Plex Mono', monospace",
     fontSize: '0.7rem',
-    color: 'rgba(240, 232, 224, 0.4)',
+    color: 'rgba(240, 232, 224, 0.45)',
   },
 
-  // Sound toggle
-  soundToggle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    background: 'none',
-    border: 'none',
-    color: 'rgba(240, 232, 224, 0.4)',
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: '0.75rem',
-    cursor: 'pointer',
-    padding: '8px 16px',
-    marginBottom: '32px',
-  },
   soundButtonSmall: {
     background: 'none',
     border: 'none',
-    color: 'rgba(240, 232, 224, 0.4)',
+    color: 'rgba(255, 255, 255, 0.7)',
     cursor: 'pointer',
     padding: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  // Start / primary button
+  topBarIconButton: {
+    background: 'none',
+    border: 'none',
+    color: 'rgba(255, 255, 255, 0.6)',
+    cursor: 'pointer',
+    padding: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  topBarExitButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    background: 'none',
+    border: 'none',
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontFamily: "'IBM Plex Mono', monospace",
+    fontSize: '0.8rem',
+    cursor: 'pointer',
+    padding: '8px 12px',
+    flexShrink: 0,
+  },
+
+  stepCompleteActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    width: '100%',
+  },
+  backToChecklistLink: {
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    cursor: 'pointer',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '0.75rem',
+    color: 'rgba(255, 255, 255, 0.5)',
+    textDecoration: 'none',
+  },
+
+  // Start / primary button (Next step, Finish morning, Begin your morning, Close & save)
   startButton: {
     display: 'flex',
     alignItems: 'center',
@@ -679,7 +844,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#fff',
     padding: '16px 32px',
     borderRadius: '12px',
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'system-ui, -apple-system, sans-serif',
     fontSize: '0.9rem',
     fontWeight: 600,
     border: 'none',
@@ -730,7 +895,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   stepLabel: {
-    marginBottom: '8px',
+    marginBottom: '10px',
   },
   stepLabelNum: {
     fontFamily: "'IBM Plex Mono', monospace",
@@ -739,9 +904,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     textTransform: 'uppercase' as const,
     letterSpacing: '0.1em',
   },
+  stepDots: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    marginTop: '8px',
+  },
+  stepDot: {
+    width: '6px',
+    height: '6px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.2)',
+    transition: 'background 0.2s ease',
+  },
+  stepDotActive: {
+    background: 'rgba(255, 255, 255, 0.85)',
+  },
   stepTitle: {
-    fontFamily: "'DM Serif Display', Georgia, serif",
-    fontSize: '1.6rem',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '2rem',
+    fontWeight: 700,
+    letterSpacing: '-0.02em',
     color: '#f0e8e0',
     textAlign: 'center' as const,
     marginBottom: '8px',
@@ -756,11 +940,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: '300px',
   },
 
-  // Timer circle
+  // Timer circle (larger ring, 6px stroke)
   timerCircleWrapper: {
     position: 'relative' as const,
-    width: '264px',
-    height: '264px',
+    width: '280px',
+    height: '280px',
     margin: '24px 0 40px',
   },
   timerText: {
@@ -774,14 +958,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   timerDigits: {
     fontFamily: "'IBM Plex Mono', monospace",
     fontSize: '3rem',
-    fontWeight: 600,
+    fontWeight: 200,
     color: '#f0e8e0',
     letterSpacing: '-0.02em',
   },
   timerOfTotal: {
     fontFamily: "'IBM Plex Mono', monospace",
     fontSize: '0.7rem',
-    color: 'rgba(240, 232, 224, 0.35)',
+    color: 'rgba(240, 232, 224, 0.6)',
     marginTop: '4px',
   },
 
@@ -793,44 +977,38 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
   },
   timerDoneText: {
-    fontFamily: "'DM Serif Display', Georgia, serif",
+    fontFamily: 'system-ui, -apple-system, sans-serif',
     fontSize: '1.4rem',
+    fontWeight: 600,
     color: '#7bc47f',
   },
   autoAdvanceText: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'system-ui, -apple-system, sans-serif',
     fontSize: '0.7rem',
-    color: 'rgba(240, 232, 224, 0.35)',
+    fontWeight: 400,
+    color: 'rgba(240, 232, 224, 0.6)',
   },
 
-  // Controls
+  // Controls — three circles: Skip (52px) | Pause (72px) | Done (52px)
   controls: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '24px',
+    gap: '28px',
     width: '100%',
   },
-  secondaryButton: {
+  circleButtonSmall: {
+    width: '52px',
+    height: '52px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.1)',
+    border: 'none',
+    cursor: 'pointer',
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '8px',
-    minWidth: '80px',
-    minHeight: '72px',
-    background: 'rgba(30, 15, 25, 0.7)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '14px',
-    color: '#f0e8e0',
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    padding: '14px 20px',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.2)',
+    color: '#fff',
+    flexShrink: 0,
   },
   primaryRoundButton: {
     width: '72px',
@@ -844,12 +1022,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     boxShadow: '0 4px 24px rgba(196, 107, 107, 0.3)',
     color: '#fff',
+    flexShrink: 0,
   },
 
   // Paused badge
   pausedBadge: {
     position: 'absolute' as const,
-    top: '20%',
+    top: '6%',
     fontFamily: "'IBM Plex Mono', monospace",
     fontSize: '0.7rem',
     textTransform: 'uppercase' as const,
@@ -859,6 +1038,66 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '6px 16px',
     borderRadius: '100px',
     border: '1px solid rgba(255,255,255,0.08)',
+  },
+
+  // Exit confirmation bottom sheet
+  bottomSheetBackdrop: {
+    position: 'absolute' as const,
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    zIndex: 10,
+    paddingBottom: 'env(safe-area-inset-bottom)',
+  },
+  bottomSheet: {
+    width: '100%',
+    maxWidth: '480px',
+    background: 'rgba(30, 13, 25, 0.98)',
+    borderTopLeftRadius: '20px',
+    borderTopRightRadius: '20px',
+    padding: '24px 20px',
+    paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
+    borderTop: '1px solid rgba(255,255,255,0.08)',
+  },
+  bottomSheetTitle: {
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '1.1rem',
+    fontWeight: 600,
+    color: '#f0e8e0',
+    marginBottom: '20px',
+    textAlign: 'center' as const,
+  },
+  bottomSheetActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  bottomSheetButtonSecondary: {
+    width: '100%',
+    padding: '14px 24px',
+    borderRadius: '12px',
+    border: '1px solid rgba(255,255,255,0.2)',
+    background: 'transparent',
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  bottomSheetButtonPrimary: {
+    width: '100%',
+    padding: '14px 24px',
+    borderRadius: '12px',
+    border: 'none',
+    background: 'linear-gradient(135deg, #a78bfa, #f472b6)',
+    color: '#fff',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    boxShadow: '0 4px 20px rgba(167,139,250,0.3)',
   },
 
   // ---- FINISHED SCREEN ----
@@ -874,7 +1113,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '24px',
   },
   finishedTitle: {
-    fontFamily: "'DM Serif Display', Georgia, serif",
+    fontFamily: 'system-ui, -apple-system, sans-serif',
     fontSize: '2rem',
     color: '#f0e8e0',
     marginBottom: '8px',
@@ -962,7 +1201,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '4px',
   },
   statValue: {
-    fontFamily: "'DM Serif Display', Georgia, serif",
+    fontFamily: 'system-ui, -apple-system, sans-serif',
     fontSize: '1.3rem',
     color: '#f0e8e0',
   },

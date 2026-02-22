@@ -114,7 +114,7 @@ function LandingPricing() {
         </div>
         <ul className="pricing-features">
           <li><span className="pf-check">✓</span> Unlimited principles & protocol steps</li>
-          <li><span className="pf-check">✓</span> Daily One Thing & Stoic quotes</li>
+          <li><span className="pf-check">✓</span> Daily Keystone & Stoic quotes</li>
           <li><span className="pf-check">✓</span> Streak & history</li>
           <li><span className="pf-check">✓</span> Works on all devices</li>
           <li><span className="pf-check">✓</span> Cancel anytime</li>
@@ -139,7 +139,7 @@ function LandingPricing() {
 const FAQ_ITEMS = [
   {
     q: "What exactly do I get?",
-    a: "A personal morning dashboard with three tools: your Constitution (principles to read daily), your Protocol (your ideal first-hour routine), and the One Thing (daily focus setter). Pro adds unlimited items, streak, and history.",
+    a: "A personal morning dashboard with three tools: your Constitution (principles to read daily), your Protocol (your ideal first-hour routine), and the Keystone (daily focus setter). Pro adds unlimited items, streak, and history.",
   },
   {
     q: "Monthly or annual?",
@@ -340,7 +340,7 @@ export default function LandingPage() {
               <div className="card-title">Morning Protocol</div>
               <div className="card-meta">⏱ 68 min total &nbsp;✎</div>
             </div>
-            <div className="card-subtitle">Get out of bed and go for it.</div>
+            <div className="card-subtitle">The foundation everything else is built on.</div>
             <div className="list-item">
               <div className="list-item-content">
                 <div className="list-item-title">Hydrate — cup of water</div>
@@ -364,20 +364,20 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="one-thing-card">
-            <div className="one-thing-header">
-              <span className="one-thing-icon">◎</span>
-              <span className="one-thing-title">One Thing</span>
+          <div className="keystone-card">
+            <div className="keystone-header">
+              <span className="keystone-icon">◎</span>
+              <span className="keystone-title">Keystone</span>
             </div>
-            <div className="one-thing-desc">
+            <div className="keystone-desc">
               What is the one action that would create the biggest impact on my
               day?
             </div>
-            <div className="one-thing-input-row">
-              <div className="one-thing-input">
+            <div className="keystone-input-row">
+              <div className="keystone-input">
                 Your top priority for today...
               </div>
-              <div className="one-thing-save">Save</div>
+              <div className="keystone-save">Save</div>
             </div>
           </div>
         </div>
@@ -409,7 +409,7 @@ export default function LandingPage() {
           </div>
         </div>
         <div className="feature-card fade-in">
-          <div className="feature-num">03 — One Thing</div>
+          <div className="feature-num">03 — Keystone</div>
           <div className="feature-title">One action. Maximum impact.</div>
           <div className="feature-desc">
             Not a to-do list. One thing. The thing that, if done today, changes
@@ -442,7 +442,7 @@ export default function LandingPage() {
         </div>
         <div className="testimonial-card fade-in">
           <div className="testimonial-text">
-            &ldquo;The One Thing feature rewired how I think about priorities. I
+            &ldquo;The Keystone feature rewired how I think about priorities. I
             stopped making to-do lists and started moving the needle on what
             actually matters.&rdquo;
           </div>

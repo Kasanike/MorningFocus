@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
@@ -19,6 +20,11 @@ import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 import ProtocolTimer from "./ProtocolTimer";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { trackProtocolCompleted } from "@/lib/analytics";
+import {
+  getTodayCompletionDetail,
+  setProtocolDoneForToday,
+  setProtocolUndoneForToday,
+} from "@/lib/streak";
 
 export type { ProtocolStep };
 
@@ -86,7 +92,44 @@ function saveCompleted(completed: Record<string, boolean>) {
   );
 }
 
-export function MorningProtocol() {
+function getStoredCompletionTimeSeconds(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.PROTOCOL_COMPLETION_TIME);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.date === getTodayKey() && typeof parsed?.totalSeconds === "number") {
+      return parsed.totalSeconds;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCompletionTimeSeconds(totalSeconds: number) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(
+    STORAGE_KEYS.PROTOCOL_COMPLETION_TIME,
+    JSON.stringify({ date: getTodayKey(), totalSeconds })
+  );
+}
+
+function formatTimeTaken(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  if (m === 0) return `${s}s`;
+  if (s === 0) return `${m}m`;
+  return `${m}m ${s}s`;
+}
+
+export function MorningProtocol({
+  onGoToConstitution,
+  onGuidedModeChange,
+}: {
+  onGoToConstitution?: () => void;
+  onGuidedModeChange?: (active: boolean) => void;
+}) {
   const { t } = useLanguage();
   const { setProgress } = useProtocolProgress();
   const { profile } = usePlan();
@@ -103,7 +146,15 @@ export function MorningProtocol() {
   const [showTimer, setShowTimer] = useState(false);
 
   useEffect(() => {
+    onGuidedModeChange?.(showTimer);
+    return () => onGuidedModeChange?.(false);
+  }, [showTimer, onGuidedModeChange]);
+  const [showCompletionCard, setShowCompletionCard] = useState(false);
+  const protocolDoneSyncedRef = useRef(false);
+
+  useEffect(() => {
     setMounted(true);
+    let stepsLoaded = false;
     const load = async () => {
       try {
         const supabase = createClient();
@@ -117,16 +168,21 @@ export function MorningProtocol() {
               data.map(({ id, label, minutes }) => ({ id, label, minutes }))
             );
             setCompleted(getStoredCompleted());
-            return;
+            stepsLoaded = true;
           }
         }
       } catch {
         // ignore
       }
-      setSteps(
-        getStoredSteps(t.default_protocol_step_labels, DEFAULT_PROTOCOL_MINUTES)
-      );
-      setCompleted(getStoredCompleted());
+      if (!stepsLoaded) {
+        setSteps(
+          getStoredSteps(t.default_protocol_step_labels, DEFAULT_PROTOCOL_MINUTES)
+        );
+        setCompleted(getStoredCompleted());
+      }
+      const detail = await getTodayCompletionDetail().catch(() => null);
+      setShowCompletionCard(detail?.protocol_done ?? false);
+      protocolDoneSyncedRef.current = detail?.protocol_done ?? false;
     };
     load();
   }, [t.default_protocol_step_labels]);
@@ -147,6 +203,20 @@ export function MorningProtocol() {
       }
     }
   }, [completed, steps.length, setProgress]);
+
+  useEffect(() => {
+    if (
+      steps.length === 0 ||
+      Object.values(completed).filter(Boolean).length !== steps.length ||
+      protocolDoneSyncedRef.current
+    ) return;
+    protocolDoneSyncedRef.current = true;
+    setProtocolDoneForToday()
+      .then(() => setShowCompletionCard(true))
+      .catch(() => {
+        protocolDoneSyncedRef.current = false;
+      });
+  }, [steps.length, completed]);
 
   const persist = useCallback((next: ProtocolStep[]) => {
     setSteps(next);
@@ -216,6 +286,24 @@ export function MorningProtocol() {
   const totalMinutes = steps.reduce((acc, s) => acc + s.minutes, 0);
   const completedCount = Object.values(completed).filter(Boolean).length;
   const allDone = steps.length > 0 && completedCount === steps.length;
+  const completionTimeSeconds = getStoredCompletionTimeSeconds();
+  const timeTakenLabel =
+    completionTimeSeconds != null
+      ? formatTimeTaken(completionTimeSeconds)
+      : `${totalMinutes} min`;
+
+  const handleRedo = useCallback(() => {
+    setProtocolUndoneForToday()
+      .then(() => {
+        persistCompleted({});
+        setShowCompletionCard(false);
+        protocolDoneSyncedRef.current = false;
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(STORAGE_KEYS.PROTOCOL_COMPLETION_TIME);
+        }
+      })
+      .catch(console.error);
+  }, [persistCompleted]);
 
   if (!mounted) {
     return <SkeletonCard variant="list" lines={5} />;
@@ -226,67 +314,192 @@ export function MorningProtocol() {
       className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
       aria-label={t.morning_protocol_aria}
     >
-      {/* Row 1: title + edit icon */}
+      {/* Row 1: title + edit icon (edit only when showing steps) */}
       <div className="flex items-start justify-between gap-4">
-        <h2 className="font-mono text-xl font-semibold text-white/95">
-          {t.morning_protocol_title}
-        </h2>
-        <button
-          type="button"
-          onClick={() => setIsEditMode(!isEditMode)}
-          className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
-          aria-label={isEditMode ? t.done_editing : t.edit_principles}
-        >
-          <Pencil className="h-5 w-5" />
-        </button>
+        <div className="drop-shadow-md">
+          <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
+            {t.morning_protocol_title}
+          </h2>
+          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+            {t.morning_protocol_subtitle}
+          </p>
+        </div>
+        {!showCompletionCard && (
+          <button
+            type="button"
+            onClick={() => setIsEditMode(!isEditMode)}
+            className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+            aria-label={isEditMode ? t.done_editing : t.edit_principles}
+          >
+            <Pencil className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      {/* Row 2: meta bar — progress + Start Guided */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <span
-          className={`font-mono text-xs tracking-wider ${allDone ? "text-[#7bc47f]" : "text-white/50"}`}
-        >
-          {allDone
-            ? `✓ Protocol complete — ${totalMinutes} min`
-            : `⏱ ${totalMinutes} min · ${completedCount}/${steps.length} complete`}
-        </span>
-        <button
-          type="button"
-          onClick={() => setShowTimer(true)}
-          className="rounded-md border font-mono text-[0.7rem] transition-colors hover:bg-[rgba(212,133,106,0.1)]"
-          style={{
-            color: "#d4856a",
-            borderColor: "rgba(212, 133, 106, 0.25)",
-            padding: "5px 12px",
-          }}
-        >
-          ▶ Start Guided
-        </button>
-      </div>
+      <AnimatePresence mode="wait">
+        {showCompletionCard ? (
+          <motion.div
+            key="protocol-complete"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 flex flex-col items-center justify-center py-8 text-center"
+          >
+            <div
+              className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full"
+              style={{
+                background: "linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%)",
+              }}
+            >
+              <CheckCircle2 className="h-9 w-9 text-white" strokeWidth={2} />
+            </div>
+            <h3 className="font-mono text-lg font-semibold text-white/95">
+              Protocol Complete
+            </h3>
+            <p className="mt-1 font-mono text-sm text-white/60">
+              {timeTakenLabel} · {steps.length} steps
+            </p>
+            {onGoToConstitution && (
+              <button
+                type="button"
+                onClick={onGoToConstitution}
+                className="mt-6 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 font-mono text-sm font-medium text-white transition-colors hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #a78bfa, #f472b6)",
+                  boxShadow: "0 4px 20px rgba(167,139,250,0.3)",
+                }}
+              >
+                Go to Constitution
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleRedo}
+              className="mt-4 font-mono text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
+            >
+              Redo protocol
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="protocol-steps"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mt-3"
+          >
+            {/* Meta bar — progress + Start Guided */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span
+                className={`font-mono text-xs tracking-wider ${allDone ? "text-[#7bc47f]" : "text-white/50"}`}
+              >
+                {allDone
+                  ? `✓ Protocol complete — ${totalMinutes} min`
+                  : `⏱ ${totalMinutes} min · ${completedCount}/${steps.length} complete`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowTimer(true)}
+                className="rounded-md border font-sans text-[0.7rem] font-medium transition-colors hover:bg-[rgba(212,133,106,0.1)]"
+                style={{
+                  color: "#d4856a",
+                  borderColor: "rgba(212, 133, 106, 0.25)",
+                  padding: "5px 12px",
+                }}
+              >
+                ▶ Start Guided
+              </button>
+            </div>
 
-      <ol className="mt-6 space-y-3">
-        {steps.map((s) => (
-          <ProtocolListItem
-            key={s.id}
-            step={s}
-            isCompleted={!!completed[s.id]}
-            isEditing={editId === s.id}
-            isEditMode={isEditMode}
-            editLabel={editLabel}
-            editMinutes={editMinutes}
-            onToggle={() => handleToggleComplete(s.id)}
-            onStartEdit={() => handleStartEdit(s)}
-            onSaveEdit={handleSaveEdit}
-            onRemove={() => handleRemove(s.id)}
-            onEditLabelChange={setEditLabel}
-            onEditMinutesChange={setEditMinutes}
-            minutesLabel={t.minutes}
-            saveLabel={t.save}
-            removeLabel={t.remove}
-            editPrincipleLabel={t.edit_principle}
-          />
-        ))}
-      </ol>
+            <ol className="mt-6 space-y-3">
+              {steps.map((s) => (
+                <ProtocolListItem
+                  key={s.id}
+                  step={s}
+                  isCompleted={!!completed[s.id]}
+                  isEditing={editId === s.id}
+                  isEditMode={isEditMode}
+                  editLabel={editLabel}
+                  editMinutes={editMinutes}
+                  onToggle={() => handleToggleComplete(s.id)}
+                  onStartEdit={() => handleStartEdit(s)}
+                  onSaveEdit={handleSaveEdit}
+                  onRemove={() => handleRemove(s.id)}
+                  onEditLabelChange={setEditLabel}
+                  onEditMinutesChange={setEditMinutes}
+                  minutesLabel={t.minutes}
+                  saveLabel={t.save}
+                  removeLabel={t.remove}
+                  editPrincipleLabel={t.edit_principle}
+                />
+              ))}
+            </ol>
+
+            {isEditMode &&
+              (!canAdd ? (
+                <div className="mt-4">
+                  <UpgradePrompt
+                    message={`Free accounts can have up to ${FREE_PROTOCOL_STEPS_LIMIT} protocol steps. Upgrade to Pro for unlimited.`}
+                  />
+                </div>
+              ) : isAdding ? (
+                <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
+                  <input
+                    type="text"
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                    placeholder={t.protocol_step_placeholder}
+                    className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={newMinutes}
+                      onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                      className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
+                    />
+                    <span className="text-sm text-white/60">{t.minutes}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAdd}
+                      className="min-h-[44px] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
+                    >
+                      {t.add}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAdding(false);
+                        setNewLabel("");
+                        setNewMinutes(5);
+                      }}
+                      className="min-h-[44px] rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
+                    >
+                      {t.cancel}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="touch-target mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-3.5 text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
+                  onClick={() => setIsAdding(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t.add_step}
+                </button>
+              ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {showTimer && (
         <ProtocolTimer
@@ -301,6 +514,7 @@ export function MorningProtocol() {
               if (!step.skipped) next[step.id] = true;
             });
             persistCompleted(next);
+            saveCompletionTimeSeconds(results.totalTime);
 
             try {
               await saveTimerSession(results);
@@ -312,67 +526,6 @@ export function MorningProtocol() {
           }}
           onClose={() => setShowTimer(false)}
         />
-      )}
-
-      {isEditMode && (
-        !canAdd ? (
-          <div className="mt-4">
-            <UpgradePrompt
-              message={`Free accounts can have up to ${FREE_PROTOCOL_STEPS_LIMIT} protocol steps. Upgrade to Pro for unlimited.`}
-            />
-          </div>
-        ) : isAdding ? (
-          <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
-            <input
-              type="text"
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder={t.protocol_step_placeholder}
-              className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
-              autoFocus
-            />
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={0}
-                value={newMinutes}
-                onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
-              />
-              <span className="text-sm text-white/60">{t.minutes}</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleAdd}
-                className="min-h-[44px] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
-              >
-                {t.add}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdding(false);
-                  setNewLabel("");
-                  setNewMinutes(5);
-                }}
-                className="min-h-[44px] rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
-              >
-                {t.cancel}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="touch-target mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-3.5 text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
-            onClick={() => setIsAdding(true)}
-          >
-            <Plus className="h-4 w-4" />
-            {t.add_step}
-          </button>
-        )
       )}
     </section>
   );

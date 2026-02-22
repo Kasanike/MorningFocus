@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Check, Plus, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Plus, Pencil, Trash2, CheckCircle2, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -12,6 +12,7 @@ import { canAddPrinciple, FREE_PRINCIPLES_LIMIT } from "@/lib/subscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { trackConstitutionRead } from "@/lib/analytics";
+import { getTodayCompletionDetail, setConstitutionDoneForToday } from "@/lib/streak";
 
 export interface Principle {
   id: string;
@@ -73,7 +74,8 @@ function isAcknowledgedToday(): boolean {
   return getAcknowledgementDate() === today;
 }
 
-export function ConstitutionList() {
+export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
+  const { onGoToKeystone } = props;
   const { t } = useLanguage();
   const { profile, isPro } = usePlan();
   const [principles, setPrinciples] = useState<Principle[]>([]);
@@ -84,9 +86,13 @@ export function ConstitutionList() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [showCompletionCard, setShowCompletionCard] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const constitutionSyncedRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
+    let principlesLoaded = false;
     const load = async () => {
       try {
         const supabase = createClient();
@@ -99,24 +105,29 @@ export function ConstitutionList() {
             setPrinciples(
               data.map(({ id, text, subtitle }) => ({ id, text, subtitle }))
             );
-            return;
+            principlesLoaded = true;
           }
         }
       } catch {
         // ignore
       }
-      setPrinciples(getStoredPrinciples(t.default_principles));
+      if (!principlesLoaded) {
+        setPrinciples(getStoredPrinciples(t.default_principles));
+      }
+      const ackToday = isAcknowledgedToday();
+      if (ackToday) {
+        const stored = principlesLoaded ? [] : getStoredPrinciples(t.default_principles);
+        const allChecked: Record<string, boolean> = {};
+        (principlesLoaded ? (await fetchPrinciples()).map((p) => ({ id: p.id })) : stored.map((p) => ({ id: p.id }))).forEach((p) => {
+          allChecked[p.id] = true;
+        });
+        setAcknowledged((prev) => (Object.keys(prev).length > 0 ? prev : allChecked));
+      }
+      const detail = await getTodayCompletionDetail().catch(() => null);
+      setShowCompletionCard(detail?.constitution_done ?? false);
+      constitutionSyncedRef.current = detail?.constitution_done ?? false;
     };
     load();
-    const ackToday = isAcknowledgedToday();
-    if (ackToday) {
-      const stored = getStoredPrinciples(t.default_principles);
-      const allChecked: Record<string, boolean> = {};
-      stored.forEach((p) => {
-        allChecked[p.id] = true;
-      });
-      setAcknowledged(allChecked);
-    }
   }, [t.default_principles]);
 
   const savePrinciples = useCallback((next: Principle[]) => {
@@ -129,6 +140,17 @@ export function ConstitutionList() {
     });
     setHasEditedContent();
   }, []);
+
+  useEffect(() => {
+    const allChecked = principles.length > 0 && principles.every((p) => acknowledged[p.id]);
+    if (!allChecked || constitutionSyncedRef.current) return;
+    constitutionSyncedRef.current = true;
+    setConstitutionDoneForToday()
+      .then(() => setShowCompletionCard(true))
+      .catch(() => {
+        constitutionSyncedRef.current = false;
+      });
+  }, [principles.length, acknowledged]);
 
   const handleCheck = (id: string) => {
     setAcknowledged((prev) => {
@@ -194,6 +216,9 @@ export function ConstitutionList() {
     return <SkeletonCard variant="list" lines={4} />;
   }
 
+  const showCard = showCompletionCard && !reviewing;
+  const affirmedCount = principles.length;
+
   return (
     <section
       className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
@@ -208,17 +233,83 @@ export function ConstitutionList() {
             {t.principles_subtitle}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsEditing(!isEditing)}
-          className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
-          aria-label={isEditing ? t.done_editing : t.edit_principles}
-        >
-          <Pencil className="h-5 w-5" />
-        </button>
+        {!showCard && (
+          <button
+            type="button"
+            onClick={() => setIsEditing(!isEditing)}
+            className="rounded-xl p-2.5 text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+            aria-label={isEditing ? t.done_editing : t.edit_principles}
+          >
+            <Pencil className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      <ul className="mt-6 space-y-3">
+      <AnimatePresence mode="wait">
+        {showCard ? (
+          <motion.div
+            key="constitution-complete"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6 flex flex-col items-center justify-center py-8 text-center"
+          >
+            <div
+              className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full"
+              style={{
+                background: "linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%)",
+              }}
+            >
+              <CheckCircle2 className="h-9 w-9 text-white" strokeWidth={2} />
+            </div>
+            <h3 className="font-mono text-lg font-semibold text-white/95">
+              Constitution Complete
+            </h3>
+            <p className="mt-1 font-mono text-sm text-white/60">
+              {affirmedCount} {affirmedCount === 1 ? "principle" : "principles"} affirmed
+            </p>
+            {onGoToKeystone && (
+              <button
+                type="button"
+                onClick={onGoToKeystone}
+                className="mt-6 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 font-mono text-sm font-medium text-white transition-colors hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #a78bfa, #f472b6)",
+                  boxShadow: "0 4px 20px rgba(167,139,250,0.3)",
+                }}
+              >
+                Set Your Keystone
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setReviewing(true)}
+              className="mt-4 font-mono text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
+            >
+              Review
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="constitution-list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mt-6"
+          >
+            {showCompletionCard && reviewing && (
+              <button
+                type="button"
+                onClick={() => setReviewing(false)}
+                className="mb-3 font-mono text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
+              >
+                ← Back to summary
+              </button>
+            )}
+      <ul className="space-y-3">
                 {principles.map((p) => (
                   <motion.li
                     key={p.id}
@@ -343,6 +434,9 @@ export function ConstitutionList() {
           )}
         </div>
       )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

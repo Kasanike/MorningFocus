@@ -56,8 +56,8 @@ export function trackConstitutionRead() {
   trackEvent("constitution_read");
 }
 
-export function trackOneThingSet() {
-  trackEvent("one_thing_set");
+export function trackKeystoneSet() {
+  trackEvent("keystone_set");
 }
 
 /** Call when user hits a streak milestone (e.g. 7, 14, 30 days). */

@@ -66,7 +66,7 @@ export default function PrivacyPage() {
               <li><strong>Account data:</strong> Email address (and, if you sign in via a third-party provider, the identifier they share with us).</li>
               <li><strong>Constitution data:</strong> The principles and subtitles you add to your Personal Constitution.</li>
               <li><strong>Protocol data:</strong> Your morning protocol steps (labels, durations, order).</li>
-              <li><strong>One Thing data:</strong> Your daily &ldquo;one thing&rdquo; entries and related notes.</li>
+              <li><strong>Keystone data:</strong> Your daily Keystone entries and related notes.</li>
               <li><strong>Usage data:</strong> We may collect basic, anonymised usage information (e.g. feature usage) to improve the app. We do not track you across other sites or apps.</li>
             </ul>
           </div>

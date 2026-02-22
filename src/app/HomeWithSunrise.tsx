@@ -3,17 +3,12 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Paywall } from "@/components/Paywall";
-import { StoicQuote } from "@/components/StoicQuote";
-import { ConstitutionList } from "@/components/ConstitutionList";
-import { OneThing } from "@/components/OneThing";
-import { MorningProtocol } from "@/components/MorningProtocol";
 import { SunriseBackground } from "@/components/SunriseBackground";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingSuggestionsBanner } from "@/components/onboarding/OnboardingSuggestionsBanner";
 import { TrialBanner } from "@/components/TrialBanner";
-import { StreakCard } from "@/components/StreakCard";
-import { HistoryCard } from "@/components/HistoryCard";
+import { HomeTabs } from "@/components/HomeTabs";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { useDailyReset } from "@/hooks/useDailyReset";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
@@ -110,34 +105,12 @@ export function HomeWithSunrise() {
         ) : isExpired ? (
           <Paywall userStats={accessGate.status === "expired" ? accessGate.stats : null} />
         ) : (
-          <div className="animate-fade-in mt-8 space-y-8 px-4 sm:px-8 sm:mt-10">
+          <div className="animate-fade-in mt-8 px-4 sm:px-8 sm:mt-10">
             {accessGate.status === "trial" && (
               <TrialBanner daysLeft={accessGate.daysLeft} />
             )}
             <OnboardingSuggestionsBanner />
-            <section aria-label="Morning Protocol">
-              <MorningProtocol />
-            </section>
-
-            <section aria-label="One Thing - Priority of the day">
-              <OneThing />
-            </section>
-
-            <section aria-label="Personal Constitution">
-              <ConstitutionList />
-            </section>
-
-            <section aria-label="Quote from Stoics">
-              <StoicQuote />
-            </section>
-
-            <section aria-label="Streak">
-              <StreakCard />
-            </section>
-
-            <section aria-label="History">
-              <HistoryCard />
-            </section>
+            <HomeTabs />
           </div>
         )}
       </main>

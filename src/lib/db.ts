@@ -85,16 +85,16 @@ export async function deleteProtocolStep(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── One Thing (history table) ─────────────────────────────
+// ── Keystone (history table: one_thing_history) ────────────
 
-export interface OneThingEntry {
+export interface KeystoneEntry {
   id: string;
   date: string;
   text: string;
   completed: boolean;
 }
 
-export async function fetchOneThing(date: string): Promise<string> {
+export async function fetchKeystone(date: string): Promise<string> {
   const supabase = createClient();
   const { data } = await supabase
     .from("one_thing_history")
@@ -104,7 +104,7 @@ export async function fetchOneThing(date: string): Promise<string> {
   return data?.text ?? "";
 }
 
-export async function saveOneThingDb(
+export async function saveKeystoneDb(
   text: string,
   date: string
 ): Promise<void> {
@@ -127,7 +127,7 @@ export async function saveOneThingDb(
 }
 
 /** Last 7 days (including today), most recent first. */
-export async function fetchOneThingHistory(): Promise<OneThingEntry[]> {
+export async function fetchKeystoneHistory(): Promise<KeystoneEntry[]> {
   const supabase = createClient();
   const {
     data: { user },
@@ -156,7 +156,7 @@ export async function fetchOneThingHistory(): Promise<OneThingEntry[]> {
   }));
 }
 
-export async function setOneThingCompleted(
+export async function setKeystoneCompleted(
   date: string,
   completed: boolean
 ): Promise<void> {
@@ -215,7 +215,7 @@ export async function fetchStreakData(): Promise<StreakData> {
   } = await supabase.auth.getUser();
   if (!user) return { currentStreak: 0, bestStreak: 0, totalMornings: 0, weekCompletions: new Set() };
 
-  const [sessionsRes, oneThingRes] = await Promise.all([
+  const [sessionsRes, keystoneRes] = await Promise.all([
     supabase
       .from("timer_sessions")
       .select("date")
@@ -230,7 +230,7 @@ export async function fetchStreakData(): Promise<StreakData> {
   for (const r of sessionsRes.data ?? []) {
     if (r.date) activeDates.add(r.date);
   }
-  for (const r of oneThingRes.data ?? []) {
+  for (const r of keystoneRes.data ?? []) {
     if (r.date && (r.text ?? "").trim() !== "") activeDates.add(r.date);
   }
 
@@ -273,106 +273,12 @@ export async function fetchStreakData(): Promise<StreakData> {
   return { currentStreak, bestStreak, totalMornings, weekCompletions };
 }
 
-// ── History data ────────────────────────────────────────
-
-export interface HistorySession {
-  date: string;
-  stepsCompleted: number;
-  stepsTotal: number;
-  totalTimeSeconds: number;
-}
-
-export interface HistoryOneThing {
-  date: string;
-  text: string;
-  completed: boolean;
-}
-
-export interface HistoryDay {
-  date: string;
-  session: HistorySession | null;
-  oneThing: HistoryOneThing | null;
-}
-
-export async function fetchHistoryData(limit: number): Promise<HistoryDay[]> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const [sessionsRes, oneThingRes] = await Promise.all([
-    supabase
-      .from("timer_sessions")
-      .select("date, steps_completed, steps_total, total_time_seconds")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(limit),
-    supabase
-      .from("one_thing_history")
-      .select("date, text, completed")
-      .eq("user_id", user.id)
-      .order("date", { ascending: false })
-      .limit(limit),
-  ]);
-
-  const sessionMap = new Map<string, HistorySession>();
-  for (const r of sessionsRes.data ?? []) {
-    if (!r.date) continue;
-    const existing = sessionMap.get(r.date);
-    if (existing) {
-      existing.stepsCompleted += r.steps_completed ?? 0;
-      existing.stepsTotal += r.steps_total ?? 0;
-      existing.totalTimeSeconds += r.total_time_seconds ?? 0;
-    } else {
-      sessionMap.set(r.date, {
-        date: r.date,
-        stepsCompleted: r.steps_completed ?? 0,
-        stepsTotal: r.steps_total ?? 0,
-        totalTimeSeconds: r.total_time_seconds ?? 0,
-      });
-    }
-  }
-
-  const oneThingMap = new Map<string, HistoryOneThing>();
-  for (const r of oneThingRes.data ?? []) {
-    if (!r.date) continue;
-    oneThingMap.set(r.date, {
-      date: r.date,
-      text: r.text ?? "",
-      completed: r.completed ?? false,
-    });
-  }
-
-  const allDates = new Set<string>();
-  for (const d of sessionMap.keys()) allDates.add(d);
-  for (const d of oneThingMap.keys()) allDates.add(d);
-
-  const today = new Date();
-  for (let i = 0; i < limit; i++) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    allDates.add(d.toISOString().slice(0, 10));
-  }
-
-  const days: HistoryDay[] = Array.from(allDates)
-    .sort((a, b) => b.localeCompare(a))
-    .slice(0, limit)
-    .map((date) => ({
-      date,
-      session: sessionMap.get(date) ?? null,
-      oneThing: oneThingMap.get(date) ?? null,
-    }));
-
-  return days;
-}
-
 // ── Paywall stats (for trial-expired screen) ─────────────
 
 export interface PaywallStats {
   streak: number;
   stepsCompleted: number;
-  oneThingsDone: number;
+  keystonesDone: number;
 }
 
 /** Streak = consecutive days up to today with at least one timer_session. */
@@ -383,7 +289,7 @@ export async function fetchPaywallStats(): Promise<PaywallStats | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [sessionsRes, oneThingRes] = await Promise.all([
+  const [sessionsRes, keystoneRes] = await Promise.all([
     supabase
       .from("timer_sessions")
       .select("date, steps_completed")
@@ -396,10 +302,10 @@ export async function fetchPaywallStats(): Promise<PaywallStats | null> {
   ]);
 
   const sessions = sessionsRes.data ?? [];
-  const oneThings = oneThingRes.data ?? [];
+  const keystones = keystoneRes.data ?? [];
 
   const stepsCompleted = sessions.reduce((sum, r) => sum + (r.steps_completed ?? 0), 0);
-  const oneThingsDone = oneThings.filter((r) => (r.text ?? "").trim() !== "").length;
+  const keystonesDone = keystones.filter((r) => (r.text ?? "").trim() !== "").length;
 
   const sessionDates = new Set(sessions.map((r) => r.date));
   let streak = 0;
@@ -411,7 +317,7 @@ export async function fetchPaywallStats(): Promise<PaywallStats | null> {
     else break;
   }
 
-  return { streak, stepsCompleted, oneThingsDone };
+  return { streak, stepsCompleted, keystonesDone };
 }
 
 // ── Plan (subscription) ─────────────────────────────────

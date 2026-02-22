@@ -16,18 +16,18 @@ function resetProtocolCompleted(): void {
   );
 }
 
-function resetOneThing(): void {
+function resetKeystone(): void {
   if (typeof window === "undefined") return;
   const today = getTodayKey();
   localStorage.setItem(
-    STORAGE_KEYS.ONE_THING,
+    STORAGE_KEYS.KEYSTONE,
     JSON.stringify({ date: today, text: "" })
   );
 }
 
 /**
  * Hook that runs a daily reset when the user visits on a new day (past midnight).
- * Resets Morning Protocol checkboxes and One Thing input, then updates lastVisitDate.
+ * Resets Morning Protocol checkboxes and Keystone input, then updates lastVisitDate.
  * Returns isReady: true only after the check has run, so children read fresh data.
  */
 export function useDailyReset() {
@@ -39,7 +39,7 @@ export function useDailyReset() {
 
     if (lastSaved !== today) {
       resetProtocolCompleted();
-      resetOneThing();
+      resetKeystone();
       localStorage.setItem(STORAGE_KEYS.LAST_VISIT_DATE, today);
     }
 

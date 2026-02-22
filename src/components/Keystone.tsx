@@ -5,15 +5,16 @@ import { Target } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import {
-  fetchOneThing,
-  saveOneThingDb,
-  fetchOneThingHistory,
-  setOneThingCompleted,
-  type OneThingEntry,
+  fetchKeystone,
+  saveKeystoneDb,
+  fetchKeystoneHistory,
+  setKeystoneCompleted,
+  type KeystoneEntry,
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { trackOneThingSet } from "@/lib/analytics";
+import { StoicQuote } from "@/components/StoicQuote";
+import { trackKeystoneSet } from "@/lib/analytics";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -24,10 +25,10 @@ function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
-function getStoredOneThing(): string {
+function getStoredKeystone(): string {
   if (typeof window === "undefined") return "";
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.ONE_THING);
+    const data = localStorage.getItem(STORAGE_KEYS.KEYSTONE);
     if (!data) return "";
     const parsed = JSON.parse(data);
     if (parsed?.date === getTodayKey() && typeof parsed?.text === "string") {
@@ -39,24 +40,24 @@ function getStoredOneThing(): string {
   }
 }
 
-function saveOneThingLocal(text: string) {
+function saveKeystoneLocal(text: string) {
   if (typeof window === "undefined") return;
   localStorage.setItem(
-    STORAGE_KEYS.ONE_THING,
+    STORAGE_KEYS.KEYSTONE,
     JSON.stringify({ date: getTodayKey(), text: text.trim() })
   );
 }
 
-export function OneThing() {
+export function Keystone() {
   const { t } = useLanguage();
   const [value, setValue] = useState("");
-  const [history, setHistory] = useState<OneThingEntry[]>([]);
+  const [history, setHistory] = useState<KeystoneEntry[]>([]);
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const loadHistory = useCallback(async () => {
     try {
-      const list = await fetchOneThingHistory();
+      const list = await fetchKeystoneHistory();
       setHistory(list);
     } catch {
       setHistory([]);
@@ -72,7 +73,7 @@ export function OneThing() {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          const text = await fetchOneThing(getTodayKey());
+          const text = await fetchKeystone(getTodayKey());
           if (text !== "") {
             setValue(text);
           }
@@ -82,25 +83,25 @@ export function OneThing() {
       } catch {
         // ignore
       }
-      setValue(getStoredOneThing());
+      setValue(getStoredKeystone());
     };
     load();
   }, [loadHistory]);
 
   const handleSave = async () => {
     const date = getTodayKey();
-    saveOneThingLocal(value);
+    saveKeystoneLocal(value);
     try {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        await saveOneThingDb(value.trim(), date);
+        await saveKeystoneDb(value.trim(), date);
         await loadHistory();
       }
       if (value.trim()) {
-        trackOneThingSet();
+        trackKeystoneSet();
         setHasEditedContent();
       }
       setSaved(true);
@@ -110,9 +111,9 @@ export function OneThing() {
     }
   };
 
-  const handleToggleCompleted = async (entry: OneThingEntry) => {
+  const handleToggleCompleted = async (entry: KeystoneEntry) => {
     try {
-      await setOneThingCompleted(entry.date, !entry.completed);
+      await setKeystoneCompleted(entry.date, !entry.completed);
       setHistory((prev) =>
         prev.map((e) =>
           e.id === entry.id ? { ...e, completed: !e.completed } : e
@@ -124,23 +125,26 @@ export function OneThing() {
   };
 
   if (!mounted) {
-    return <SkeletonCard variant="oneThing" />;
+    return <SkeletonCard variant="keystone" />;
   }
 
+  const hasSetKeystone = value.trim() !== "";
+
   return (
+    <>
     <section
       className="card-glass rounded-2xl border border-white/10 px-8 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12"
-      aria-label={t.one_thing_aria}
+      aria-label={t.keystone_aria}
     >
       <div className="drop-shadow-md">
         <div className="flex items-center gap-3">
           <Target className="h-5 w-5 shrink-0 text-white/60" />
           <h2 className="font-mono text-xl font-semibold text-white/95">
-            {t.one_thing_title}
+            {t.keystone_title}
           </h2>
         </div>
         <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
-          {t.one_thing_prompt}
+          {t.keystone_prompt}
         </p>
       </div>
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
@@ -149,7 +153,7 @@ export function OneThing() {
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaved(false); }}
           onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          placeholder={t.one_thing_placeholder}
+          placeholder={t.keystone_placeholder}
           className="min-h-[44px] min-w-0 flex-1 rounded-full border border-white/30 bg-white/20 px-5 py-3 text-base font-medium text-white placeholder:text-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/50"
         />
         <button
@@ -189,5 +193,12 @@ export function OneThing() {
         </ul>
       )}
     </section>
+
+    {hasSetKeystone && (
+      <div className="mt-6" role="complementary" aria-label="Quote of the day — your send-off">
+        <StoicQuote />
+      </div>
+    )}
+    </>
   );
 }

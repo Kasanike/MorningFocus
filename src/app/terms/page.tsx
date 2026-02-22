@@ -67,7 +67,7 @@ export default function TermsPage() {
             <ul>
               <li><strong>Personal Constitution:</strong> A space to store and review your personal principles.</li>
               <li><strong>Morning Protocol:</strong> A customizable list of steps (e.g. hydration, exercise, mindfulness) with optional timings.</li>
-              <li><strong>One Thing:</strong> A daily focus field to set one priority for the day.</li>
+              <li><strong>Keystone:</strong> A daily focus field to set one priority for the day.</li>
               <li>Additional features such as daily quotes and syncing across devices when you have an account.</li>
             </ul>
             <p>
