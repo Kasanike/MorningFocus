@@ -434,7 +434,8 @@ export async function fetchBootstrap(): Promise<BootstrapData> {
         subscription_end: row.subscription_end ?? null,
       }
     : null;
-  const onboardingCompleted = row?.onboarding_completed === true;
+  // If we have no profile row for a signed-in user (e.g. RLS/network on mobile), don't force onboarding
+  const onboardingCompleted = row ? row.onboarding_completed === true : true;
   const hasPrinciples = (principlesRes.count ?? 0) > 0;
   const hasProtocol = (stepsRes.count ?? 0) > 0;
   const onboardingStatus: OnboardingStatus = {

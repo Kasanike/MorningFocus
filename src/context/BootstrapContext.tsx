@@ -8,6 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
+import { createClient } from "@/utils/supabase/client";
 import { fetchBootstrap, type BootstrapData, type ProfilePlan } from "@/lib/db";
 import { isPro as checkIsPro } from "@/lib/subscription";
 
@@ -58,6 +59,23 @@ export function BootstrapProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refresh();
+  }, [refresh]);
+
+  // Re-fetch when auth session is restored (e.g. after mobile app reload)
+  useEffect(() => {
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "INITIAL_SESSION"
+      ) {
+        if (session?.user) void refresh();
+      }
+    });
+    return () => subscription.unsubscribe();
   }, [refresh]);
 
   const isPro = checkIsPro(profile);
