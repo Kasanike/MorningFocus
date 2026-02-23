@@ -3,13 +3,6 @@ import { createHash } from "crypto";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 const ALLOWED_VOICES = ["onyx", "nova", "shimmer", "alloy", "echo", "fable"];
 
 export async function POST(req: NextRequest) {
@@ -18,6 +11,15 @@ export async function POST(req: NextRequest) {
   if (!text) return NextResponse.json({ error: "No text provided" }, { status: 400 });
   if (!ALLOWED_VOICES.includes(voice))
     return NextResponse.json({ error: "Invalid voice" }, { status: 400 });
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const hash = createHash("sha256").update(`${voice}:${text}`).digest("hex");
   const filePath = `${hash}.mp3`;

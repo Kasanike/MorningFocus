@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 const PROTECTED_PREFIXES = ["/home", "/settings"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
