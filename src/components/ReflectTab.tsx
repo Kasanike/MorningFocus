@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Moon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
 import {
@@ -32,17 +32,6 @@ function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function formatDateHeader(locale: string): string {
-  const now = new Date();
-  return now
-    .toLocaleDateString(locale === "sk" ? "sk-SK" : "en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-    })
-    .toUpperCase();
-}
-
 function formatDateShort(dateStr: string, locale: string): string {
   const d = new Date(dateStr + "T12:00:00");
   return d.toLocaleDateString(locale === "sk" ? "sk-SK" : "en-US", {
@@ -62,9 +51,19 @@ const rise = (delay: number) => ({
 });
 
 const cardStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.06)",
   borderRadius: 18,
+};
+
+/** Matches Keystone section wrapper */
+const sectionCardStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  borderRadius: 22,
+  padding: "22px 20px",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
 };
 
 function SkeletonBlock() {
@@ -165,43 +164,36 @@ export function ReflectTab() {
   const hasTodayReflection = todayReflection !== null;
 
   return (
-    <div className="relative min-h-[60vh]">
-      {/* Ambient glow */}
-      <div
-        className="pointer-events-none absolute -right-20 -top-10 h-[340px] w-[340px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, rgba(120,60,180,0.12) 0%, transparent 70%)",
-          animation: "breathe 6s ease-in-out infinite",
-        }}
-      />
-
-      {/* 1. Header */}
-      <motion.div {...rise(0)} className="mb-6">
-        <p
-          className="text-[10px] font-semibold uppercase tracking-[0.2em]"
-          style={{ color: "rgba(255,255,255,0.3)" }}
-        >
-          {formatDateHeader(locale)}
-        </p>
-        <h1 className="mt-1 flex items-baseline gap-3">
-          <span
-            className="text-[32px] font-black leading-none tracking-tight text-white"
-            style={{ letterSpacing: "-0.02em" }}
+    <>
+      <section
+        className="relative overflow-hidden rounded-[22px] backdrop-blur-xl"
+        style={sectionCardStyle}
+        aria-label={t.reflect_title}
+      >
+        {/* Header: same as Keystone — icon + title + subtitle */}
+        <div className="mb-1 flex items-center gap-3">
+          <Moon className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
+          <h2
+            className="font-bold text-white"
+            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
           >
             {t.reflect_title}
-          </span>
-          <span
-            className="text-[32px] font-black leading-none tracking-tight"
-            style={{ color: "rgba(255,255,255,0.15)", letterSpacing: "-0.02em" }}
-          >
-            {t.reflect_title_suffix}
-          </span>
-        </h1>
-      </motion.div>
+          </h2>
+        </div>
+        <p
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.3)",
+            margin: "2px 0 0",
+            lineHeight: 1.4,
+          }}
+        >
+          {t.reflect_title_suffix}
+        </p>
 
-      {/* 2. Keystone callback */}
+      {/* Keystone callback — inner card */}
       {keystoneText && (
-        <motion.div {...rise(0.1)} className="mb-5 flex gap-3 rounded-[18px] p-4" style={cardStyle}>
+        <motion.div {...rise(0.05)} className="mt-6 flex gap-3 rounded-[14px] border p-4" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}>
           <span
             className="mt-1 block h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ background: "linear-gradient(135deg, #f97316, #ec4899)" }}
@@ -218,15 +210,15 @@ export function ReflectTab() {
         </motion.div>
       )}
 
-      {/* 3. Reflection form / saved card */}
+      {/* Reflection form / saved card */}
       <AnimatePresence mode="wait">
         {hasTodayReflection ? (
           <motion.div
             key="saved"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-[18px] p-5"
-            style={cardStyle}
+            className="mt-6 rounded-[14px] border p-5"
+            style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}
           >
             <div className="mb-3 flex items-center gap-2">
               {todayReflection.mood && (
@@ -257,16 +249,16 @@ export function ReflectTab() {
         ) : (
           <motion.div
             key="form"
-            {...rise(0.2)}
-            className="mb-6 rounded-[18px] p-5"
-            style={cardStyle}
+            {...rise(0.1)}
+            className="mt-6 rounded-[14px] border p-5"
+            style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}
           >
-            <h2
-              className="text-[22px] font-bold text-white"
+            <h3
+              className="text-[18px] font-bold text-white"
               style={{ letterSpacing: "-0.01em" }}
             >
               {t.reflect_prompt}
-            </h2>
+            </h3>
             <p
               className="mt-1 text-[13px]"
               style={{ color: "rgba(255,255,255,0.35)" }}
@@ -274,7 +266,6 @@ export function ReflectTab() {
               {t.reflect_subtext}
             </p>
 
-            {/* Textarea */}
             <div className="relative mt-4">
               <textarea
                 value={entry}
@@ -298,7 +289,6 @@ export function ReflectTab() {
               </span>
             </div>
 
-            {/* Mood selector */}
             <div className="mt-4 flex gap-2">
               {MOODS.map((m) => {
                 const active = mood === m.key;
@@ -329,7 +319,6 @@ export function ReflectTab() {
               })}
             </div>
 
-            {/* Save button */}
             <button
               type="button"
               onClick={handleSave}
@@ -355,10 +344,11 @@ export function ReflectTab() {
           </motion.div>
         )}
       </AnimatePresence>
+      </section>
 
-      {/* 5. Past reflections */}
+      {/* Past reflections — outside main card, same as before */}
       {pastReflections.length > 0 && (
-        <motion.div {...rise(hasTodayReflection ? 0.15 : 0.35)}>
+        <motion.div {...rise(0.15)} className="mt-6">
           <div className="mb-3 flex items-center gap-3">
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
             <span
@@ -409,6 +399,6 @@ export function ReflectTab() {
           </div>
         </motion.div>
       )}
-    </div>
+    </>
   );
 }
