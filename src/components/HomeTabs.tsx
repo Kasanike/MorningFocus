@@ -50,22 +50,25 @@ function TabBar({
   onSelect: (t: Tab) => void;
 }) {
   return (
-    <>
+    <div className="flex min-w-0 flex-1 basis-0 overflow-hidden">
       {TABS.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
+            type="button"
             onClick={() => onSelect(tab.id)}
-            className="flex flex-1 flex-col items-center gap-0.5 rounded-lg py-2 px-1.5 transition-all duration-200"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 self-stretch rounded-lg py-2 px-1 transition-colors duration-200"
             style={isActive ? { background: GRAD_ACTIVE, color: "#fff" } : { color: "rgba(255,255,255,0.35)" }}
           >
-            <tab.Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
-            <span className="text-[10px] font-semibold tracking-wide uppercase">{tab.label}</span>
+            <tab.Icon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+            <span className="max-w-full truncate text-center text-[10px] font-semibold uppercase tracking-wide">
+              {tab.label}
+            </span>
           </button>
         );
       })}
-    </>
+    </div>
   );
 }
 
@@ -132,7 +135,7 @@ export function HomeTabs() {
       {/* Bottom nav — mobile only; hidden when guided mode (full-screen timer) is active */}
       {!guidedModeActive && (
         <nav
-          className="fixed bottom-0 left-0 right-0 z-50 flex w-full gap-0 sm:hidden"
+          className="fixed bottom-0 left-0 right-0 z-50 flex shrink-0 sm:hidden"
           style={{
             width: "100%",
             maxWidth: 430,
