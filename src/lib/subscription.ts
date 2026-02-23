@@ -39,10 +39,6 @@ export function isTrialExpiring(profile: Profile) {
   return hoursLeft > 0 && hoursLeft < 24;
 }
 
-/** Free tier limits */
-export const FREE_PRINCIPLES_LIMIT = 3;
-export const FREE_PROTOCOL_STEPS_LIMIT = 5;
-
 /**
  * Returns true if the user has an active Pro subscription.
  * If subscription_end is set, it must be in the future.
@@ -54,21 +50,21 @@ export function isPro(profile: ProfileWithPlan | null | undefined): boolean {
 }
 
 /**
- * Returns true if the user can add more principles (under limit or Pro).
+ * Returns true if the user can add more principles (no limit).
  */
 export function canAddPrinciple(
-  currentCount: number,
-  profile: ProfileWithPlan | null | undefined
+  _currentCount: number,
+  _profile: ProfileWithPlan | null | undefined
 ): boolean {
-  return isPro(profile) || currentCount < FREE_PRINCIPLES_LIMIT;
+  return true;
 }
 
 /**
- * Returns true if the user can add more protocol steps (under limit or Pro).
+ * Returns true if the user can add more protocol steps (no limit).
  */
 export function canAddProtocolStep(
-  currentCount: number,
-  profile: ProfileWithPlan | null | undefined
+  _currentCount: number,
+  _profile: ProfileWithPlan | null | undefined
 ): boolean {
-  return isPro(profile) || currentCount < FREE_PROTOCOL_STEPS_LIMIT;
+  return true;
 }

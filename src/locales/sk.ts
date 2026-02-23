@@ -139,6 +139,7 @@ export const sk: LocaleKeys = {
   save: "Uložiť",
   add: "Pridať",
   remove: "Odstrániť",
+  add_principle: "Pridať zásadu",
   add_principle_placeholder: "Pridať novú zásadu…",
   add_principle_subtitle_placeholder: "Podnadpis (voliteľné)…",
   edit_principle: "Upraviť",

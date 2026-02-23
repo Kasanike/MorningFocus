@@ -22,7 +22,7 @@ export function PaywallBanner() {
       if (!res.ok) throw new Error(data.error || "Checkout failed");
       if (data.url) window.location.href = data.url;
     } catch (e) {
-      console.error(e);
+      console.error("Paywall banner checkout failed:", e);
       setCheckoutLoading(false);
     }
   };

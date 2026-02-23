@@ -89,7 +89,7 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error(data.error || "Checkout failed");
       if (data.url) window.location.href = data.url;
     } catch (e) {
-      console.error(e);
+      console.error("Checkout failed:", e);
     } finally {
       setCheckoutLoading(false);
     }

@@ -15,8 +15,7 @@ import {
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
-import { canAddProtocolStep, FREE_PROTOCOL_STEPS_LIMIT } from "@/lib/subscription";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { canAddProtocolStep } from "@/lib/subscription";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 import ProtocolTimer from "./ProtocolTimer";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -233,7 +232,7 @@ export function MorningProtocol({
         label: s.label,
         minutes: s.minutes,
         order_index: i,
-      }).catch(console.error);
+      }).catch((err) => console.error("Protocol reorder failed:", err));
     });
     setHasEditedContent();
   }, []);
@@ -262,7 +261,7 @@ export function MorningProtocol({
 
   const handleRemove = (id: string) => {
     persist(steps.filter((s) => s.id !== id));
-    deleteProtocolStep(id).catch(console.error);
+    deleteProtocolStep(id).catch((err) => console.error("Delete protocol step failed:", err));
     setEditId(null);
     const { [id]: _, ...rest } = completed;
     persistCompleted(rest);
@@ -308,7 +307,7 @@ export function MorningProtocol({
           localStorage.removeItem(STORAGE_KEYS.PROTOCOL_COMPLETION_TIME);
         }
       })
-      .catch(console.error);
+      .catch((err) => console.error("Persist completed failed:", err));
   }, [persistCompleted]);
 
   if (!mounted) {
@@ -325,7 +324,6 @@ export function MorningProtocol({
       }}
       aria-label={t.morning_protocol_aria}
     >
-      {/* Row 1: title + edit icon */}
       <div className="mb-1 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <Timer className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
@@ -336,17 +334,6 @@ export function MorningProtocol({
             {t.morning_protocol_title}
           </h2>
         </div>
-        {!showCompletionCard && (
-          <button
-            type="button"
-            onClick={() => setIsEditMode(!isEditMode)}
-            className="border-0 bg-transparent p-0.5 text-[rgba(255,255,255,0.25)] transition-colors hover:text-white/50"
-            style={{ fontSize: 16 }}
-            aria-label={isEditMode ? t.done_editing : t.edit_principles}
-          >
-            ✎
-          </button>
-        )}
       </div>
       <p
         style={{
@@ -491,65 +478,93 @@ export function MorningProtocol({
               ))}
             </ol>
 
-            {isEditMode &&
-              (!canAdd ? (
-                <div className="mt-4">
-                  <UpgradePrompt
-                    message={`Free accounts can have up to ${FREE_PROTOCOL_STEPS_LIMIT} protocol steps. Upgrade to Pro for unlimited.`}
-                  />
-                </div>
-              ) : isAdding ? (
-                <div className="mt-4 flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center">
-                  <input
-                    type="text"
-                    value={newLabel}
-                    onChange={(e) => setNewLabel(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-                    placeholder={t.protocol_step_placeholder}
-                    className="min-h-[44px] min-w-0 flex-1 rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
-                    autoFocus
-                  />
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      value={newMinutes}
-                      onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                      className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
-                    />
-                    <span className="text-sm text-white/60">{t.minutes}</span>
-                  </div>
-                  <div className="flex gap-2">
+            {!showCompletionCard && (
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  {isEditMode && canAdd && isAdding && (
+                    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm">
+                      <input
+                        type="text"
+                        value={newLabel}
+                        onChange={(e) => setNewLabel(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                        placeholder={t.protocol_step_placeholder}
+                        className="min-h-[44px] w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2.5 font-sans text-base text-white/95 placeholder:text-white/40 focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30"
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={newMinutes}
+                          onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          className="min-h-[44px] w-20 min-w-[5rem] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
+                        />
+                        <span className="text-sm text-white/60">{t.minutes}</span>
+                        <button
+                          type="button"
+                          onClick={handleAdd}
+                          className="min-h-[44px] min-w-[5rem] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
+                        >
+                          {t.add}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAdding(false);
+                            setNewLabel("");
+                            setNewMinutes(5);
+                          }}
+                          className="min-h-[44px] rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
+                        >
+                          {t.cancel}
+                        </button>
+                      </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditMode(!isEditMode)}
+                          className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl border-0 px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+                          style={{
+                            background: "rgba(255,255,255,0.08)",
+                            borderColor: "rgba(255,255,255,0.1)",
+                          }}
+                          aria-label={t.done_editing}
+                        >
+                          <Pencil className="h-4 w-4 shrink-0" strokeWidth={2} />
+                          <span>{t.done_editing}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {isEditMode && canAdd && !isAdding && (
                     <button
                       type="button"
-                      onClick={handleAdd}
-                      className="min-h-[44px] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-white/95 transition-colors hover:bg-white/30"
+                      className="touch-target flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-2 text-sm font-medium text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
+                      onClick={() => setIsAdding(true)}
                     >
-                      {t.add}
+                      <Plus className="h-4 w-4" />
+                      {t.add_step}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsAdding(false);
-                        setNewLabel("");
-                        setNewMinutes(5);
-                      }}
-                      className="min-h-[44px] rounded-lg border border-white/20 px-4 py-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
-                    >
-                      {t.cancel}
-                    </button>
-                  </div>
+                  )}
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  className="touch-target mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-3.5 text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
-                  onClick={() => setIsAdding(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                  {t.add_step}
-                </button>
-              ))}
+                {!(isEditMode && canAdd && isAdding) && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditMode(!isEditMode)}
+                    className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl border-0 px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      borderColor: "rgba(255,255,255,0.1)",
+                    }}
+                    aria-label={isEditMode ? t.done_editing : t.edit_principles}
+                  >
+                    <Pencil className="h-4 w-4 shrink-0" strokeWidth={2} />
+                    <span>{isEditMode ? t.done_editing : t.keystone_edit}</span>
+                  </button>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

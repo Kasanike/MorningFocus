@@ -34,7 +34,7 @@ export function OnboardingFlow({ onComplete }: { onComplete: () => void }) {
       onComplete();
       router.replace("/home");
     } catch (e) {
-      console.error(e);
+      console.error("Onboarding flow save failed:", e);
       setStep(2);
     }
   }, [ageRange, profession, refresh, markOnboardingCompleted, onComplete, router]);

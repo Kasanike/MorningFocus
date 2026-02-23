@@ -48,7 +48,7 @@ export function Paywall({ userStats, onMaybeLater }: PaywallProps) {
       if (!res.ok) throw new Error(data.error || "Checkout failed");
       if (data.url) window.location.href = data.url;
     } catch (e) {
-      console.error(e);
+      console.error("Paywall checkout failed:", e);
     } finally {
       setCheckoutLoading(null);
     }

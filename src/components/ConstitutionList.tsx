@@ -8,8 +8,7 @@ import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
-import { canAddPrinciple, FREE_PRINCIPLES_LIMIT } from "@/lib/subscription";
-import { UpgradePrompt } from "@/components/UpgradePrompt";
+import { canAddPrinciple } from "@/lib/subscription";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { trackConstitutionRead } from "@/lib/analytics";
@@ -82,6 +81,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
   const [principles, setPrinciples] = useState<Principle[]>([]);
   const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
   const [isEditing, setIsEditing] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [newPrinciple, setNewPrinciple] = useState("");
   const [newSubtitle, setNewSubtitle] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
@@ -91,6 +91,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
   const [reviewing, setReviewing] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const constitutionSyncedRef = useRef(false);
+  const initialLoadDoneRef = useRef(false);
 
   const handleListenComplete = useCallback(() => {
     const allChecked: Record<string, boolean> = {};
@@ -234,8 +235,11 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
         setAcknowledged((prev) => (Object.keys(prev).length > 0 ? prev : allChecked));
       }
       const detail = await getTodayCompletionDetail().catch(() => null);
-      setShowCompletionCard(detail?.constitution_done ?? false);
-      constitutionSyncedRef.current = detail?.constitution_done ?? false;
+      if (!initialLoadDoneRef.current) {
+        initialLoadDoneRef.current = true;
+        setShowCompletionCard(detail?.constitution_done ?? false);
+        constitutionSyncedRef.current = detail?.constitution_done ?? false;
+      }
     };
     load();
   }, [t.default_principles]);
@@ -246,7 +250,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
       localStorage.setItem(STORAGE_KEYS.PRINCIPLES, JSON.stringify(next));
     }
     next.forEach((p, i) => {
-      upsertPrinciple({ ...p, order_index: i }).catch(console.error);
+      upsertPrinciple({ ...p, order_index: i }).catch((err) => console.error("Upsert principle failed:", err));
     });
     setHasEditedContent();
   }, []);
@@ -297,11 +301,12 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
     savePrinciples(next);
     setNewPrinciple("");
     setNewSubtitle("");
+    setIsAdding(false);
   };
 
   const handleRemove = (id: string) => {
     savePrinciples(principles.filter((p) => p.id !== id));
-    deletePrinciple(id).catch(console.error);
+    deletePrinciple(id).catch((err) => console.error("Delete principle failed:", err));
     setEditId(null);
   };
 
@@ -357,17 +362,6 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
             {t.principles_title}
           </h2>
         </div>
-        {!showCard && (
-          <button
-            type="button"
-            onClick={() => setIsEditing(!isEditing)}
-            className="border-0 bg-transparent p-0.5 text-[rgba(255,255,255,0.25)] transition-colors hover:text-white/50"
-            style={{ fontSize: 16 }}
-            aria-label={isEditing ? t.done_editing : t.edit_principles}
-          >
-            ✎
-          </button>
-        )}
       </div>
       <p
         style={{
@@ -585,45 +579,97 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
         ))}
       </ul>
 
-      {isEditing && (
-        <div className="mt-4 flex flex-col gap-2">
-          {!canAdd ? (
-            <UpgradePrompt
-              message={`Free accounts can have up to ${FREE_PRINCIPLES_LIMIT} principles. Upgrade to Pro for unlimited.`}
-            />
-          ) : (
-            <>
-              <input
-                type="text"
-                value={newPrinciple}
-                onChange={(e) => setNewPrinciple(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-                placeholder={t.add_principle_placeholder}
-                className="min-h-[44px] rounded-[14px] border px-4 py-2.5 text-base text-white/95 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
-                style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
-              />
-              <input
-                type="text"
-                value={newSubtitle}
-                onChange={(e) => setNewSubtitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-                placeholder={t.add_principle_subtitle_placeholder}
-                className="min-h-[44px] rounded-[14px] border px-4 py-2.5 text-base text-white/80 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
-                style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
-              />
+      {!showCard && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            {isEditing && canAdd && isAdding && (
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={newPrinciple}
+                  onChange={(e) => setNewPrinciple(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                  placeholder={t.add_principle_placeholder}
+                  className="min-h-[44px] rounded-[14px] border px-4 py-2.5 text-base text-white/95 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  value={newSubtitle}
+                  onChange={(e) => setNewSubtitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+                  placeholder={t.add_principle_subtitle_placeholder}
+                  className="min-h-[44px] rounded-[14px] border px-4 py-2.5 text-base text-white/80 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+                  style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAdd}
+                    className="flex items-center gap-2 rounded-[14px] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                    style={{
+                      background: "linear-gradient(135deg, #f97316, #ec4899)",
+                      boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t.add}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAdding(false);
+                      setNewPrinciple("");
+                      setNewSubtitle("");
+                    }}
+                    className="min-h-[44px] rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white/90"
+                  >
+                    {t.cancel}
+                  </button>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl border-0 px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      borderColor: "rgba(255,255,255,0.1)",
+                    }}
+                    aria-label={t.done_editing}
+                  >
+                    <Pencil className="h-4 w-4 shrink-0" strokeWidth={2} />
+                    <span>{t.done_editing}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+            {isEditing && !isAdding && (
               <button
                 type="button"
-                onClick={handleAdd}
-                className="flex w-fit items-center gap-2 rounded-[14px] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{
-                  background: "linear-gradient(135deg, #f97316, #ec4899)",
-                  boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                }}
+                className="touch-target flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-5 py-2 text-sm font-medium text-white/60 transition-colors hover:border-white/40 hover:bg-white/5 hover:text-white/80"
+                onClick={() => setIsAdding(true)}
               >
                 <Plus className="h-4 w-4" />
-                {t.add}
+                {t.add_principle}
               </button>
-            </>
+            )}
+          </div>
+          {!(isEditing && canAdd && isAdding) && (
+            <button
+              type="button"
+              onClick={() => setIsEditing(!isEditing)}
+              className="flex min-h-[44px] shrink-0 items-center gap-2 rounded-xl border-0 px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                borderColor: "rgba(255,255,255,0.1)",
+              }}
+              aria-label={isEditing ? t.done_editing : t.edit_principles}
+            >
+              <Pencil className="h-4 w-4 shrink-0" strokeWidth={2} />
+              <span>{isEditing ? t.done_editing : t.keystone_edit}</span>
+            </button>
           )}
         </div>
       )}

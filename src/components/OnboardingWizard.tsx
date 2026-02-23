@@ -79,7 +79,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       );
       setStep(2);
     } catch (e) {
-      console.error(e);
+      console.error("Onboarding save principles failed:", e);
     } finally {
       setSaving(false);
     }
@@ -100,7 +100,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       );
       setStep(3);
     } catch (e) {
-      console.error(e);
+      console.error("Onboarding save protocol failed:", e);
     } finally {
       setSaving(false);
     }
@@ -115,7 +115,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       trackOnboardingCompleted();
       onComplete();
     } catch (e) {
-      console.error(e);
+      console.error("Onboarding save keystone failed:", e);
     } finally {
       setSaving(false);
     }

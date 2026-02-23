@@ -114,7 +114,7 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
       setIsEditing(false);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
-      console.error(e);
+      console.error("Save keystone failed:", e);
     }
   };
 

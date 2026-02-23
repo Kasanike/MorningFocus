@@ -10,7 +10,9 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Unhandled error:", error);
+    const message =
+      error instanceof Error ? error.message : typeof error === "object" && error !== null ? JSON.stringify(error) : String(error);
+    console.error("Unhandled error:", message || "Unknown error");
   }, [error]);
 
   return (

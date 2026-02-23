@@ -137,6 +137,7 @@ export const en = {
   save: "Save",
   add: "Add",
   remove: "Remove",
+  add_principle: "Add principle",
   add_principle_placeholder: "Add a new principle…",
   add_principle_subtitle_placeholder: "Subtitle (optional)…",
   edit_principle: "Edit",
