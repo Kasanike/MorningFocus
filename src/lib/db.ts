@@ -395,7 +395,7 @@ export interface ReflectionEntry {
   did_complete: boolean | null;
   reflection_note: string | null;
   keystone_text: string | null;
-  keystone_id: string | null;
+  keystone_id?: string | null;
   entry: string | null;
   mood: string | null;
   created_at: string;
