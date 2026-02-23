@@ -44,10 +44,9 @@ export function StreakCard() {
   if (!data) {
     return (
       <div
-        className="shadow-2xl shadow-black/20"
-        style={{ background: "rgba(30, 15, 25, 0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "28px 24px" }}
+        className="rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-6 shadow-xl"
       >
-        <h2 className="font-mono text-xl font-semibold text-white/95">Streak</h2>
+        <h2 className="text-lg font-semibold text-zinc-100">Streak</h2>
         <div className="mt-4 h-20 animate-pulse rounded-xl bg-white/5" />
       </div>
     );
@@ -61,10 +60,9 @@ export function StreakCard() {
 
   return (
     <div
-      className="shadow-2xl shadow-black/20"
-      style={{ background: "rgba(30, 15, 25, 0.55)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "28px 24px" }}
+      className="rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-6"
     >
-      <h2 className="font-mono text-xl font-semibold text-white/95">Streak</h2>
+      <h2 className="text-lg font-semibold text-zinc-100">Streak</h2>
 
       <div className="mt-5 text-center">
         <p
@@ -74,7 +72,7 @@ export function StreakCard() {
           {currentStreak > 0 ? `🔥 ${currentStreak} day${currentStreak === 1 ? "" : "s"}` : "0 days"}
         </p>
         {currentStreak === 0 && (
-          <p className="mt-1 font-mono text-xs text-white/40">
+          <p className="mt-1 text-xs text-white/40">
             start today
           </p>
         )}
@@ -104,7 +102,7 @@ export function StreakCard() {
                 )}
               </div>
               <span
-                className={`font-mono text-[10px] ${
+                className={`text-[10px] ${
                   isToday ? "font-semibold text-white/70" : "text-white/30"
                 }`}
               >
@@ -116,11 +114,11 @@ export function StreakCard() {
       </div>
 
       <div className="mt-6 flex items-center justify-center gap-3 border-t border-white/8 pt-5">
-        <span className="font-mono text-[11px] text-white/40">
+        <span className="text-[11px] text-white/40">
           Best: <span className="text-white/60">{bestStreak} day{bestStreak === 1 ? "" : "s"}</span>
         </span>
         <span className="text-white/15">·</span>
-        <span className="font-mono text-[11px] text-white/40">
+        <span className="text-[11px] text-white/40">
           Total mornings: <span className="text-white/60">{totalMornings}</span>
         </span>
       </div>

@@ -26,7 +26,7 @@ export function AgeStep({
 }: AgeStepProps) {
   return (
     <div className="card-glass w-full max-w-md rounded-2xl border border-white/10 px-6 py-8 shadow-2xl shadow-black/20 sm:px-8 sm:py-10">
-      <div className="mb-6 flex items-center gap-2 font-mono text-xs tracking-wider text-white/50">
+      <div className="mb-6 flex items-center gap-2 text-xs tracking-wider text-white/50">
         <span>Step {currentStep} of {totalSteps}</span>
         <div className="flex gap-1.5">
           {Array.from({ length: totalSteps }).map((_, i) => (
@@ -40,7 +40,7 @@ export function AgeStep({
         </div>
       </div>
 
-      <h2 className="font-sans text-2xl font-semibold text-white sm:text-3xl">
+      <h2 className="font-sans text-xl font-semibold text-white sm:text-2xl">
         What&apos;s your age range?
       </h2>
       <p className="mt-2 text-sm text-white/60">
@@ -72,7 +72,7 @@ export function AgeStep({
         type="button"
         disabled={!value}
         onClick={onContinue}
-        className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 font-sans text-base font-bold text-indigo-900 transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-white py-3.5 font-sans text-base font-bold text-zinc-900 transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         Continue
         <span className="text-lg" aria-hidden>→</span>

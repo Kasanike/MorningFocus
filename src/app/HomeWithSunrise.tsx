@@ -3,13 +3,11 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Paywall } from "@/components/Paywall";
-import { SunriseBackground } from "@/components/SunriseBackground";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { OnboardingSuggestionsBanner } from "@/components/onboarding/OnboardingSuggestionsBanner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { HomeTabs } from "@/components/HomeTabs";
-import { useProtocolProgress } from "@/context/ProtocolProgressContext";
 import { useDailyReset } from "@/hooks/useDailyReset";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 import { useBootstrap } from "@/context/BootstrapContext";
@@ -25,7 +23,6 @@ type AccessGate =
 
 export function HomeWithSunrise() {
   const { isReady } = useDailyReset();
-  const { currentStep, totalSteps } = useProtocolProgress();
   const { showWizard, refresh: refreshOnboarding } = useOnboardingStatus();
   const bootstrap = useBootstrap();
   const showNewOnboarding =
@@ -84,10 +81,8 @@ export function HomeWithSunrise() {
     showDashboardOrPaywall && accessGate.status === "loading";
 
   return (
-    <>
-      <SunriseBackground currentStep={currentStep} totalSteps={totalSteps} />
-
-      <main className="relative z-10 mx-auto min-h-screen max-w-2xl pb-[90px] sm:pb-0">
+    <main className="min-h-screen bg-zinc-950 text-zinc-50">
+      <div className="relative z-10 mx-auto max-w-2xl pb-20 sm:pb-0">
         <Header />
 
         {!isReady || bootstrap?.loading ? (
@@ -105,15 +100,17 @@ export function HomeWithSunrise() {
         ) : isExpired ? (
           <Paywall userStats={accessGate.status === "expired" ? accessGate.stats : null} />
         ) : (
-          <div className="animate-fade-in px-5" style={{ paddingTop: 0 }}>
+          <div className="animate-fade-in" style={{ paddingTop: 0 }}>
             {accessGate.status === "trial" && (
-              <TrialBanner daysLeft={accessGate.daysLeft} />
+              <div className="mx-4 mb-4">
+                <TrialBanner daysLeft={accessGate.daysLeft} />
+              </div>
             )}
             <OnboardingSuggestionsBanner />
             <HomeTabs />
           </div>
         )}
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

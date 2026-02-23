@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import { fetchPaywallStats, type PaywallStats } from "@/lib/db";
 import { Flame, CheckCircle2, Target } from "lucide-react";
 
-const GRADIENT =
-  "linear-gradient(170deg, #2a1b3d 0%, #44254a 15%, #5e3352 28%, #7a4058 40%, #8f4d5c 50%, #a66b62 62%, #bf8a6e 75%, #d4a67a 88%, #e0bd8a 100%)";
-
 interface PaywallProps {
   userStats?: PaywallStats | null;
   onMaybeLater?: () => void;
@@ -56,14 +53,13 @@ export function Paywall({ userStats, onMaybeLater }: PaywallProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center px-4 py-10"
-      style={{ background: GRADIENT }}
+      className="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 py-10"
     >
       <div className="w-full max-w-[400px]">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/60">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">
           Better Morning
         </p>
-        <h1 className="mt-2 font-serif text-2xl font-semibold text-white sm:text-3xl">
+        <h1 className="mt-2 font-serif text-xl font-semibold text-white sm:text-2xl">
           Your trial has ended
         </h1>
         <p className="mt-2 font-sans text-sm text-white/70">
@@ -94,11 +90,7 @@ export function Paywall({ userStats, onMaybeLater }: PaywallProps) {
           type="button"
           onClick={() => handleCheckout("annual")}
           disabled={!!checkoutLoading}
-          className="mt-8 flex w-full min-h-[52px] items-center justify-center rounded-xl font-sans text-base font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-60"
-          style={{
-            background: "linear-gradient(135deg, #d4856a, #c46b6b)",
-            boxShadow: "0 4px 20px rgba(196, 107, 107, 0.3)",
-          }}
+          className="mt-8 flex w-full min-h-[52px] items-center justify-center rounded-xl bg-zinc-600 font-sans text-base font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-60"
         >
           {checkoutLoading === "annual"
             ? "Redirecting…"
@@ -110,7 +102,7 @@ export function Paywall({ userStats, onMaybeLater }: PaywallProps) {
           type="button"
           onClick={() => handleCheckout("monthly")}
           disabled={!!checkoutLoading}
-          className="mt-3 w-full min-h-[48px] rounded-xl border border-white/25 bg-white/10 font-sans text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/15 disabled:opacity-60"
+          className="mt-3 w-full min-h-[48px] rounded-xl border border-zinc-700 bg-zinc-900 font-sans text-sm font-medium text-zinc-100 transition-colors hover:bg-zinc-800 disabled:opacity-60"
         >
           {checkoutLoading === "monthly" ? "Redirecting…" : "€3.99/month"}
         </button>
@@ -140,9 +132,9 @@ function StatCard({
   label: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-4">
       <div className="flex items-center justify-center gap-1.5">{icon}</div>
-      <p className="mt-2 text-center font-mono text-xl font-semibold text-white">{value}</p>
+      <p className="mt-2 text-center text-lg font-semibold text-white">{value}</p>
       <p className="mt-0.5 text-center font-sans text-xs text-white/50">{label}</p>
     </div>
   );

@@ -17,10 +17,8 @@ export function StoicQuote() {
 
   return (
     <section
-      className="rounded-[22px] border backdrop-blur-xl sm:py-14"
+      className="rounded-[22px] border border-zinc-800/80 bg-zinc-900/50 sm:py-14"
       style={{
-        background: "rgba(255,255,255,0.04)",
-        borderColor: "rgba(255,255,255,0.06)",
         padding: "22px 20px 28px",
       }}
       aria-label={t.stoic_oracle_aria}
@@ -34,7 +32,7 @@ export function StoicQuote() {
 
       <blockquote className="text-center drop-shadow-md">
         <p
-          className={`${instrumentSerif.className} text-3xl font-normal italic leading-[1.5] text-white/95 sm:text-4xl`}
+          className={`${instrumentSerif.className} text-xl font-normal italic leading-[1.5] text-white/95 sm:text-2xl`}
         >
           &ldquo;{quote.text}&rdquo;
         </p>

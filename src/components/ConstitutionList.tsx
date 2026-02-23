@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, Play, Square, Check, BookOpen, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Play, Square, Check, ChevronUp, ChevronDown, BookOpen } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -10,8 +10,9 @@ import { createClient } from "@/utils/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { canAddPrinciple } from "@/lib/subscription";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
+import { CircleCheckbox } from "@/components/ui/circle-checkbox";
 import { SectionSuccessCard } from "@/components/ui/SectionSuccessCard";
+import { cn } from "@/lib/utils";
 import { trackConstitutionRead } from "@/lib/analytics";
 import { getTodayCompletionDetail, setConstitutionDoneForToday } from "@/lib/streak";
 
@@ -369,69 +370,33 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
   const showCard = showCompletionCard && !reviewing;
   const affirmedCount = principles.length;
 
-  const cardStyle = {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 22,
-    padding: "22px 20px",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)" as const,
-  };
-
   return (
-    <section
-      className="relative overflow-hidden rounded-[22px] backdrop-blur-xl"
-      style={cardStyle}
-      aria-label={t.principles_title}
-    >
-      <div className="mb-1 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <BookOpen className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
-          <h2
-            className="font-bold text-white"
-            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
-          >
-            {t.principles_title}
-          </h2>
-        </div>
-      </div>
-      <p
-        style={{
-          fontSize: 13,
-          color: "rgba(255,255,255,0.3)",
-          margin: "4px 0 0",
-          lineHeight: 1.4,
-        }}
-      >
-        {t.principles_subtitle}
-      </p>
-
-      {!showCard && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs font-medium text-white/30">
-            {principles.length} {principles.length === 1 ? "principle" : "principles"}
-            {" · "}
-            {principles.length <= 3 ? "1 min" : `${Math.ceil((principles.length * 25) / 60)} min`}
-          </span>
+    <>
+      {/* Section header card */}
+      <div className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/50">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} aria-hidden />
+            <h2 className="text-lg font-semibold text-zinc-100 tracking-tight">
+              {t.principles_title}
+            </h2>
+          </div>
+          {showCard ? (
+            <span className="text-[11px] font-medium px-2.5 py-1 rounded-full
+                             bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ✓ Complete
+            </span>
+          ) : (
             <button
               type="button"
               onClick={handleListen}
               disabled={isLoading}
-              className="flex items-center gap-1.5 rounded-[10px] border px-3.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60"
-              style={
+              className={cn(
+                "flex items-center gap-1.5 rounded-xl border px-3.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60",
                 showCompletionCard
-                  ? {
-                      background: "rgba(34,197,94,0.15)",
-                      borderColor: "rgba(34,197,94,0.3)",
-                      color: "rgba(34,197,94,0.95)",
-                    }
-                  : {
-                      background: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(236,72,153,0.1))",
-                      borderColor: "rgba(249,115,22,0.2)",
-                      color: "rgba(249,115,22,0.85)",
-                    }
-              }
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : "border-zinc-600 bg-zinc-50 text-zinc-950 hover:bg-zinc-200"
+              )}
               aria-label={
                 isLoading ? undefined : isSpeaking ? "Stop" : readyToPlay ? t.constitution_start_listening : t.constitution_listen
               }
@@ -460,18 +425,16 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                 </>
               )}
             </button>
-            {toastMessage && (
-              <p className="text-xs text-amber-400/90" role="alert">
-                {toastMessage}
-              </p>
-            )}
-          </div>
+          )}
         </div>
+      </div>
+      {toastMessage && (
+        <p className="mx-4 mb-2 text-xs text-amber-400/90" role="alert">{toastMessage}</p>
       )}
 
       <AnimatePresence mode="wait">
         {showCard ? (
-          <div className="mt-6">
+          <div className="mx-4 mt-6">
             <SectionSuccessCard
               key="constitution-complete"
               label="Constitution complete"
@@ -492,13 +455,13 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="mt-6"
+            className="mx-4 mt-6"
           >
             {showCompletionCard && reviewing && (
               <button
                 type="button"
                 onClick={() => setReviewing(false)}
-                className="mb-3 font-mono text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
+                className="mb-3 text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
               >
                 ← Back to summary
               </button>
@@ -508,12 +471,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                   <motion.li
                     key={p.id}
                     layout
-                    className="flex items-start gap-4 rounded-[14px] border transition-all duration-300"
-                    style={{
-                      padding: 14,
-                      background: "rgba(255,255,255,0.04)",
-                      borderColor: "rgba(255,255,255,0.06)",
-                    }}
+                    className="list-none"
                   >
                     {editId === p.id ? (
                       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
@@ -550,11 +508,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                           <button
                             type="button"
                             onClick={handleSaveEdit}
-                            className="rounded-[14px] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                            style={{
-                              background: "linear-gradient(135deg, #f97316, #ec4899)",
-                              boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                            }}
+                            className="rounded-[14px] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 bg-zinc-600"
                           >
                             {t.save}
                           </button>
@@ -569,64 +523,69 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-1 flex-col gap-1">
-                        <div className="flex items-start justify-between gap-4">
-                          <p
-                            className={`min-w-0 break-words font-sans text-base font-normal leading-relaxed drop-shadow-md ${
-                              acknowledged[p.id] ? "opacity-40 line-through text-white/95" : "text-white/95"
-                            }`}
-                          >
-                            {p.text}
-                          </p>
-                        <div className="flex shrink-0 items-center gap-1">
-                          {isEditing && (
-                            <>
-                              <div className="flex flex-col">
-                                <button
-                                  type="button"
-                                  disabled={principleIdx <= 0}
-                                  onClick={() => handleMoveUp(principleIdx)}
-                                  className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
-                                  aria-label="Move up"
-                                >
-                                  <ChevronUp className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={principleIdx >= principles.length - 1}
-                                  onClick={() => handleMoveDown(principleIdx)}
-                                  className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
-                                  aria-label="Move down"
-                                >
-                                  <ChevronDown className="h-4 w-4" />
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleStartEdit(p)}
-                                className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
-                                aria-label={`${t.edit_principle}: ${p.text}`}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                          <AnimatedCheckbox
-                            checked={!!acknowledged[p.id]}
-                            onToggle={() => handleCheck(p.id)}
-                            aria-label={`${t.acknowledge}: ${p.text}`}
-                          />
-                        </div>
-                        </div>
-                        {p.subtitle && (
-                          <p
-                            className={`font-mono text-xs tracking-wider text-white/50 ${
-                              acknowledged[p.id] ? "opacity-40" : ""
-                            }`}
-                          >
-                            {p.subtitle}
-                          </p>
+                      <div
+                        className={cn(
+                          "px-4 py-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/50",
+                          "transition-all duration-150",
+                          acknowledged[p.id] && "opacity-50"
                         )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <p
+                              className={cn(
+                                "text-sm font-medium text-zinc-100 leading-snug",
+                                acknowledged[p.id] && "line-through text-zinc-500"
+                              )}
+                            >
+                              {p.text}
+                            </p>
+                            {p.subtitle != null && p.subtitle !== "" && (
+                              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed font-normal font-sans">
+                                {p.subtitle}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1">
+                            {isEditing && (
+                              <>
+                                <div className="flex flex-col">
+                                  <button
+                                    type="button"
+                                    disabled={principleIdx <= 0}
+                                    onClick={() => handleMoveUp(principleIdx)}
+                                    className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                                    aria-label="Move up"
+                                  >
+                                    <ChevronUp className="h-4 w-4" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={principleIdx >= principles.length - 1}
+                                    onClick={() => handleMoveDown(principleIdx)}
+                                    className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                                    aria-label="Move down"
+                                  >
+                                    <ChevronDown className="h-4 w-4" />
+                                  </button>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEdit(p)}
+                                  className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+                                  aria-label={`${t.edit_principle}: ${p.text}`}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                            <CircleCheckbox
+                              completed={!!acknowledged[p.id]}
+                              onToggle={() => handleCheck(p.id)}
+                              ariaLabel={`${t.acknowledge}: ${p.text}`}
+                            />
+                          </div>
+                        </div>
                       </div>
                     )}
                   </motion.li>
@@ -661,11 +620,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                   <button
                     type="button"
                     onClick={handleAdd}
-                    className="flex items-center gap-2 rounded-[14px] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                    style={{
-                      background: "linear-gradient(135deg, #f97316, #ec4899)",
-                      boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                    }}
+                    className="flex items-center gap-2 rounded-[14px] bg-zinc-600 px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                   >
                     <Plus className="h-4 w-4" />
                     {t.add}
@@ -730,6 +685,6 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </>
   );
 }

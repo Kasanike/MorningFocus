@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CHECK_BEZIER = [0.34, 1.56, 0.64, 1] as const;
@@ -9,7 +9,7 @@ export interface AnimatedCheckboxProps {
   checked: boolean;
   onToggle: () => void;
   size?: number;
-  /** Primary style: 44px tap target, orange/gradient border when unchecked, gradient fill + animated check when checked */
+  /** Primary style: 44px tap target; unchecked uses white/8 bg + white/15 border; orange only on hover and when checked */
   variant?: "default" | "primary";
   /** Optional aria-label for the button */
   "aria-label"?: string;
@@ -25,6 +25,7 @@ export function AnimatedCheckbox({
   const resolvedSize = size ?? (variant === "primary" ? 44 : 40);
   const prevCheckedRef = useRef(checked);
   const uncheckKeyRef = useRef(0);
+  const [isHovered, setIsHovered] = useState(false);
   if (prevCheckedRef.current && !checked) {
     uncheckKeyRef.current += 1;
   }
@@ -35,19 +36,21 @@ export function AnimatedCheckbox({
     onToggle();
   };
 
-  const isPrimary = variant === "primary";
-  const uncheckedBorder = isPrimary
-    ? "2px solid rgba(249,115,22,0.7)"
-    : "1.5px solid rgba(255,255,255,0.12)";
-  const uncheckedBoxShadow = isPrimary && !checked
-    ? "0 0 0 0 rgba(249,115,22,0.2), inset 0 0 12px rgba(236,72,153,0.08)"
-    : "none";
+  // Unchecked: white/8 bg, white/15 border. Hover: orange border 40% + scale(1.05). Checked: unchanged.
+  const uncheckedBg = "rgba(255,255,255,0.08)";
+  const uncheckedBorder =
+    !checked && isHovered
+      ? "2px solid rgba(249,115,22,0.4)"
+      : "2px solid rgba(255,255,255,0.15)";
+  const uncheckedBoxShadow = "none";
 
   return (
     <motion.button
       key={checked ? "checked" : `uncheck-${uncheckKeyRef.current}`}
       type="button"
       onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className="flex shrink-0 cursor-pointer items-center justify-center border-0 p-0 touch-target"
       style={{
         width: resolvedSize,
@@ -56,19 +59,16 @@ export function AnimatedCheckbox({
         minHeight: resolvedSize,
         borderRadius: 12,
         border: checked ? "none" : uncheckedBorder,
-        background: checked
-          ? "linear-gradient(135deg, #f97316, #ec4899)"
-          : "rgba(255,255,255,0.04)",
-        boxShadow: checked
-          ? "0 4px 16px rgba(249,115,22,0.35)"
-          : uncheckedBoxShadow,
+        background: checked ? "rgb(249 115 22)" : uncheckedBg,
+        boxShadow: checked ? "0 0 12px rgba(249,115,22,0.35)" : uncheckedBoxShadow,
+        transition: "border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out",
       }}
       initial={checked ? false : { scale: 1 }}
       animate={{
-        scale: checked ? [1, 1.15, 1] : [0.98, 1],
+        scale: checked ? [1, 1.15, 1] : (isHovered ? 1.05 : 1),
       }}
       transition={{
-        duration: checked ? 0.45 : 0.2,
+        duration: checked ? 0.45 : 0.15,
         ease: checked ? CHECK_BEZIER : "easeOut",
       }}
       aria-label={ariaLabel}

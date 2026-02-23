@@ -25,7 +25,7 @@ export function OnboardingSuggestionsBanner() {
   return (
     <div
       role="status"
-      className="animate-fade-in mx-4 mt-4 flex items-center justify-between gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur sm:mx-8 sm:mt-6"
+      className="animate-fade-in mx-4 mt-4 flex items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 sm:mx-8 sm:mt-6"
     >
       <p className="flex flex-wrap items-center gap-1.5 font-sans text-sm text-white/90">
         These are suggestions. Tap{" "}

@@ -23,18 +23,7 @@
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
-  background: linear-gradient(
-    170deg,
-    #2a1b3d 0%,
-    #44254a 15%,
-    #5e3352 28%,
-    #7a4058 40%,
-    #8f4d5c 50%,
-    #a66b62 62%,
-    #bf8a6e 75%,
-    #d4a67a 88%,
-    #e0bd8a 100%
-  );
+  background: #09090b;
   background-attachment: fixed;
   overflow-x: hidden;
   position: relative;
@@ -67,8 +56,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
   margin: 0 -20px;
   padding-left: 20px;
   padding-right: 20px;
@@ -97,7 +84,6 @@
   border: 1px solid var(--card-border);
   padding: 8px 16px;
   border-radius: 8px;
-  backdrop-filter: blur(10px);
   transition: all 0.2s;
 }
 

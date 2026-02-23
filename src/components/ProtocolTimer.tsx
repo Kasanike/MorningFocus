@@ -59,16 +59,7 @@ function formatMinutes(seconds: number): string {
   return `${mins}m ${secs}s`;
 }
 
-// Step list color progression (ready screen summary)
-const READY_STEP_COLORS = [
-  { bg: 'rgba(167,139,250,0.06)', border: 'rgba(167,139,250,0.10)', num: 'rgba(167,139,250,0.6)' },
-  { bg: 'rgba(110,195,244,0.05)', border: 'rgba(110,195,244,0.08)', num: 'rgba(110,195,244,0.55)' },
-  { bg: 'rgba(180,210,140,0.05)', border: 'rgba(180,210,140,0.08)', num: 'rgba(180,210,140,0.55)' },
-  { bg: 'rgba(251,146,60,0.06)', border: 'rgba(251,146,60,0.10)', num: 'rgba(251,146,60,0.6)' },
-];
-function getReadyStepColor(index: number) {
-  return READY_STEP_COLORS[index % READY_STEP_COLORS.length] ?? READY_STEP_COLORS[0];
-}
+// Step list (ready screen summary) — uniform zinc, no colored steps
 
 // Gentle chime using Web Audio API
 function playChime() {
@@ -111,9 +102,9 @@ function playChime() {
 
 export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTimerProps) {
   // State
-  const [phase, setPhase] = useState<'ready' | 'running' | 'paused' | 'step-complete' | 'finished'>('ready');
+  const [phase, setPhase] = useState<'ready' | 'running' | 'paused' | 'step-complete' | 'finished'>('running');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(() => (steps[0]?.duration ?? 0) * 60);
   const [timeElapsedInStep, setTimeElapsedInStep] = useState(0);
   const [totalElapsed, setTotalElapsed] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<CompletedStep[]>([]);
@@ -341,32 +332,31 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
           {/* Scrollable steps list */}
           <div style={styles.readyStepsScroll}>
             <div style={styles.stepPreviewList}>
-              {steps.map((step, i) => {
-                const stepColor = getReadyStepColor(i);
-                return (
-                  <div
-                    key={step.id}
-                    style={{
-                      ...styles.stepPreviewItem,
-                      background: stepColor.bg,
-                      border: `1px solid ${stepColor.border}`,
-                    }}
-                  >
-                    <span style={{ ...styles.stepPreviewNum, color: stepColor.num }}>
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span style={styles.stepPreviewTitle}>{step.title}</span>
-                    <span style={styles.stepPreviewDuration}>{step.duration}m</span>
-                  </div>
-                );
-              })}
+              {steps.map((step, i) => (
+                <div
+                  key={step.id}
+                  style={{
+                    ...styles.stepPreviewItem,
+                    border: '1px solid rgb(39 39 42)',
+                    background: 'rgba(255,255,255,0.04)',
+                  }}
+                >
+                  <span style={{ ...styles.stepPreviewNum, color: 'rgb(113 113 122)' }}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span style={styles.stepPreviewTitle}>{step.title}</span>
+                  <span style={styles.stepPreviewDuration}>{step.duration}m</span>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Fixed bottom button with safe area */}
           <div style={styles.readyBottom}>
-            <button onClick={beginMorning} style={styles.readyBeginButton}>
-              <span style={styles.readyBeginShine} aria-hidden />
+            <button
+              onClick={beginMorning}
+              className="w-full py-4 rounded-xl bg-orange-500 text-white font-bold text-lg hover:bg-orange-600 shadow-[0_4px_14px_0_rgba(249,115,22,0.39)] transition-all active:scale-95 flex items-center justify-center gap-2.5"
+            >
               <Play size={20} fill="white" style={{ position: 'relative', zIndex: 1 }} />
               <span style={{ position: 'relative', zIndex: 1 }}>Begin your morning</span>
             </button>
@@ -536,12 +526,6 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
             className={phase === 'step-complete' ? 'timer-done-ring-pulse' : undefined}
           >
             <svg width="280" height="280" viewBox="0 0 280 280">
-              <defs>
-                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#f97316" />
-                  <stop offset="100%" stopColor="#ec4899" />
-                </linearGradient>
-              </defs>
               {/* Track (background circle) */}
               <circle
                 cx="140"
@@ -551,13 +535,13 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
                 stroke="rgba(255,255,255,0.08)"
                 strokeWidth="4"
               />
-              {/* Progress arc — gradient stroke */}
+              {/* Progress arc — accent color */}
               <circle
                 cx="140"
                 cy="140"
                 r={timerRingRadius}
                 fill="none"
-                stroke="url(#timerGradient)"
+                stroke="#f97316"
                 strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
@@ -612,26 +596,27 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
               </div>
             ) : (
               <>
-                <button onClick={skipStep} style={styles.controlSecondary} aria-label="Skip step">
-                  <SkipForward size={22} color="rgba(255,255,255,0.5)" />
+                <button onClick={skipStep} style={styles.controlSecondary} className="text-zinc-400 hover:text-white transition-colors" aria-label="Skip step">
+                  <SkipForward size={22} />
                 </button>
 
                 {phase === 'paused' ? (
-                  <button onClick={resumeTimer} style={styles.controlPrimary} className="timer-primary-btn" aria-label="Resume">
-                    <Play size={24} fill="white" color="white" />
+                  <button onClick={resumeTimer} style={styles.controlPrimary} className="hover:!bg-white" aria-label="Resume">
+                    <Play size={24} fill="currentColor" />
                   </button>
                 ) : (
-                  <button onClick={pauseTimer} style={styles.controlPrimary} className="timer-primary-btn" aria-label="Pause">
-                    <Pause size={24} fill="white" color="white" />
+                  <button onClick={pauseTimer} style={styles.controlPrimary} className="hover:!bg-white" aria-label="Pause">
+                    <Pause size={24} fill="currentColor" />
                   </button>
                 )}
 
                 <button
                   onClick={finishEarly}
                   style={completeFlash ? styles.controlCompleteFlash : styles.controlSecondary}
+                  className={!completeFlash ? 'text-zinc-400 hover:text-white transition-colors' : undefined}
                   aria-label="Mark done"
                 >
-                  <Check size={22} color={completeFlash ? 'rgba(34,197,94,0.8)' : 'rgba(255,255,255,0.5)'} />
+                  <Check size={22} color={completeFlash ? 'rgba(34,197,94,0.8)' : 'currentColor'} />
                 </button>
               </>
             )}
@@ -670,8 +655,8 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 // STYLES — Matching Better Morning design language
 // ============================================================
 
-// Dark purple app background for timer overlay (readability, no peach gradient)
-const TIMER_OVERLAY_BG = '#1e0d19';
+// Dark app background for timer overlay
+const TIMER_OVERLAY_BG = 'rgb(9 9 11)'; // zinc-950
 
 const styles: { [key: string]: React.CSSProperties } = {
   overlay: {
@@ -802,7 +787,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     position: 'relative' as const,
     overflow: 'hidden',
-    background: 'linear-gradient(135deg, #f97316 0%, #ef4444 40%, #ec4899 100%)',
+    background: 'rgb(82 82 91)',
     color: '#fff',
     padding: '16px 0',
     borderRadius: '18px',
@@ -811,7 +796,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 700,
     border: 'none',
     cursor: 'pointer',
-    boxShadow: '0 8px 32px rgba(249,115,22,0.3)',
   },
   readyBeginShine: {
     position: 'absolute' as const,
@@ -819,7 +803,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     height: '50%',
-    background: 'linear-gradient(to bottom, rgba(255,255,255,0.12), transparent)',
+    background: 'rgba(255,255,255,0.06)',
     pointerEvents: 'none' as const,
     borderTopLeftRadius: '18px',
     borderTopRightRadius: '18px',
@@ -828,8 +812,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Step preview list
   stepPreviewList: {
     width: '100%',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgb(39 39 42)',
     borderRadius: '14px',
     padding: '6px',
     marginBottom: '24px',
@@ -840,13 +824,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '12px',
     padding: '12px 14px',
     borderRadius: '10px',
-    background: 'rgba(255,255,255,0.04)',
+    background: 'rgba(255,255,255,0.02)',
     marginBottom: '4px',
   },
   stepPreviewNum: {
     fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.65rem',
-    color: 'rgba(240, 232, 224, 0.35)',
+    color: 'rgb(113 113 122)',
     minWidth: '20px',
   },
   stepPreviewTitle: {
@@ -922,7 +906,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     gap: '10px',
     width: '100%',
-    background: 'linear-gradient(135deg, #f97316, #ec4899)',
+    background: 'rgb(82 82 91)',
     color: '#fff',
     padding: '16px 0',
     borderRadius: '16px',
@@ -931,7 +915,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 700,
     border: 'none',
     cursor: 'pointer',
-    boxShadow: '0 6px 24px rgba(249,115,22,0.3)',
   },
 
   // ---- RUNNING SCREEN ----
@@ -956,7 +939,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   overallProgressBar: {
     height: '100%',
-    background: 'linear-gradient(90deg, #d4856a, #c46b6b)',
+    background: 'rgb(82 82 91)',
     borderRadius: '2px',
     transition: 'width 1s linear',
   },
@@ -1000,7 +983,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.3s ease',
   },
   stepDotCompleted: {
-    background: 'linear-gradient(135deg, #f97316, #ec4899)',
+    background: 'rgb(82 82 91)',
   },
   stepDotActive: {
     width: '10px',
@@ -1098,7 +1081,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '48px',
     height: '48px',
     borderRadius: '50%',
-    background: 'rgba(255,255,255,0.08)',
+    background: 'rgb(24 24 27)',
     border: 'none',
     cursor: 'pointer',
     display: 'flex',
@@ -1110,14 +1093,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '64px',
     height: '64px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #f97316, #ec4899)',
+    background: 'rgb(244 244 245)',
+    color: 'rgb(24 24 27)',
     border: 'none',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 20px rgba(249,115,22,0.35)',
-    color: '#fff',
     flexShrink: 0,
   },
   controlCompleteFlash: {
@@ -1143,7 +1125,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textTransform: 'uppercase' as const,
     letterSpacing: '0.15em',
     color: 'rgba(240, 232, 224, 0.3)',
-    background: 'rgba(30, 15, 25, 0.6)',
+    background: 'rgba(9, 9, 11, 0.8)',
     padding: '6px 16px',
     borderRadius: '100px',
     border: '1px solid rgba(255,255,255,0.08)',
@@ -1163,7 +1145,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   bottomSheet: {
     width: '100%',
     maxWidth: '480px',
-    background: 'rgba(30, 13, 25, 0.98)',
+    background: 'rgb(9 9 11)',
     borderTopLeftRadius: '20px',
     borderTopRightRadius: '20px',
     padding: '24px 20px',
@@ -1200,13 +1182,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '14px 24px',
     borderRadius: '12px',
     border: 'none',
-    background: 'linear-gradient(135deg, #a78bfa, #f472b6)',
+    background: 'rgb(82 82 91)',
     color: '#fff',
     fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '0.95rem',
     fontWeight: 600,
     cursor: 'pointer',
-    boxShadow: '0 4px 20px rgba(167,139,250,0.3)',
   },
 
   // ---- FINISHED SCREEN ----
@@ -1237,9 +1218,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   // Results list
   resultsList: {
     width: '100%',
-    background: 'rgba(30, 15, 25, 0.55)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+    background: 'rgb(24 24 27)',
     border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '16px',
     padding: '8px',
@@ -1250,7 +1229,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '14px',
     padding: '14px 16px',
-    background: 'rgba(60, 30, 40, 0.3)',
+    background: 'rgba(255,255,255,0.04)',
     borderRadius: '10px',
     marginBottom: '4px',
   },

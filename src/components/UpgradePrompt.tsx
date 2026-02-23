@@ -27,12 +27,12 @@ export function UpgradePrompt({ message }: { message: string }) {
   if (isPro) return null;
 
   return (
-    <div className="rounded-xl border border-white/20 bg-black/30 p-4 backdrop-blur-sm">
+    <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4">
       <div className="flex items-start gap-3">
         <Lock className="h-5 w-5 shrink-0 text-white/60" />
         <div>
           <p className="font-sans text-sm text-white/90">{message}</p>
-          <p className="mt-1 font-mono text-xs text-white/50">
+          <p className="mt-1 text-xs text-white/50">
             Free: limited items. Pro: unlimited + streak & history.
           </p>
           <button

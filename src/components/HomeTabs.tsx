@@ -40,17 +40,24 @@ const TABS: { id: Tab; label: string; Icon: typeof Timer }[] = [
   { id: "reflect", label: "Reflect", Icon: Moon },
 ];
 
-const GRAD_ACTIVE = "linear-gradient(135deg, rgba(249,115,22,0.8), rgba(236,72,153,0.7))";
-
-function TabBar({
+function BottomNav({
   activeTab,
   onSelect,
+  hidden,
 }: {
   activeTab: Tab;
   onSelect: (t: Tab) => void;
+  hidden: boolean;
 }) {
+  if (hidden) return null;
+
   return (
-    <div className="flex min-w-0 flex-1 basis-0 overflow-hidden">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 flex h-14 items-center justify-around border-t border-zinc-800 bg-zinc-950/80 backdrop-blur-md sm:bottom-0"
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom, 0)",
+      }}
+    >
       {TABS.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -58,17 +65,20 @@ function TabBar({
             key={tab.id}
             type="button"
             onClick={() => onSelect(tab.id)}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 self-stretch rounded-lg py-2 px-1 transition-colors duration-200"
-            style={isActive ? { background: GRAD_ACTIVE, color: "#fff" } : { color: "rgba(255,255,255,0.35)" }}
+            aria-label={tab.label}
+            className={`flex min-w-0 flex-1 items-center justify-center transition-colors duration-200 ${
+              isActive ? "text-orange-500" : "text-zinc-500"
+            }`}
           >
-            <tab.Icon className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
-            <span className="max-w-full truncate text-center text-[10px] font-semibold uppercase tracking-wide">
-              {tab.label}
-            </span>
+            <tab.Icon
+              className="h-5 w-5 shrink-0"
+              strokeWidth={isActive ? 2.5 : 1.5}
+              aria-hidden
+            />
           </button>
         );
       })}
-    </div>
+    </nav>
   );
 }
 
@@ -87,23 +97,7 @@ export function HomeTabs() {
 
   return (
     <div>
-      {/* Tab nav — hidden on mobile, shown on sm+; hidden when guided mode is active */}
-      {!guidedModeActive && (
-        <div
-          className="mb-0 hidden gap-0.5 rounded-xl sm:flex"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            padding: "8px 8px 12px",
-          }}
-        >
-          <TabBar activeTab={activeTab} onSelect={handleSelectTab} />
-        </div>
-      )}
-
-      {/* Tab content */}
-      <div className="pb-[90px] sm:pb-0">
+      <div className="pb-20 sm:pb-0">
         {activeTab === "protocol" && (
           <div key="protocol" className="animate-fade-in">
             <MorningProtocol
@@ -132,29 +126,11 @@ export function HomeTabs() {
         )}
       </div>
 
-      {/* Bottom nav — mobile only; hidden when guided mode (full-screen timer) is active */}
-      {!guidedModeActive && (
-        <nav
-          className="fixed bottom-0 left-0 right-0 z-50 flex shrink-0 sm:hidden"
-          style={{
-            width: "100%",
-            maxWidth: 430,
-            marginLeft: "auto",
-            marginRight: "auto",
-            paddingTop: 8,
-            paddingLeft: 8,
-            paddingRight: 8,
-            paddingBottom: "max(12px, env(safe-area-inset-bottom))",
-            background: "rgba(20,8,35,0.85)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            boxSizing: "border-box",
-          }}
-        >
-          <TabBar activeTab={activeTab} onSelect={handleSelectTab} />
-        </nav>
-      )}
+      <BottomNav
+        activeTab={activeTab}
+        onSelect={handleSelectTab}
+        hidden={guidedModeActive}
+      />
     </div>
   );
 }

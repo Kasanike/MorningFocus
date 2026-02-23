@@ -35,24 +35,24 @@ export function InstallPrompt() {
 
   return (
     <div
-      className="fixed bottom-6 left-4 right-4 z-50 flex items-center justify-between gap-4 rounded-2xl border border-white/20 bg-black/80 px-5 py-4 shadow-2xl backdrop-blur-md sm:left-auto sm:right-6 sm:max-w-sm"
+      className="fixed bottom-6 left-4 right-4 z-50 flex items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-900 px-5 py-4 shadow-xl sm:left-auto sm:right-6 sm:max-w-sm"
       style={{
         borderColor: "rgba(42, 27, 61, 0.6)",
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(42, 27, 61, 0.3)",
       }}
     >
       <div className="min-w-0">
-        <p className="font-mono text-sm font-medium text-white/95">
+        <p className="text-sm font-medium text-white/95">
           Install Better Morning
         </p>
-        <p className="mt-0.5 font-mono text-xs text-white/50">
+        <p className="mt-0.5 text-xs text-white/50">
           Add to home screen for the best experience
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <button
           onClick={handleInstall}
-          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-white/20 px-4 py-2 font-mono text-sm font-medium text-white/95 transition-colors hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-[#2a1b3d]/50"
+          className="flex min-h-[44px] items-center gap-1.5 rounded-xl bg-zinc-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500"
         >
           <Download className="h-4 w-4" />
           Install

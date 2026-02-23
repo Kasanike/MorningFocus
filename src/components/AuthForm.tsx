@@ -84,7 +84,7 @@ export function AuthForm() {
   return (
     <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-5">
       <div className="mb-10 text-center">
-        <h1 className="font-sans text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+        <h1 className="font-sans text-xl font-semibold tracking-tight text-white sm:text-2xl">
           {mode === "signin" ? "Welcome back." : "Start your morning."}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-white/70">
@@ -169,7 +169,7 @@ export function AuthForm() {
       <button
         type="submit"
         disabled={loading}
-        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-4 font-sans text-base font-bold text-indigo-900 transition-opacity hover:opacity-90 disabled:opacity-70"
+        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-4 font-sans text-base font-bold text-zinc-900 transition-opacity hover:opacity-90 disabled:opacity-70"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin" />
@@ -195,12 +195,7 @@ export function AuthForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-[16px] border border-white/10 px-6 py-3.5 font-sans text-base font-medium text-white/95 transition-colors hover:bg-white/10 disabled:opacity-50"
-        style={{
-          background: "rgba(30, 15, 25, 0.4)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-        }}
+        className="flex w-full min-w-0 items-center justify-center gap-2 rounded-2xl border border-zinc-700 bg-zinc-900/80 px-6 py-3.5 font-sans text-base font-medium text-zinc-100 transition-colors hover:bg-zinc-800 disabled:opacity-50"
       >
         <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
           <path

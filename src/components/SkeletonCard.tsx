@@ -69,7 +69,7 @@ export function SkeletonCard({
           {Array.from({ length: lines }).map((_, i) => (
             <li
               key={i}
-              className="flex items-center gap-4 rounded-xl border border-white/10 bg-black/20 p-4 backdrop-blur-sm sm:p-6"
+              className="flex items-center gap-4 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 sm:p-6"
             >
               <div className={`min-w-0 flex-1 ${barClass}`} style={{ height: 20 }} />
               <div className={`h-4 w-4 shrink-0 rounded-full ${barClass}`} />

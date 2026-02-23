@@ -123,7 +123,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-4 py-8 sm:px-8">
-      <div className="flex items-center gap-2 font-mono text-xs tracking-wider text-white/50">
+      <div className="mb-6 flex items-center gap-2 text-xs tracking-wider text-white/50">
         <span>Step {step} of 3</span>
         <div className="flex gap-1">
           {[1, 2, 3].map((s) => (
@@ -139,17 +139,17 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
       {step === 1 && (
         <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
-          <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
+          <h2 className="text-lg font-semibold tracking-tight text-white/95">
             Write your principles
           </h2>
-          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+          <p className="mt-1 text-xs tracking-wider text-white/50">
             These are the values you’ll read every morning. Edit or replace the examples below.
           </p>
           <div className="mt-6 space-y-4">
             {principles.map((p, i) => (
               <div
                 key={p.id}
-                className="rounded-xl border border-white/10 bg-black/20 p-4 backdrop-blur-sm"
+                className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4"
               >
                 <input
                   type="text"
@@ -163,7 +163,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                   value={p.subtitle ?? ""}
                   onChange={(e) => handlePrincipleChange(i, "subtitle", e.target.value)}
                   placeholder="Subtitle (optional)"
-                  className="mt-2 min-h-[44px] w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2 font-mono text-base text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                  className="mt-2 min-h-[44px] w-full rounded-lg border border-white/20 bg-black/20 px-4 py-2 text-base text-white/80 placeholder:text-white/40 focus:border-white/40 focus:outline-none"
                 />
               </div>
             ))}
@@ -182,17 +182,17 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
       {step === 2 && (
         <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
-          <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
+          <h2 className="text-lg font-semibold tracking-tight text-white/95">
             Build your protocol
           </h2>
-          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+          <p className="mt-1 text-xs tracking-wider text-white/50">
             Your morning routine in order. You can change labels and minutes.
           </p>
           <div className="mt-6 space-y-4">
             {protocolSteps.map((s, i) => (
               <div
                 key={s.id}
-                className="flex flex-col gap-2 rounded-xl border border-white/10 bg-black/20 p-4 backdrop-blur-sm sm:flex-row sm:items-center"
+                className="flex flex-col gap-2 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 sm:flex-row sm:items-center"
               >
                 <input
                   type="text"
@@ -209,7 +209,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
                     onChange={(e) =>
                       handleProtocolChange(i, "minutes", e.target.value)
                     }
-                    className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
+                    className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center text-base text-white/95 focus:border-white/40 focus:outline-none"
                   />
                   <span className="text-sm text-white/60">min</span>
                 </div>
@@ -230,10 +230,10 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
 
       {step === 3 && (
         <div className="card-glass rounded-2xl border border-white/10 px-4 py-10 shadow-2xl shadow-black/20 sm:px-10 sm:py-12">
-          <h2 className="font-mono text-xl font-semibold tracking-tight text-white/95">
+          <h2 className="text-lg font-semibold tracking-tight text-white/95">
             Name today’s Keystone
           </h2>
-          <p className="mt-1 font-mono text-xs tracking-wider text-white/50">
+          <p className="mt-1 text-xs tracking-wider text-white/50">
             What is the one action that would create the biggest impact on your day?
           </p>
           <input

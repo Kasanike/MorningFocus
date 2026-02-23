@@ -12,15 +12,11 @@ import { fetchStreakData, getRecentActivity, type RecentActivityItem } from "@/l
 import { useLanguage } from "@/context/LanguageContext";
 
 const CARD_STYLE = {
-  background: "rgba(255,255,255,0.04)",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)" as const,
-  border: "1px solid rgba(255,255,255,0.06)",
+  background: "rgb(24 24 27)",
+  border: "1px solid rgba(255,255,255,0.08)",
   borderRadius: 22,
   padding: "22px 20px",
 };
-
-const GRADIENT_FULL = "linear-gradient(135deg, #f97316, #ec4899)";
 const PARTIAL_BG = "rgba(249, 115, 22, 0.4)";
 const TODAY = () => new Date().toISOString().slice(0, 10);
 
@@ -185,7 +181,7 @@ export function ProgressTab() {
     <div className="space-y-4">
       {/* Progress header */}
       <div
-        className="rounded-[22px] border backdrop-blur-xl"
+        className="rounded-[22px] border border-zinc-800/80 bg-zinc-900/50"
         style={CARD_STYLE}
       >
         <div className="mb-1 flex items-center gap-3">
@@ -269,7 +265,7 @@ export function ProgressTab() {
       </div>
 
       {/* 2. LAST 7 DAYS */}
-      <div className="rounded-[22px] border backdrop-blur-xl" style={CARD_STYLE}>
+      <div className="rounded-[22px] border border-zinc-800/80 bg-zinc-900/50" style={CARD_STYLE}>
         {totalMornings >= 30 ? (
           <>
             <h2 className={`mb-3 ${SECTION_HEADER_STYLE}`}>{monthLabel}</h2>
@@ -277,7 +273,7 @@ export function ProgressTab() {
               <div className="inline-block min-w-0">
                 <div className="mb-2 grid grid-cols-7 gap-1 sm:gap-1.5">
                   {WEEKDAY_LABELS.map((label, i) => (
-                    <div key={`weekday-${i}`} className="text-center font-mono text-[10px] text-white/40">
+                    <div key={`weekday-${i}`} className="text-center text-[10px] text-white/40">
                       {label}
                     </div>
                   ))}
@@ -306,7 +302,7 @@ export function ProgressTab() {
                             style={{
                               background:
                                 status === "full"
-                                  ? GRADIENT_FULL
+                                  ? "rgb(82 82 91)"
                                   : status === "partial"
                                     ? PARTIAL_BG
                                     : "rgba(255,255,255,0.04)",
@@ -356,33 +352,32 @@ export function ProgressTab() {
                                 getPillState(prevStr, prevStatus, prevStr === todayKey) === "partial";
                               return prevCompleted;
                             })()
-                              ? "linear-gradient(90deg, rgba(249,115,22,0.5), rgba(236,72,153,0.5))"
+                              ? "rgb(82 82 91)"
                               : "rgba(255,255,255,0.06)",
                         }}
                         aria-hidden
                       />
                     )}
                     <div className="flex flex-col items-center gap-1.5">
-                      <span className="font-mono text-[10px] text-white/50">{getDayLabel(dateStr)}</span>
+                      <span className="text-[10px] text-white/50">{getDayLabel(dateStr)}</span>
                       <div
                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all"
                         style={{
-                          background: completed ? GRADIENT_FULL : "transparent",
+                          background: completed ? "rgb(82 82 91)" : "transparent",
                           borderStyle: completed ? "solid" : "dashed",
                           borderColor: todayDone
                             ? "transparent"
                             : isToday
-                              ? "rgba(249,115,22,0.4)"
+                              ? "rgba(255,255,255,0.25)"
                               : completed
                                 ? "transparent"
                                 : "rgba(255,255,255,0.15)",
-                          boxShadow: todayDone ? "0 0 12px rgba(249,115,22,0.4)" : "none",
-                          color: completed ? "white" : isToday ? "rgba(249,115,22,0.6)" : "rgba(255,255,255,0.2)",
+                          color: completed ? "white" : isToday ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.2)",
                         }}
                         title={dateStr}
                         aria-label={`${dateStr}, ${state}${isToday ? ", today" : ""}`}
                       >
-                        <span className="font-mono text-sm font-semibold tabular-nums">
+                        <span className="text-sm font-semibold tabular-nums">
                           {getDateNumber(dateStr)}
                         </span>
                       </div>
@@ -392,7 +387,7 @@ export function ProgressTab() {
                         className="h-[2px] flex-1 min-w-[6px] max-w-[16px] shrink-0"
                         style={{
                           background: showConnectorRight
-                            ? "linear-gradient(90deg, rgba(249,115,22,0.5), rgba(236,72,153,0.5))"
+                            ? "rgb(82 82 91)"
                             : "rgba(255,255,255,0.06)",
                         }}
                         aria-hidden
@@ -407,7 +402,7 @@ export function ProgressTab() {
       </div>
 
       {/* 3. RECENT ACTIVITY */}
-      <div className="rounded-[22px] border backdrop-blur-xl" style={CARD_STYLE}>
+      <div className="rounded-[22px] border border-zinc-800/80 bg-zinc-900/50" style={CARD_STYLE}>
         <h2 className={`mb-4 ${SECTION_HEADER_STYLE}`}>Recent activity</h2>
         {recentActivity.length === 0 ? (
           <p className="text-sm text-white/40">Complete your first morning to see activity here.</p>

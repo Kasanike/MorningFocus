@@ -389,22 +389,24 @@ export async function getRecentActivity(): Promise<RecentActivityItem[]> {
 
 // ── Reflections ─────────────────────────────────────────
 
-export type ReflectionMood = "calm" | "focused" | "energized" | "drained";
-
 export interface ReflectionEntry {
   id: string;
   date: string;
-  entry: string;
-  mood: ReflectionMood | null;
+  did_complete: boolean | null;
+  reflection_note: string | null;
   keystone_text: string | null;
+  keystone_id: string | null;
+  entry: string | null;
+  mood: string | null;
   created_at: string;
+  updated_at: string | null;
 }
 
 export async function fetchReflection(date: string): Promise<ReflectionEntry | null> {
   const supabase = createClient();
   const { data } = await supabase
     .from("reflections")
-    .select("id, date, entry, mood, keystone_text, created_at")
+    .select("id, date, did_complete, reflection_note, keystone_text, keystone_id, entry, mood, created_at, updated_at")
     .eq("date", date)
     .maybeSingle();
   return data ?? null;
@@ -420,7 +422,7 @@ export async function fetchPastReflections(limit = 14): Promise<ReflectionEntry[
   const today = new Date().toISOString().slice(0, 10);
   const { data, error } = await supabase
     .from("reflections")
-    .select("id, date, entry, mood, keystone_text, created_at")
+    .select("id, date, did_complete, reflection_note, keystone_text, entry, mood, created_at, updated_at")
     .eq("user_id", user.id)
     .lt("date", today)
     .order("date", { ascending: false })
@@ -430,9 +432,9 @@ export async function fetchPastReflections(limit = 14): Promise<ReflectionEntry[
   return data ?? [];
 }
 
-export async function saveReflection(
-  entry: string,
-  mood: ReflectionMood | null,
+/** Set today's did_complete (yes/no). Creates or updates reflection row. */
+export async function setReflectionDidComplete(
+  didComplete: boolean,
   keystoneText: string | null
 ): Promise<void> {
   const supabase = createClient();
@@ -440,15 +442,63 @@ export async function saveReflection(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-
   const date = new Date().toISOString().slice(0, 10);
   const { error } = await supabase.from("reflections").upsert(
     {
       user_id: user.id,
       date,
-      entry: entry.trim(),
+      did_complete: didComplete,
+      keystone_text: keystoneText,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,date" }
+  );
+  if (error) {
+    const msg = error.message || error.code || String(error);
+    throw new Error(`Reflection save failed: ${msg}. Run migration 011 to add did_complete and updated_at.`);
+  }
+}
+
+/** Update today's reflection_note (e.g. when the field loses focus). Max 280 chars. Row must already exist (user has answered did_complete). */
+export async function updateReflectionNote(note: string): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const date = new Date().toISOString().slice(0, 10);
+  const trimmed = note.slice(0, 280).trim();
+  const { error } = await supabase
+    .from("reflections")
+    .update({
+      reflection_note: trimmed || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", user.id)
+    .eq("date", date);
+  if (error) throw error;
+}
+
+/** Legacy: save full reflection (entry, mood, keystone_text). Kept for backward compat. */
+export async function saveReflection(
+  entry: string,
+  mood: string | null,
+  keystoneText: string | null
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const date = new Date().toISOString().slice(0, 10);
+  const { error } = await supabase.from("reflections").upsert(
+    {
+      user_id: user.id,
+      date,
+      entry: entry.trim() || null,
       mood,
       keystone_text: keystoneText,
+      updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id,date" }
   );

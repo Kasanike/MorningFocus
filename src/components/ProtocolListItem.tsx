@@ -13,18 +13,6 @@ export interface ProtocolStep {
   minutes: number;
 }
 
-/** Cool → warm step colors: row bg/border + 48px number pill (frosted container + darker number) */
-const STEP_COLORS = [
-  { bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.12)", pillBg: "rgba(167,139,250,0.18)", pillBorder: "rgba(167,139,250,0.25)", num: "rgba(167,139,250,0.95)" },
-  { bg: "rgba(110,195,244,0.07)", border: "rgba(110,195,244,0.10)", pillBg: "rgba(110,195,244,0.16)", pillBorder: "rgba(110,195,244,0.22)", num: "rgba(110,195,244,0.95)" },
-  { bg: "rgba(180,210,140,0.06)", border: "rgba(180,210,140,0.10)", pillBg: "rgba(180,210,140,0.16)", pillBorder: "rgba(180,210,140,0.22)", num: "rgba(180,210,140,0.95)" },
-  { bg: "rgba(251,146,60,0.08)", border: "rgba(251,146,60,0.12)", pillBg: "rgba(251,146,60,0.18)", pillBorder: "rgba(251,146,60,0.25)", num: "rgba(251,146,60,0.95)" },
-];
-
-function getStepColor(index: number) {
-  return STEP_COLORS[index % STEP_COLORS.length] ?? STEP_COLORS[0];
-}
-
 interface ProtocolListItemProps {
   step: ProtocolStep;
   stepIndex: number;
@@ -72,7 +60,6 @@ export function ProtocolListItem({
   editPrincipleLabel,
   isEditMode,
 }: ProtocolListItemProps) {
-  const color = getStepColor(stepIndex);
   const handleRowClick = (e: React.MouseEvent) => {
     if (isEditing) return;
     const target = e.target as HTMLElement;
@@ -84,7 +71,7 @@ export function ProtocolListItem({
     return (
       <motion.li
         layout
-        className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm sm:flex-row sm:items-center"
+        className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 sm:flex-row sm:items-center sm:p-6"
       >
         <input
           type="text"
@@ -102,7 +89,7 @@ export function ProtocolListItem({
             onChange={(e) =>
               onEditMinutesChange(Math.max(0, parseInt(e.target.value, 10) || 0))
             }
-            className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-app-fg focus:border-white/40 focus:outline-none"
+            className="min-h-[44px] w-16 min-w-[64px] rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-center text-base text-zinc-100 focus:border-zinc-500 focus:outline-none"
           />
           <span className="text-sm text-white/60">{minutesLabel}</span>
         </div>
@@ -155,31 +142,23 @@ export function ProtocolListItem({
     <motion.li
       layout
       onClick={handleRowClick}
-      className="flex cursor-pointer items-center gap-3 rounded-[14px] border transition-all duration-300"
+      className={`flex cursor-pointer items-center gap-3 rounded-[14px] border transition-all duration-300 ${
+        isCompleted ? "border-orange-500/50" : "border-zinc-800"
+      }`}
       style={{
         padding: "14px",
-        background: isCompleted
-          ? "rgba(34,197,94,0.06)"
-          : color.bg,
-        borderColor: isCompleted
-          ? "rgba(34,197,94,0.12)"
-          : color.border,
-        boxShadow: isCompleted
-          ? "0 0 0 1px rgba(34,197,94,0.08) inset, 0 0 20px rgba(34,197,94,0.06)"
-          : "none",
-        opacity: isCompleted ? 0.88 : 1,
+        background: isCompleted ? "rgba(249,115,22,0.06)" : "rgba(255,255,255,0.02)",
+        opacity: isCompleted ? 0.95 : 1,
       }}
       whileTap={{ scale: 0.995 }}
     >
       <span
-        className="flex shrink-0 items-center justify-center rounded-[12px] font-mono font-bold transition-colors"
+        className="flex shrink-0 items-center justify-center rounded-xl text-sm font-semibold tabular-nums text-zinc-500"
         style={{
           width: 48,
           height: 48,
-          background: isCompleted ? "rgba(34,197,94,0.1)" : color.pillBg,
-          border: `1px solid ${isCompleted ? "rgba(34,197,94,0.2)" : color.pillBorder}`,
-          color: isCompleted ? "rgba(34,197,94,0.5)" : color.num,
-          boxShadow: isCompleted ? "0 0 0 1px rgba(34,197,94,0.06) inset" : "0 0 0 1px rgba(255,255,255,0.04) inset",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
           fontSize: 20,
         }}
       >

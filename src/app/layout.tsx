@@ -53,11 +53,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2a1b3d",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: true,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -69,7 +69,6 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${dmSans.variable} ${GeistSans.variable} ${GeistMono.variable}`}
-      style={{ color: "#e4e4e7" }}
     >
       <head>
         {/* Optional: use script tag instead of plausible-tracker for page views only:
@@ -77,18 +76,12 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
-        <meta name="theme-color" content="#2a1b3d" />
+        <meta name="theme-color" content="#09090b" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Better Morning" />
       </head>
-      <body
-        className="min-h-screen bg-[#09090b] antialiased"
-        style={{
-          fontFamily: "var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif",
-          color: "#e4e4e7",
-        }}
-      >
+      <body className="min-h-screen bg-zinc-950 text-zinc-50 antialiased">
         <Providers>
           <Analytics />
           <AuthGuard>{children}</AuthGuard>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight, Timer, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight, ChevronUp, ChevronDown, Timer } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
@@ -335,36 +335,40 @@ export function MorningProtocol({
   }
 
   return (
-    <section
-      className="relative overflow-hidden rounded-[22px] border backdrop-blur-xl"
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        borderColor: "rgba(255,255,255,0.06)",
-        padding: "22px 20px",
-      }}
-      aria-label={t.morning_protocol_aria}
-    >
-      <div className="mb-1 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <Timer className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
-          <h2
-            className="font-bold text-white"
-            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
-          >
-            {t.morning_protocol_title}
-          </h2>
+    <section aria-label={t.morning_protocol_aria}>
+      {/* Section header card */}
+      <div className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Timer className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} aria-hidden />
+            <h2 className="text-lg font-semibold text-zinc-100 tracking-tight">
+              {t.morning_protocol_title}
+            </h2>
+          </div>
+          {allDone ? (
+            <span className="text-[11px] font-medium px-2.5 py-1 rounded-full
+                             bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ✓ Complete
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowTimer(true)}
+              className="rounded-xl border border-zinc-600 bg-zinc-50 px-3.5 py-1.5 text-xs font-semibold text-zinc-950 transition-colors hover:bg-zinc-200"
+            >
+              ▶ Begin
+            </button>
+          )}
         </div>
       </div>
-      <p
-        style={{
-          fontSize: 13,
-          color: "rgba(255,255,255,0.3)",
-          margin: "0 0 16px",
-          lineHeight: 1.4,
-        }}
-      >
-        {t.morning_protocol_subtitle}
-      </p>
+      {!showCompletionCard && (
+        <div className="mx-4 mb-3 h-0.5 rounded-full bg-zinc-800">
+          <div
+            className="h-full rounded-full bg-zinc-400 transition-all duration-500"
+            style={{ width: `${(completedCount / Math.max(1, steps.length)) * 100}%` }}
+          />
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {showCompletionCard ? (
@@ -383,66 +387,13 @@ export function MorningProtocol({
         ) : (
           <motion.div
             key="protocol-steps"
+            className="mx-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
-            {/* Progress bar */}
-            <div className="mb-4">
-              <div
-                className="mb-3 h-1 w-full overflow-hidden rounded"
-                style={{ background: "rgba(255,255,255,0.06)" }}
-              >
-                <div
-                  className="h-full rounded transition-all duration-500"
-                  style={{
-                    width: `${(completedCount / Math.max(1, steps.length)) * 100}%`,
-                    background: allDone
-                      ? "linear-gradient(90deg, #22c55e, #4ade80)"
-                      : "linear-gradient(90deg, #f97316, #ec4899)",
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-xs font-medium transition-colors"
-                    style={{
-                      color: allDone ? "rgba(34,197,94,0.7)" : "rgba(255,255,255,0.3)",
-                    }}
-                  >
-                    {allDone
-                      ? "✓ Protocol complete"
-                      : `${completedCount}/${steps.length} complete`}
-                  </span>
-                  <span
-                    className="rounded-full"
-                    style={{
-                      width: 3,
-                      height: 3,
-                      background: "rgba(255,255,255,0.12)",
-                    }}
-                  />
-                  <span className="text-xs font-medium text-white/25">
-                    {totalMinutes} {t.minutes}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowTimer(true)}
-                  className="flex items-center gap-1.5 rounded-[10px] border px-3.5 py-1.5 text-xs font-semibold transition-colors"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(236,72,153,0.1))",
-                    borderColor: "rgba(249,115,22,0.2)",
-                    color: "rgba(249,115,22,0.85)",
-                  }}
-                >
-                  ▶ Start Guided
-                </button>
-              </div>
-            </div>
-
+            {/* Progress bar moved to header card above */}
             <ol className="flex flex-col gap-2">
               {steps.map((s, i) => (
                 <ProtocolListItem
@@ -476,7 +427,7 @@ export function MorningProtocol({
               <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   {isEditMode && canAdd && isAdding && (
-                    <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/20 p-6 backdrop-blur-sm">
+                    <div className="flex flex-col gap-3 rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 sm:flex-row sm:items-center">
                       <input
                         type="text"
                         value={newLabel}
@@ -492,7 +443,7 @@ export function MorningProtocol({
                           min={0}
                           value={newMinutes}
                           onChange={(e) => setNewMinutes(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                          className="min-h-[44px] w-20 min-w-[5rem] rounded-lg border border-white/20 bg-black/20 px-2 py-2 text-center font-mono text-base text-white/95 focus:border-white/40 focus:outline-none"
+                          className="min-h-[44px] w-20 min-w-[5rem] rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-2 text-center text-base text-zinc-100 focus:border-zinc-500 focus:outline-none"
                         />
                         <span className="text-sm text-white/60">{t.minutes}</span>
                         <button

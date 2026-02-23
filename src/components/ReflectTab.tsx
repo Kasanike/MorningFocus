@@ -1,32 +1,21 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Moon } from "lucide-react";
+import { ChevronDown, Check, Moon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
 import {
   fetchKeystone,
   fetchReflection,
   fetchPastReflections,
-  saveReflection,
+  setReflectionDidComplete,
+  updateReflectionNote,
   type ReflectionEntry,
-  type ReflectionMood,
 } from "@/lib/db";
 
-const MAX_CHARS = 280;
-
-const MOODS: { key: ReflectionMood; emoji: string }[] = [
-  { key: "calm", emoji: "😌" },
-  { key: "focused", emoji: "🎯" },
-  { key: "energized", emoji: "⚡" },
-  { key: "drained", emoji: "😮‍💨" },
-];
-
-const MOOD_LABEL: Record<string, Record<ReflectionMood, string>> = {
-  en: { calm: "Calm", focused: "Focused", energized: "Energized", drained: "Drained" },
-  sk: { calm: "Pokojný", focused: "Sústredený", energized: "Energický", drained: "Vyčerpaný" },
-};
+const MAX_NOTE_CHARS = 280;
+const DEBOUNCE_MS = 500;
 
 function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -41,10 +30,6 @@ function formatDateShort(dateStr: string, locale: string): string {
   });
 }
 
-function moodEmoji(mood: string | null): string {
-  return MOODS.find((m) => m.key === mood)?.emoji ?? "";
-}
-
 const rise = (delay: number) => ({
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1], delay } },
@@ -54,16 +39,6 @@ const cardStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.04)",
   border: "1px solid rgba(255,255,255,0.06)",
   borderRadius: 18,
-};
-
-/** Matches Keystone section wrapper */
-const sectionCardStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: 22,
-  padding: "22px 20px",
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
 };
 
 function SkeletonBlock() {
@@ -80,14 +55,7 @@ function SkeletonBlock() {
       </div>
       <div className="rounded-[18px] border border-white/10 p-5" style={{ background: "rgba(255,255,255,0.04)" }}>
         <div className={`h-6 w-48 ${bar}`} />
-        <div className={`mt-2 h-3 w-56 ${bar}`} />
         <div className={`mt-4 h-24 w-full rounded-xl ${bar}`} />
-        <div className={`mt-4 flex gap-2`}>
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className={`h-10 flex-1 rounded-full ${bar}`} />
-          ))}
-        </div>
-        <div className={`mt-4 h-12 w-full rounded-2xl ${bar}`} />
       </div>
     </div>
   );
@@ -95,18 +63,15 @@ function SkeletonBlock() {
 
 export function ReflectTab() {
   const { t, locale } = useLanguage();
-  const labels = MOOD_LABEL[locale] ?? MOOD_LABEL.en;
-
   const [loading, setLoading] = useState(true);
   const [keystoneText, setKeystoneText] = useState<string>("");
   const [todayReflection, setTodayReflection] = useState<ReflectionEntry | null>(null);
   const [pastReflections, setPastReflections] = useState<ReflectionEntry[]>([]);
-
-  const [entry, setEntry] = useState("");
-  const [mood, setMood] = useState<ReflectionMood | null>(null);
-  const [saving, setSaving] = useState(false);
-
+  const [savingDidComplete, setSavingDidComplete] = useState(false);
+  const [note, setNote] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -127,6 +92,7 @@ export function ReflectTab() {
       setKeystoneText(ks);
       setTodayReflection(ref);
       setPastReflections(past);
+      if (ref?.reflection_note != null) setNote(ref.reflection_note);
     } catch {
       // ignore
     } finally {
@@ -138,20 +104,59 @@ export function ReflectTab() {
     loadData();
   }, [loadData]);
 
-  const handleSave = async () => {
-    if (!entry.trim() || saving) return;
-    setSaving(true);
+  const hasAnsweredDidComplete =
+    todayReflection != null && todayReflection.did_complete !== undefined && todayReflection.did_complete !== null;
+  const didComplete = todayReflection?.did_complete ?? null;
+
+  const handleDidComplete = async (value: boolean) => {
+    if (hasAnsweredDidComplete || savingDidComplete) return;
+    setSavingDidComplete(true);
     try {
-      await saveReflection(entry, mood, keystoneText || null);
-      const today = getTodayKey();
-      const ref = await fetchReflection(today);
+      await setReflectionDidComplete(value, keystoneText || null);
+      const ref = await fetchReflection(getTodayKey());
       setTodayReflection(ref);
     } catch (e) {
-      console.error("Save reflection failed:", e);
+      const message = e instanceof Error ? e.message : String(e);
+      console.error("Save did_complete failed:", message);
     } finally {
-      setSaving(false);
+      setSavingDidComplete(false);
     }
   };
+
+  const saveNoteDebounced = useCallback(
+    (value: string) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        debounceRef.current = null;
+        setSavingNote(true);
+        try {
+          await updateReflectionNote(value);
+          const ref = await fetchReflection(getTodayKey());
+          if (ref) setTodayReflection(ref);
+        } catch (e) {
+          console.error("Save reflection_note failed:", e);
+        } finally {
+          setSavingNote(false);
+        }
+      }, DEBOUNCE_MS);
+    },
+    []
+  );
+
+  const handleNoteBlur = () => {
+    saveNoteDebounced(note);
+  };
+
+  const handleNoteChange = (value: string) => {
+    if (value.length > MAX_NOTE_CHARS) return;
+    setNote(value);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -161,194 +166,158 @@ export function ReflectTab() {
     );
   }
 
-  const hasTodayReflection = todayReflection !== null;
+  const showSeeYouTomorrow = hasAnsweredDidComplete;
 
   return (
     <>
-      <section
-        className="relative overflow-hidden rounded-[22px] backdrop-blur-xl"
-        style={sectionCardStyle}
-        aria-label={t.reflect_title}
-      >
-        {/* Header: same as Keystone — icon + title + subtitle */}
-        <div className="mb-1 flex items-center gap-3">
-          <Moon className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
-          <h2
-            className="font-bold text-white"
-            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
-          >
+      {/* Section header card */}
+      <div className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/50">
+        <div className="flex items-center gap-2">
+          <Moon className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} aria-hidden />
+          <h2 className="text-lg font-semibold text-zinc-100 tracking-tight">
             {t.reflect_title}
           </h2>
         </div>
-        <p
-          style={{
-            fontSize: 13,
-            color: "rgba(255,255,255,0.3)",
-            margin: "2px 0 0",
-            lineHeight: 1.4,
-          }}
-        >
-          {t.reflect_title_suffix}
-        </p>
-
-      {/* Keystone callback — inner card */}
-      {keystoneText && (
-        <motion.div {...rise(0.05)} className="mt-6 flex gap-3 rounded-[14px] border p-4" style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}>
-          <span
-            className="mt-1 block h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ background: "linear-gradient(135deg, #f97316, #ec4899)" }}
-          />
-          <div className="min-w-0">
-            <p
-              className="text-[9px] font-bold uppercase tracking-[0.15em]"
-              style={{ color: "rgba(255,255,255,0.3)" }}
-            >
-              {t.reflect_keystone_label}
-            </p>
-            <p className="mt-1.5 text-[15px] italic text-white/80">{keystoneText}</p>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Reflection form / saved card */}
-      <AnimatePresence mode="wait">
-        {hasTodayReflection ? (
+      </div>
+      <section
+        className="mx-4 relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/50 px-4 py-4"
+        aria-label={t.reflect_title}
+      >
+        {/* SECTION 1 — This Morning's Keystone */}
+        {keystoneText && (
           <motion.div
-            key="saved"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 rounded-[14px] border p-5"
+            {...rise(0.05)}
+            className="flex gap-3 rounded-[14px] border p-4"
             style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}
           >
-            <div className="mb-3 flex items-center gap-2">
-              {todayReflection.mood && (
-                <span className="text-lg">{moodEmoji(todayReflection.mood)}</span>
-              )}
-              {todayReflection.mood && (
-                <span
-                  className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-                  style={{
-                    background: "rgba(255,255,255,0.06)",
-                    color: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  {labels[todayReflection.mood]}
-                </span>
-              )}
-            </div>
-            <p className="text-[15px] leading-relaxed text-white/85">
-              {todayReflection.entry}
-            </p>
-            <p
-              className="mt-4 text-center text-[13px] italic"
-              style={{ color: "rgba(255,255,255,0.25)" }}
-            >
-              {t.reflect_see_tomorrow}
-            </p>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="form"
-            {...rise(0.1)}
-            className="mt-6 rounded-[14px] border p-5"
-            style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.06)" }}
-          >
-            <h3
-              className="text-[18px] font-bold text-white"
-              style={{ letterSpacing: "-0.01em" }}
-            >
-              {t.reflect_prompt}
-            </h3>
-            <p
-              className="mt-1 text-[13px]"
-              style={{ color: "rgba(255,255,255,0.35)" }}
-            >
-              {t.reflect_subtext}
-            </p>
-
-            <div className="relative mt-4">
-              <textarea
-                value={entry}
-                onChange={(e) => {
-                  if (e.target.value.length <= MAX_CHARS) setEntry(e.target.value);
-                }}
-                placeholder={t.reflect_placeholder}
-                rows={4}
-                className="w-full resize-none rounded-xl border bg-transparent p-4 text-[15px] text-white outline-none transition-[border-color,box-shadow] duration-300 placeholder:text-white/20 focus:border-[rgba(193,122,138,0.4)] focus:shadow-[0_0_0_3px_rgba(193,122,138,0.08)]"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  borderColor: "rgba(255,255,255,0.08)",
-                  lineHeight: 1.6,
-                }}
-              />
-              <span
-                className="absolute bottom-3 right-3 text-[11px] tabular-nums"
-                style={{ color: entry.length >= 260 ? "rgba(249,115,22,0.7)" : "rgba(255,255,255,0.2)" }}
+            <span
+              className="mt-1 block h-2.5 w-2.5 shrink-0 rounded-full bg-zinc-500"
+            />
+            <div className="min-w-0">
+              <p
+                className="text-[9px] font-bold uppercase tracking-[0.15em]"
+                style={{ color: "rgba(255,255,255,0.3)" }}
               >
-                {entry.length}/{MAX_CHARS}
-              </span>
+                {t.reflect_keystone_label}
+              </p>
+              <p className="mt-1.5 text-[15px] italic text-white/80">{keystoneText}</p>
             </div>
+          </motion.div>
+        )}
 
-            <div className="mt-4 flex gap-2">
-              {MOODS.map((m) => {
-                const active = mood === m.key;
-                return (
-                  <button
-                    key={m.key}
-                    type="button"
-                    onClick={() => setMood(active ? null : m.key)}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-full py-2.5 text-[12px] font-medium transition-all duration-200"
-                    style={
-                      active
-                        ? {
-                            background: "rgba(193,122,138,0.15)",
-                            border: "1px solid rgba(193,122,138,0.5)",
-                            color: "rgba(255,255,255,0.9)",
-                          }
-                        : {
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px solid rgba(255,255,255,0.08)",
-                            color: "rgba(255,255,255,0.4)",
-                          }
-                    }
-                  >
-                    <span>{m.emoji}</span>
-                    <span className="hidden sm:inline">{labels[m.key]}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!entry.trim() || saving}
-              className="mt-4 w-full rounded-2xl py-[14px] text-[15px] font-bold text-white transition-all duration-300 active:scale-[0.98]"
+        {/* SECTION 2 — Did you do it? */}
+        <motion.div {...rise(0.08)} className={keystoneText ? "mt-4" : ""}>
+          <p
+            className="mb-3 text-[15px] font-semibold text-white/90"
+            style={{ letterSpacing: "-0.01em" }}
+          >
+            {t.reflect_did_you_do_it}
+          </p>
+          {hasAnsweredDidComplete ? (
+            <div
+              className="flex h-14 items-center justify-center gap-2 rounded-xl border"
               style={
-                entry.trim()
+                didComplete === true
                   ? {
-                      background: "linear-gradient(135deg, #c17a5a, #a05570)",
-                      boxShadow: "0 6px 24px rgba(170,90,80,0.35)",
-                      opacity: saving ? 0.6 : 1,
-                      cursor: saving ? "wait" : "pointer",
+                      background: "rgba(34,197,94,0.12)",
+                      borderColor: "rgba(34,197,94,0.25)",
                     }
                   : {
-                      background: "rgba(255,255,255,0.08)",
-                      opacity: 0.4,
-                      cursor: "not-allowed",
+                      background: "rgba(120,80,160,0.12)",
+                      borderColor: "rgba(255,255,255,0.12)",
                     }
               }
             >
-              {t.reflect_save}
-            </button>
-          </motion.div>
+              {didComplete === true ? (
+                <>
+                  <Check className="h-5 w-5 text-emerald-400" strokeWidth={2.5} />
+                  <span className="text-[14px] font-semibold text-white/95">{t.reflect_yes_did_it}</span>
+                </>
+              ) : (
+                <span className="text-[14px] font-medium text-white/70">{t.reflect_not_quite}</span>
+              )}
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleDidComplete(true)}
+                disabled={savingDidComplete}
+                className="flex h-14 flex-1 items-center justify-center gap-2 rounded-xl border-0 bg-orange-500 text-white font-semibold shadow-[0_0_15px_rgba(249,115,22,0.3)] transition-all duration-150 ease-out hover:bg-orange-600 disabled:opacity-60"
+              >
+                <Check className="h-5 w-5" strokeWidth={2.5} />
+                <span className="text-[14px]">{t.reflect_crushed_it}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDidComplete(false)}
+                disabled={savingDidComplete}
+                className="flex h-14 flex-1 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-zinc-400 transition-all duration-150 ease-out hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-60"
+              >
+                <span className="text-[14px] font-medium">Not quite</span>
+              </button>
+            </div>
+          )}
+        </motion.div>
+
+        {/* SECTION 3 — What happened? (only after yes/no answered) */}
+        <AnimatePresence>
+          {hasAnsweredDidComplete && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="mt-6"
+            >
+              <p
+                className="mb-3 text-[15px] font-semibold text-white/90"
+                style={{ letterSpacing: "-0.01em" }}
+              >
+                {t.reflect_what_happened}
+              </p>
+              <div className="relative">
+                <textarea
+                  value={note}
+                  onChange={(e) => handleNoteChange(e.target.value)}
+                  onBlur={handleNoteBlur}
+                  placeholder={t.reflect_note_placeholder}
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-zinc-800 py-3 pl-4 pr-4 pt-3 text-[15px] text-white outline-none transition-colors duration-200 placeholder:text-zinc-500 focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                  style={{
+                    lineHeight: 1.5,
+                    background: "rgba(255,255,255,0.05)",
+                  }}
+                />
+                <span
+                  className="absolute bottom-3 right-3 text-[11px] tabular-nums text-zinc-500"
+                >
+                  {note.length}/{MAX_NOTE_CHARS}
+                </span>
+              </div>
+              {savingNote && (
+                <p className="mt-1 text-[11px] text-white/40">Saving…</p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* SECTION 4 — See you tomorrow */}
+        {showSeeYouTomorrow && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-6 text-center text-[13px] italic"
+            style={{ color: "rgba(255,255,255,0.25)" }}
+          >
+            {t.reflect_see_tomorrow}
+          </motion.p>
         )}
-      </AnimatePresence>
       </section>
 
-      {/* Past reflections — outside main card, same as before */}
+      {/* Past reflections */}
       {pastReflections.length > 0 && (
-        <motion.div {...rise(0.15)} className="mt-6">
+        <motion.div {...rise(0.15)} className="mt-6 mx-4">
           <div className="mb-3 flex items-center gap-3">
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
             <span
@@ -359,10 +328,10 @@ export function ReflectTab() {
             </span>
             <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
           </div>
-
           <div className="space-y-2.5">
             {pastReflections.map((r) => {
               const isExpanded = expandedId === r.id;
+              const displayText = r.reflection_note || r.entry || "—";
               return (
                 <button
                   key={r.id}
@@ -372,7 +341,11 @@ export function ReflectTab() {
                   style={cardStyle}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-base">{moodEmoji(r.mood)}</span>
+                    {r.did_complete !== undefined && r.did_complete !== null && (
+                      <span className="text-sm">
+                        {r.did_complete ? "✓" : "○"}
+                      </span>
+                    )}
                     <span
                       className="text-[11px] font-medium"
                       style={{ color: "rgba(255,255,255,0.35)" }}
@@ -391,7 +364,7 @@ export function ReflectTab() {
                     className={`mt-2 text-[14px] leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}
                     style={{ color: "rgba(255,255,255,0.65)" }}
                   >
-                    {r.entry}
+                    {displayText}
                   </p>
                 </button>
               );

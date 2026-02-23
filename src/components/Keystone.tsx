@@ -1,26 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, Pencil } from "lucide-react";
+import { Pencil, Target } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
-import {
-  fetchKeystone,
-  saveKeystoneDb,
-  fetchKeystoneHistory,
-  type KeystoneEntry,
-} from "@/lib/db";
+import { fetchKeystone, saveKeystoneDb } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { SectionSuccessCard } from "@/components/ui/SectionSuccessCard";
 import { trackKeystoneSet } from "@/lib/analytics";
 import { getDailyReflectionQuote } from "@/lib/dailyQuote";
-
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00");
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
 
 function getTodayKey(): string {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
@@ -52,21 +42,11 @@ function saveKeystoneLocal(text: string) {
 export function Keystone() {
   const { t } = useLanguage();
   const [value, setValue] = useState("");
-  const [history, setHistory] = useState<KeystoneEntry[]>([]);
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showKeystoneSuccess, setShowKeystoneSuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const dailyQuote = useMemo(() => getDailyReflectionQuote(), []);
-
-  const loadHistory = useCallback(async () => {
-    try {
-      const list = await fetchKeystoneHistory();
-      setHistory(list);
-    } catch {
-      setHistory([]);
-    }
-  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -81,7 +61,6 @@ export function Keystone() {
           if (text !== "") {
             setValue(text);
           }
-          await loadHistory();
           if (text !== "") return;
         }
       } catch {
@@ -90,7 +69,7 @@ export function Keystone() {
       setValue(getStoredKeystone());
     };
     load();
-  }, [loadHistory]);
+  }, []);
 
   const handleSave = async () => {
     const date = getTodayKey();
@@ -102,7 +81,6 @@ export function Keystone() {
       } = await supabase.auth.getUser();
       if (user) {
         await saveKeystoneDb(value.trim(), date);
-        await loadHistory();
       }
       if (value.trim()) {
         trackKeystoneSet();
@@ -124,22 +102,27 @@ export function Keystone() {
   const hasSetKeystone = value.trim() !== "";
   const showLockedCard = hasSetKeystone && !isEditing;
 
-  const cardStyle = {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 22,
-    padding: "22px 20px",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)" as const,
-  };
-
   return (
     <>
-    <section
-      className="relative overflow-hidden rounded-[22px] backdrop-blur-xl"
-      style={cardStyle}
-      aria-label={t.keystone_aria}
-    >
+      {/* Section header card */}
+      <div className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.5} aria-hidden />
+            <h2 className="text-lg font-semibold text-zinc-100 tracking-tight">
+              {t.keystone_title}
+            </h2>
+          </div>
+          {showLockedCard && (
+            <span className="text-[11px] font-medium px-2.5 py-1 rounded-full
+                             bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              ✓ {t.keystone_locked_badge}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="mx-4">
       <AnimatePresence mode="wait">
         {showKeystoneSuccess ? (
           <SectionSuccessCard
@@ -158,26 +141,6 @@ export function Keystone() {
           />
         ) : (
           <>
-      <div className="mb-1 flex items-center gap-3">
-        <Target className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
-        <h2
-          className="font-bold text-white"
-          style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
-        >
-          {t.keystone_title}
-        </h2>
-      </div>
-      <p
-        style={{
-          fontSize: 13,
-          color: "rgba(255,255,255,0.3)",
-          margin: "2px 0 0",
-          lineHeight: 1.4,
-        }}
-      >
-        {t.keystone_prompt}
-      </p>
-
       {showLockedCard ? (
         <div
           className="animate-fade-scale-in mt-6 rounded-[14px] border"
@@ -229,42 +192,13 @@ export function Keystone() {
             onChange={(e) => { setValue(e.target.value); setSaved(false); }}
             onKeyDown={(e) => e.key === "Enter" && value.trim() && handleSave()}
             placeholder={t.keystone_placeholder}
-            className="min-h-[44px] min-w-0 flex-1 rounded-[14px] border bg-transparent font-medium text-white outline-none transition-[border-color,box-shadow] duration-300 placeholder:font-normal placeholder:text-white/20 focus:border-[rgba(249,115,22,0.4)] focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)]"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              borderColor: "rgba(255,255,255,0.08)",
-              padding: "16px 18px",
-              fontSize: 16,
-              color: "#fff",
-              fontWeight: 500,
-            }}
+            className="min-w-0 flex-1 bg-zinc-900/50 border-2 border-zinc-800 text-white placeholder-zinc-500 focus:border-orange-500 focus:ring-0 rounded-xl px-4 py-4 outline-none transition-colors"
           />
           <button
             type="button"
             onClick={() => value.trim() && handleSave()}
             disabled={!value.trim()}
-            className={`min-h-[44px] w-full shrink-0 rounded-[14px] px-6 py-3 text-sm font-semibold transition-all duration-300 active:scale-[0.98] sm:w-auto ${
-              saved
-                ? "text-emerald-300 cursor-default"
-                : value.trim()
-                  ? "text-white cursor-pointer"
-                  : "cursor-not-allowed"
-            }`}
-            style={
-              saved
-                ? { background: "rgba(34,197,94,0.2)" }
-                : value.trim()
-                  ? {
-                      background: "linear-gradient(135deg, #f97316, #ec4899)",
-                      boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                      opacity: 1,
-                    }
-                  : {
-                      background: "rgba(255,255,255,0.08)",
-                      boxShadow: "none",
-                      opacity: 0.4,
-                    }
-            }
+            className="w-full py-4 rounded-xl bg-orange-500 text-white font-bold text-lg hover:bg-orange-600 shadow-[0_4px_14px_0_rgba(249,115,22,0.39)] transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 sm:w-auto"
           >
             {saved ? t.keystone_locked_badge : t.keystone_lock_button}
           </button>
@@ -273,69 +207,7 @@ export function Keystone() {
           </>
         )}
       </AnimatePresence>
-    </section>
-
-    {/* Recent keystones */}
-    {(() => {
-      const todayKey = getTodayKey();
-      const pastEntries = history.filter((e) => e.date !== todayKey).slice(0, 3);
-      if (pastEntries.length === 0) return null;
-      return (
-        <div
-          className="mt-6 rounded-[22px] border backdrop-blur-xl"
-          style={{
-            ...cardStyle,
-            padding: "18px 20px",
-          }}
-        >
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h3
-              className="text-[10px] font-semibold uppercase tracking-widest"
-              style={{ color: "rgba(255,255,255,0.5)" }}
-            >
-              {t.keystone_recent_title}
-            </h3>
-          </div>
-          {pastEntries.length > 0 && (
-            <ul className="flex flex-col gap-2" aria-label={t.keystone_recent_title}>
-              {pastEntries.map((entry) => (
-                <li key={entry.id}>
-                  <div
-                    className="flex items-center gap-3 rounded-[14px] border px-4 py-3"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      borderColor: "rgba(255,255,255,0.06)",
-                    }}
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ background: "rgba(249,115,22,0.8)" }}
-                      aria-hidden
-                    />
-                    <span className="shrink-0 text-xs text-white/50">
-                      {formatDateShort(entry.date)}
-                    </span>
-                    <span
-                      className={
-                        "min-w-0 flex-1 truncate text-xs text-white/70 " +
-                        (entry.completed ? "line-through opacity-60" : "")
-                      }
-                    >
-                      {entry.text || "—"}
-                    </span>
-                    {entry.completed && (
-                      <span className="shrink-0 text-white/50" aria-hidden>
-                        ✓
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      );
-    })()}
+      </div>
     </>
   );
 }

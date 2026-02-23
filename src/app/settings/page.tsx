@@ -216,7 +216,7 @@ export default function SettingsPage() {
                       type="button"
                       onClick={handleUpgrade}
                       disabled={checkoutLoading}
-                      className="min-h-[44px] w-full rounded-xl bg-gradient-to-r from-[#d4856a] to-[#c46b6b] px-5 py-3 font-sans text-sm font-semibold text-white shadow-lg shadow-[#c46b6b]/20 transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto sm:min-w-[240px]"
+                      className="min-h-[44px] w-full rounded-xl bg-zinc-600 px-5 py-3 font-sans text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto sm:min-w-[240px]"
                     >
                       {checkoutLoading ? "Redirecting…" : "Upgrade to Pro — €29.99/year"}
                     </button>

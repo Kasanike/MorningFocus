@@ -2,269 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-  --app-bg: #09090b;
-  --app-fg: #e4e4e7;
-  --app-muted: #a1a1aa;
-  --app-border: #262626;
-  --app-card: #0f0f0f;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
+@layer base {
+  :root {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 3.9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --radius: 0.75rem;
+    /* Primary accent: sharp amber/orange */
+    --accent-app: 25 95% 53%;
   }
-  to {
-    opacity: 1;
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.4s ease-out forwards;
-}
-
-/* Protocol timer: step label fade when step changes */
-@keyframes step-label-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.step-label-fade {
-  opacity: 0;
-  animation: step-label-fade 0.2s ease forwards;
-}
-
-/* Keystone: commit card reveal + badge slide */
-@keyframes fade-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-scale-in {
-  animation: fade-scale-in 0.35s ease-out forwards;
-}
-
-@keyframes slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.3s ease-out 0.15s forwards;
-  opacity: 0;
-}
-
-/* Protocol: check draw + completion reveal (reference design) */
-@keyframes checkDraw {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes completionReveal {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.animate-completion-reveal {
-  animation: completionReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Skeleton: pulsing dark bars on dark background (no white flash) */
-@keyframes skeleton-pulse {
-  0%,
-  100% {
-    opacity: 0.25;
-  }
-  50% {
-    opacity: 0.45;
-  }
-}
-
-.animate-skeleton-pulse {
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes shrink-x {
-  from {
-    transform: scaleX(1);
-  }
-  to {
-    transform: scaleX(0);
-  }
-}
-
-.animate-shrink-x {
-  transform-origin: left;
-  animation: shrink-x 1.5s ease-in-out forwards;
-}
-
-@keyframes building-pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
-}
-
-/* Protocol timer: progress dot heartbeat (position via --dot-x, --dot-y on element) */
-@keyframes timer-dot-pulse {
-  0%, 100% { transform: translate(var(--dot-x), var(--dot-y)) scale(1); }
-  50% { transform: translate(var(--dot-x), var(--dot-y)) scale(1.15); }
-}
-
-.animate-timer-dot-pulse {
-  animation: timer-dot-pulse 2s ease-in-out infinite;
-}
-
-/* Protocol timer: primary (pause/resume) button scale on tap */
-.timer-primary-btn {
-  transition: transform 0.15s ease;
-}
-.timer-primary-btn:active {
-  transform: scale(0.95);
-}
-
-/* Protocol timer: step done — ring pulse once */
-@keyframes timer-done-ring-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-.timer-done-ring-pulse {
-  animation: timer-done-ring-pulse 0.5s ease-out forwards;
-}
-
-/* Protocol timer: step done — checkmark pop-in */
-@keyframes timer-done-check-pop {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-.timer-done-check-pop {
-  animation: timer-done-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* Premium glassmorphism for content cards - increased opacity for better text contrast */
-.card-glass {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-/* Inner card / list item glass - darker for better contrast */
-.card-glass-inner {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @layer base {
   * {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
+    @apply border-border;
   }
-
-  html {
-    -webkit-tap-highlight-color: transparent;
-    color-scheme: dark;
-    background-color: transparent;
-  }
-
   body {
-    max-width: 100vw;
-    min-height: 100vh;
-    overflow-x: hidden;
-    background-color: #09090b;
-    color: #e4e4e7 !important;
-    font-family: var(--font-sans);
-    letter-spacing: -0.02em;
-    overflow-wrap: break-word;
-  }
-}
-
-/* Override any accidental light-mode inheritance */
-html.dark,
-html.dark body,
-html body {
-  color: #e4e4e7 !important;
-}
-
-/* Ensure body has fallback when no gradient (e.g. login, settings) */
-body {
-  background-color: #09090b;
-}
-
-/* Ensure form inputs are full-width in constrained containers */
-input[type="email"],
-input[type="password"],
-input[type="text"],
-input[type="number"] {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-/* Min 16px font-size on inputs to prevent iOS zoom on focus */
-input,
-select,
-textarea {
-  font-size: 16px;
-}
-@media (min-width: 768px) {
-  input,
-  select,
-  textarea {
-    font-size: inherit;
-  }
-}
-
-/* Touch target: min 44x44px for tap areas (checkboxes, icon buttons) */
-.touch-target {
-  min-width: 44px;
-  min-height: 44px;
-}
-
-/* Prevent SVG icons in buttons from growing */
-button svg {
-  flex-shrink: 0;
-}
-
-/* Safe area for mobile notch/home indicator */
-@supports (padding: max(0px)) {
-  body {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
-    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    @apply bg-zinc-950 text-zinc-50 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
   }
 }

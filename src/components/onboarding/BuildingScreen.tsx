@@ -2,9 +2,6 @@
 
 import { useEffect } from "react";
 
-const GRADIENT =
-  "linear-gradient(170deg, #2a1b3d 0%, #44254a 15%, #5e3352 28%, #7a4058 40%, #8f4d5c 50%, #a66b62 62%, #bf8a6e 75%, #d4a67a 88%, #e0bd8a 100%)";
-
 const DELAY_MS = 1800;
 
 interface BuildingScreenProps {
@@ -19,8 +16,7 @@ export function BuildingScreen({ onComplete }: BuildingScreenProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4"
-      style={{ background: GRADIENT }}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950 px-4"
     >
       <p className="font-sans text-lg text-white/90">Building your morning…</p>
 

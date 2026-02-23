@@ -8,9 +8,6 @@ import { AgeStep } from "./AgeStep";
 import { ProfessionStep } from "./ProfessionStep";
 import { BuildingScreen } from "./BuildingScreen";
 
-const GRADIENT =
-  "linear-gradient(170deg, #2a1b3d 0%, #44254a 15%, #5e3352 28%, #7a4058 40%, #8f4d5c 50%, #a66b62 62%, #bf8a6e 75%, #d4a67a 88%, #e0bd8a 100%)";
-
 export function OnboardingFlow({ onComplete }: { onComplete: () => void }) {
   const router = useRouter();
   const bootstrap = useBootstrap();
@@ -45,8 +42,7 @@ export function OnboardingFlow({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center px-4 py-12"
-      style={{ background: GRADIENT }}
+      className="fixed inset-0 z-50 flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 py-12"
     >
       {step === 1 && (
         <AgeStep
