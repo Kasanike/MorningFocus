@@ -25,6 +25,21 @@
   animation: fade-in 0.4s ease-out forwards;
 }
 
+/* Protocol timer: step label fade when step changes */
+@keyframes step-label-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.step-label-fade {
+  opacity: 0;
+  animation: step-label-fade 0.2s ease forwards;
+}
+
 /* Keystone: commit card reveal + badge slide */
 @keyframes fade-scale-in {
   from {
@@ -116,6 +131,44 @@
 @keyframes building-pulse {
   0%, 100% { opacity: 0.6; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Protocol timer: progress dot heartbeat (position via --dot-x, --dot-y on element) */
+@keyframes timer-dot-pulse {
+  0%, 100% { transform: translate(var(--dot-x), var(--dot-y)) scale(1); }
+  50% { transform: translate(var(--dot-x), var(--dot-y)) scale(1.15); }
+}
+
+.animate-timer-dot-pulse {
+  animation: timer-dot-pulse 2s ease-in-out infinite;
+}
+
+/* Protocol timer: primary (pause/resume) button scale on tap */
+.timer-primary-btn {
+  transition: transform 0.15s ease;
+}
+.timer-primary-btn:active {
+  transform: scale(0.95);
+}
+
+/* Protocol timer: step done — ring pulse once */
+@keyframes timer-done-ring-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.timer-done-ring-pulse {
+  animation: timer-done-ring-pulse 0.5s ease-out forwards;
+}
+
+/* Protocol timer: step done — checkmark pop-in */
+@keyframes timer-done-check-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.timer-done-check-pop {
+  animation: timer-done-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Premium glassmorphism for content cards - increased opacity for better text contrast */

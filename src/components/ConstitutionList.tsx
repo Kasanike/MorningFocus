@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronRight, Play, Pause, Square, Check, BookOpen } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -11,8 +11,10 @@ import { usePlan } from "@/hooks/usePlan";
 import { canAddPrinciple, FREE_PRINCIPLES_LIMIT } from "@/lib/subscription";
 import { UpgradePrompt } from "@/components/UpgradePrompt";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { trackConstitutionRead } from "@/lib/analytics";
 import { getTodayCompletionDetail, setConstitutionDoneForToday } from "@/lib/streak";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 
 export interface Principle {
   id: string;
@@ -88,7 +90,88 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
   const [mounted, setMounted] = useState(false);
   const [showCompletionCard, setShowCompletionCard] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const constitutionSyncedRef = useRef(false);
+
+  const { texts: speechTexts, delaysAfter: speechDelays } = useMemo(() => {
+    const t: string[] = [];
+    const d: number[] = [];
+    principles.forEach((p) => {
+      t.push(p.text);
+      t.push((p.subtitle ?? "").trim());
+      d.push(500);
+      d.push(1000);
+    });
+    if (d.length > 0) d[d.length - 1] = 0;
+    return { texts: t, delaysAfter: d };
+  }, [principles]);
+
+  const handleListenComplete = useCallback(() => {
+    const allChecked: Record<string, boolean> = {};
+    principles.forEach((p) => {
+      allChecked[p.id] = true;
+    });
+    setAcknowledged(allChecked);
+    if (typeof window !== "undefined") {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(STORAGE_KEYS.ACKNOWLEDGED_DATE, today);
+      const key = "analytics_constitution_read";
+      if (localStorage.getItem(key) !== today) {
+        localStorage.setItem(key, today);
+        trackConstitutionRead();
+      }
+    }
+    setConstitutionDoneForToday()
+      .then(() => setShowCompletionCard(true))
+      .catch(() => {});
+  }, [principles]);
+
+  const {
+    play: startListen,
+    pause: pauseListen,
+    resume: resumeListen,
+    stop: stopListen,
+    isPlaying: isListenPlaying,
+    isPaused: isListenPaused,
+    currentIndex: listenSegmentIndex,
+    isSupported: isSpeechSupported,
+  } = useTextToSpeech({
+    texts: speechTexts,
+    delaysAfter: speechDelays,
+    rate: 0.9,
+    pitch: 1,
+    onProgress: () => {},
+    onComplete: handleListenComplete,
+  });
+
+  const listenPrincipleIndex = listenSegmentIndex < 0 ? -1 : Math.floor(listenSegmentIndex / 2);
+  const isListening = isListenPlaying || isListenPaused;
+
+  useEffect(() => {
+    if (!isListening) return;
+    return () => {
+      stopListen();
+    };
+  }, [isListening, stopListen]);
+
+  const handleListenClick = useCallback(() => {
+    if (!isSpeechSupported) {
+      setToastMessage(t.constitution_audio_unsupported);
+      return;
+    }
+    if (isListening) {
+      stopListen();
+      startListen();
+    } else {
+      startListen();
+    }
+  }, [isSpeechSupported, isListening, stopListen, startListen, t.constitution_audio_unsupported]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const id = setTimeout(() => setToastMessage(null), 3000);
+    return () => clearTimeout(id);
+  }, [toastMessage]);
 
   useEffect(() => {
     setMounted(true);
@@ -223,7 +306,7 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 22,
-    padding: "22px 20px 24px",
+    padding: "22px 20px",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)" as const,
   };
@@ -235,23 +318,14 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
       aria-label={t.principles_title}
     >
       <div className="mb-1 flex items-start justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
           <h2
             className="font-bold text-white"
             style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
           >
             {t.principles_title}
           </h2>
-          <p
-            style={{
-              fontSize: 13,
-              color: "rgba(255,255,255,0.3)",
-              margin: "4px 0 0",
-              lineHeight: 1.4,
-            }}
-          >
-            {t.principles_subtitle}
-          </p>
         </div>
         {!showCard && (
           <button
@@ -265,6 +339,64 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
           </button>
         )}
       </div>
+      <p
+        style={{
+          fontSize: 13,
+          color: "rgba(255,255,255,0.3)",
+          margin: "4px 0 0",
+          lineHeight: 1.4,
+        }}
+      >
+        {t.principles_subtitle}
+      </p>
+
+      {!showCard && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-medium text-white/30">
+            {principles.length} {principles.length === 1 ? "principle" : "principles"}
+            {" · "}
+            {principles.length <= 3 ? "1 min" : `${Math.ceil((principles.length * 25) / 60)} min`}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleListenClick}
+              className="flex items-center gap-1.5 rounded-[10px] border px-3.5 py-1.5 text-xs font-semibold transition-colors"
+              style={
+                showCompletionCard
+                  ? {
+                      background: "rgba(34,197,94,0.15)",
+                      borderColor: "rgba(34,197,94,0.3)",
+                      color: "rgba(34,197,94,0.95)",
+                    }
+                  : {
+                      background: "linear-gradient(135deg, rgba(249,115,22,0.15), rgba(236,72,153,0.1))",
+                      borderColor: "rgba(249,115,22,0.2)",
+                      color: "rgba(249,115,22,0.85)",
+                    }
+              }
+              aria-label={showCompletionCard ? t.constitution_listened : t.constitution_listen}
+            >
+              {showCompletionCard ? (
+                <>
+                  <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  {t.constitution_listened}
+                </>
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
+                  {t.constitution_listen}
+                </>
+              )}
+            </button>
+            {toastMessage && (
+              <p className="text-xs text-amber-400/90" role="alert">
+                {toastMessage}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {showCard ? (
@@ -328,15 +460,30 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
               </button>
             )}
       <ul className="mt-6 flex flex-col gap-2">
-                {principles.map((p) => (
+                {principles.map((p, principleIdx) => (
                   <motion.li
                     key={p.id}
                     layout
                     className="flex items-start gap-4 rounded-[14px] border transition-all duration-300"
                     style={{
                       padding: 14,
-                      background: "rgba(255,255,255,0.04)",
-                      borderColor: "rgba(255,255,255,0.06)",
+                      paddingLeft: listenPrincipleIndex === principleIdx ? 11 : 14,
+                      background:
+                        listenPrincipleIndex === principleIdx
+                          ? "rgba(255,255,255,0.07)"
+                          : isListening
+                            ? "rgba(255,255,255,0.04)"
+                            : "rgba(255,255,255,0.04)",
+                      borderColor:
+                        listenPrincipleIndex === principleIdx
+                          ? "rgba(249,115,22,0.2)"
+                          : "rgba(255,255,255,0.06)",
+                      borderLeftWidth: listenPrincipleIndex === principleIdx ? 3 : 1,
+                      borderLeftColor:
+                        listenPrincipleIndex === principleIdx
+                          ? "rgba(249,115,22,0.6)"
+                          : "rgba(255,255,255,0.06)",
+                      opacity: isListening && listenPrincipleIndex !== principleIdx ? 0.4 : 1,
                     }}
                   >
                     {editId === p.id ? (
@@ -393,28 +540,11 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                               <Pencil className="h-4 w-4" />
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => handleCheck(p.id)}
-                            className="touch-target flex shrink-0 items-center justify-center border-0 p-0 transition-all duration-300"
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: 14,
-                              border: acknowledged[p.id] ? "none" : "2px solid rgba(255,255,255,0.12)",
-                              background: acknowledged[p.id]
-                                ? "linear-gradient(135deg, #f97316, #ec4899)"
-                                : "rgba(255,255,255,0.03)",
-                              boxShadow: acknowledged[p.id] ? "0 4px 16px rgba(249,115,22,0.3)" : "none",
-                            }}
+                          <AnimatedCheckbox
+                            checked={!!acknowledged[p.id]}
+                            onToggle={() => handleCheck(p.id)}
                             aria-label={`${t.acknowledge}: ${p.text}`}
-                          >
-                            {acknowledged[p.id] && (
-                              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: "checkDraw 0.3s ease-out" }}>
-                                <path d="M4 10.5L8 14.5L16 6.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                          </button>
+                          />
                         </div>
                         </div>
                         {p.subtitle && (
@@ -431,6 +561,44 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                   </motion.li>
         ))}
       </ul>
+
+      {isListening && (
+        <div
+          className="mt-4 flex items-center gap-3 rounded-[14px] px-4 py-2.5"
+          style={{
+            background: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.06)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={isListenPlaying ? pauseListen : resumeListen}
+            className="flex items-center justify-center text-white/90 transition-opacity hover:opacity-100"
+            aria-label={isListenPlaying ? "Pause" : "Resume"}
+          >
+            {isListenPlaying ? (
+              <Pause className="h-5 w-5" strokeWidth={2} />
+            ) : (
+              <Play className="h-5 w-5" fill="currentColor" strokeWidth={0} />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={stopListen}
+            className="flex items-center justify-center text-white/70 transition-opacity hover:text-white/90"
+            aria-label="Stop"
+          >
+            <Square className="h-4 w-4" fill="currentColor" strokeWidth={0} />
+          </button>
+          <span className="text-xs font-medium tabular-nums text-white/60">
+            {t.constitution_listen_progress
+              .replace("{{current}}", String(listenPrincipleIndex + 1))
+              .replace("{{total}}", String(principles.length))}
+          </span>
+        </div>
+      )}
 
       {isEditing && (
         <div className="mt-4 flex flex-col gap-2">

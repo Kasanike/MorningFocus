@@ -3,6 +3,8 @@ import type { LocaleKeys } from "./en";
 export const sk: LocaleKeys = {
   // Header
   greeting: "Better Morning.",
+  streak_start: "Začni svoju sériu",
+  streak_restart_hint: "Dokonči dnes a znova začni",
   weekdays: [
     "Nedeľa",
     "Pondelok",
@@ -40,6 +42,10 @@ export const sk: LocaleKeys = {
   principles_subtitle: "Vnútorný kód, ktorý formuje moje rozhodnutia.",
   principle_count: "{{count}} zásada",
   principles_count: "{{count}} zásad",
+  constitution_listen: "Počúvať",
+  constitution_listened: "Vypočúvané",
+  constitution_audio_unsupported: "Tento prehliadač nepodporuje prehrávanie.",
+  constitution_listen_progress: "{{current}} z {{total}}",
   keystone_title: "Kľúčová vec",
   keystone_prompt: "Aká jedna činnosť by mala na môj deň najväčší vplyv?",
   keystone_aria: "Priorita dňa",
@@ -50,6 +56,8 @@ export const sk: LocaleKeys = {
   keystone_edit: "Upraviť",
   keystone_see_all: "Všetko →",
   keystone_recent_title: "Nedávne kľúčové veci",
+  progress_title: "Pokrok",
+  progress_subtitle: "Tvoja séria a aktivita.",
   morning_protocol_title: "Ranný protokol",
   morning_protocol_subtitle: "Základ, na ktorom stojí všetko ostatné.",
   morning_protocol_prompt: "Vstaň z postele a poď na to.",

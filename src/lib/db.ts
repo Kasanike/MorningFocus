@@ -320,6 +320,73 @@ export async function fetchPaywallStats(): Promise<PaywallStats | null> {
   return { streak, stepsCompleted, keystonesDone };
 }
 
+// ── Recent activity (Progress tab) ───────────────────────
+
+export interface RecentActivityItem {
+  date: string;
+  stepsLabel: string;
+  keystoneText: string;
+}
+
+/** Last 5 completed days (with at least one of protocol/constitution/keystone done), most recent first. */
+export async function getRecentActivity(): Promise<RecentActivityItem[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: completions, error: compError } = await supabase
+    .from("daily_completions")
+    .select("completed_date, protocol_done, constitution_done, keystone_done")
+    .eq("user_id", user.id)
+    .or("protocol_done.eq.true,constitution_done.eq.true,keystone_done.eq.true")
+    .order("completed_date", { ascending: false })
+    .limit(5);
+
+  if (compError || !completions?.length) return [];
+
+  const dates = completions.map((r) => r.completed_date as string);
+
+  const [sessionsRes, keystoneRes] = await Promise.all([
+    supabase
+      .from("timer_sessions")
+      .select("date, steps_completed, steps_total")
+      .eq("user_id", user.id)
+      .in("date", dates),
+    supabase
+      .from("one_thing_history")
+      .select("date, text")
+      .eq("user_id", user.id)
+      .in("date", dates),
+  ]);
+
+  const sessionsByDate = new Map<string, { steps_completed: number; steps_total: number }>();
+  for (const row of sessionsRes.data ?? []) {
+    const d = row.date as string;
+    const existing = sessionsByDate.get(d);
+    const steps = row.steps_completed ?? 0;
+    const total = row.steps_total ?? 0;
+    if (!existing || steps > existing.steps_completed) {
+      sessionsByDate.set(d, { steps_completed: steps, steps_total: total });
+    }
+  }
+  const keystoneByDate = new Map<string, string>();
+  for (const row of keystoneRes.data ?? []) {
+    keystoneByDate.set(row.date as string, (row.text ?? "").trim());
+  }
+
+  return dates.map((date) => {
+    const session = sessionsByDate.get(date);
+    const stepsLabel =
+      session && session.steps_total > 0
+        ? `${session.steps_completed}/${session.steps_total} protocol`
+        : "—";
+    const keystoneText = keystoneByDate.get(date) ?? "";
+    return { date, stepsLabel, keystoneText };
+  });
+}
+
 // ── Plan (subscription) ─────────────────────────────────
 
 export type Plan = "free" | "pro";

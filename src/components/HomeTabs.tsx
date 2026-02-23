@@ -87,10 +87,12 @@ export function HomeTabs() {
       {/* Tab nav — hidden on mobile, shown on sm+; hidden when guided mode is active */}
       {!guidedModeActive && (
         <div
-          className="mb-3 hidden gap-0.5 rounded-xl p-1 sm:flex"
+          className="mb-0 hidden gap-0.5 rounded-xl sm:flex"
           style={{
             background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.06)",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            padding: "8px 8px 12px",
           }}
         >
           <TabBar activeTab={activeTab} onSelect={handleSelectTab} />
@@ -98,7 +100,7 @@ export function HomeTabs() {
       )}
 
       {/* Tab content */}
-      <div className="pb-28 sm:pb-0">
+      <div className="pb-[90px] sm:pb-0">
         {activeTab === "protocol" && (
           <div key="protocol" className="animate-fade-in">
             <MorningProtocol
@@ -109,7 +111,7 @@ export function HomeTabs() {
         )}
 
         {activeTab === "keystone" && (
-          <div key="keystone" className="animate-fade-in space-y-6">
+          <div key="keystone" className="animate-fade-in space-y-4">
             <Keystone onGoToProgress={() => handleSelectTab("progress")} />
           </div>
         )}
@@ -130,14 +132,15 @@ export function HomeTabs() {
       {/* Bottom nav — mobile only; hidden when guided mode (full-screen timer) is active */}
       {!guidedModeActive && (
         <nav
-          className="fixed bottom-0 left-0 right-0 z-50 flex w-full gap-0 pb-3 pt-2 sm:hidden"
+          className="fixed bottom-0 left-0 right-0 z-50 flex w-full gap-0 sm:hidden"
           style={{
             width: "100%",
             maxWidth: 430,
             marginLeft: "auto",
             marginRight: "auto",
-            paddingLeft: "max(12px, env(safe-area-inset-left))",
-            paddingRight: "max(12px, env(safe-area-inset-right))",
+            paddingTop: 8,
+            paddingLeft: 8,
+            paddingRight: 8,
             paddingBottom: "max(12px, env(safe-area-inset-bottom))",
             background: "rgba(20,8,35,0.85)",
             backdropFilter: "blur(20px)",

@@ -1,6 +1,8 @@
 export const en = {
   // Header
   greeting: "Better Morning.",
+  streak_start: "Start your streak",
+  streak_restart_hint: "Complete today to restart",
   weekdays: [
     "Sunday",
     "Monday",
@@ -38,6 +40,10 @@ export const en = {
   principles_subtitle: "The internal code that shapes my decisions.",
   principle_count: "{{count}} principle",
   principles_count: "{{count}} principles",
+  constitution_listen: "Listen",
+  constitution_listened: "Listened",
+  constitution_audio_unsupported: "Audio not supported on this browser",
+  constitution_listen_progress: "{{current}} of {{total}}",
   keystone_title: "Keystone",
   keystone_prompt: "What is the one action that would create the biggest impact on my day?",
   keystone_aria: "Priority of the day",
@@ -48,6 +54,8 @@ export const en = {
   keystone_edit: "Edit",
   keystone_see_all: "See all →",
   keystone_recent_title: "Recent keystones",
+  progress_title: "Progress",
+  progress_subtitle: "Your streak and activity.",
   morning_protocol_title: "Morning Protocol",
   morning_protocol_subtitle: "The foundation everything else is built on.",
   morning_protocol_prompt: "Get out of bed and go for it.",

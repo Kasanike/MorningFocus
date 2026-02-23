@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Pencil, Trash2 } from "lucide-react";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 
 const MotionDiv = motion.div;
 const MotionP = motion.p;
@@ -13,12 +13,12 @@ export interface ProtocolStep {
   minutes: number;
 }
 
-/** Cool → warm step colors (reference design) */
+/** Cool → warm step colors: row bg/border + 48px number pill (frosted container + darker number) */
 const STEP_COLORS = [
-  { bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.12)", num: "rgba(167,139,250,0.6)" },
-  { bg: "rgba(110,195,244,0.07)", border: "rgba(110,195,244,0.10)", num: "rgba(110,195,244,0.55)" },
-  { bg: "rgba(180,210,140,0.06)", border: "rgba(180,210,140,0.10)", num: "rgba(180,210,140,0.5)" },
-  { bg: "rgba(251,146,60,0.08)", border: "rgba(251,146,60,0.12)", num: "rgba(251,146,60,0.6)" },
+  { bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.12)", pillBg: "rgba(167,139,250,0.18)", pillBorder: "rgba(167,139,250,0.25)", num: "rgba(167,139,250,0.95)" },
+  { bg: "rgba(110,195,244,0.07)", border: "rgba(110,195,244,0.10)", pillBg: "rgba(110,195,244,0.16)", pillBorder: "rgba(110,195,244,0.22)", num: "rgba(110,195,244,0.95)" },
+  { bg: "rgba(180,210,140,0.06)", border: "rgba(180,210,140,0.10)", pillBg: "rgba(180,210,140,0.16)", pillBorder: "rgba(180,210,140,0.22)", num: "rgba(180,210,140,0.95)" },
+  { bg: "rgba(251,146,60,0.08)", border: "rgba(251,146,60,0.12)", pillBg: "rgba(251,146,60,0.18)", pillBorder: "rgba(251,146,60,0.25)", num: "rgba(251,146,60,0.95)" },
 ];
 
 function getStepColor(index: number) {
@@ -43,61 +43,6 @@ interface ProtocolListItemProps {
   saveLabel: string;
   removeLabel: string;
   editPrincipleLabel: string;
-}
-
-function AnimatedCheck({
-  checked,
-  onToggle,
-}: {
-  checked: boolean;
-  onToggle: () => void;
-}) {
-  const [animating, setAnimating] = useState(false);
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!checked) setAnimating(true);
-    onToggle();
-    if (!checked) setTimeout(() => setAnimating(false), 500);
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="flex shrink-0 cursor-pointer items-center justify-center border-0 p-0"
-      style={{
-        width: 44,
-        height: 44,
-        borderRadius: 14,
-        border: checked ? "none" : "2px solid rgba(255,255,255,0.12)",
-        background: checked
-          ? "linear-gradient(135deg, #f97316, #ec4899)"
-          : "rgba(255,255,255,0.03)",
-        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        transform: animating ? "scale(1.2)" : "scale(1)",
-        boxShadow: checked ? "0 4px 16px rgba(249,115,22,0.3)" : "none",
-      }}
-    >
-      {checked && (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          style={{ animation: "checkDraw 0.3s ease-out" }}
-        >
-          <path
-            d="M4 10.5L8 14.5L16 6.5"
-            stroke="white"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-    </button>
-  );
 }
 
 export function ProtocolListItem({
@@ -190,10 +135,15 @@ export function ProtocolListItem({
       whileTap={{ scale: 0.995 }}
     >
       <span
-        className="flex shrink-0 text-center font-mono text-xs font-bold transition-colors"
+        className="flex shrink-0 items-center justify-center rounded-[12px] font-mono font-bold transition-colors"
         style={{
-          width: 24,
-          color: isCompleted ? "rgba(255,255,255,0.15)" : color.num,
+          width: 48,
+          height: 48,
+          background: isCompleted ? "rgba(255,255,255,0.06)" : color.pillBg,
+          border: `1px solid ${isCompleted ? "rgba(255,255,255,0.08)" : color.pillBorder}`,
+          color: isCompleted ? "rgba(255,255,255,0.2)" : color.num,
+          boxShadow: isCompleted ? "none" : "0 0 0 1px rgba(255,255,255,0.04) inset",
+          fontSize: 20,
         }}
       >
         {String(stepIndex + 1).padStart(2, "0")}
@@ -240,7 +190,7 @@ export function ProtocolListItem({
             <Pencil className="h-4 w-4" />
           </button>
         )}
-        <AnimatedCheck checked={isCompleted} onToggle={onToggle} />
+        <AnimatedCheckbox checked={isCompleted} onToggle={onToggle} />
       </div>
     </motion.li>
   );

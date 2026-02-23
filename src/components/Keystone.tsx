@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Target, Pencil } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
@@ -14,6 +14,7 @@ import { createClient } from "@/utils/supabase/client";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { StoicQuote } from "@/components/StoicQuote";
 import { trackKeystoneSet } from "@/lib/analytics";
+import { getDailyReflectionQuote } from "@/lib/dailyQuote";
 
 function formatDateShort(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -58,6 +59,7 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const dailyQuote = useMemo(() => getDailyReflectionQuote(), []);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -127,7 +129,7 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 22,
-    padding: "22px 20px 24px",
+    padding: "22px 20px",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)" as const,
   };
@@ -140,26 +142,24 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
       aria-label={t.keystone_aria}
     >
       <div className="mb-1 flex items-center gap-3">
-        <Target className="h-5 w-5 shrink-0 text-white/60" />
-        <div>
-          <h2
-            className="font-bold text-white"
-            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
-          >
-            {t.keystone_title}
-          </h2>
-          <p
-            style={{
-              fontSize: 13,
-              color: "rgba(255,255,255,0.3)",
-              margin: "2px 0 0",
-              lineHeight: 1.4,
-            }}
-          >
-            {t.keystone_prompt}
-          </p>
-        </div>
+        <Target className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
+        <h2
+          className="font-bold text-white"
+          style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
+        >
+          {t.keystone_title}
+        </h2>
       </div>
+      <p
+        style={{
+          fontSize: 13,
+          color: "rgba(255,255,255,0.3)",
+          margin: "2px 0 0",
+          lineHeight: 1.4,
+        }}
+      >
+        {t.keystone_prompt}
+      </p>
 
       {showLockedCard ? (
         <div
@@ -210,29 +210,43 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
             type="text"
             value={value}
             onChange={(e) => { setValue(e.target.value); setSaved(false); }}
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
+            onKeyDown={(e) => e.key === "Enter" && value.trim() && handleSave()}
             placeholder={t.keystone_placeholder}
-            className="min-h-[44px] min-w-0 flex-1 rounded-[14px] border px-4 py-3 text-[15px] font-medium text-white placeholder:text-white/50 transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+            className="min-h-[44px] min-w-0 flex-1 rounded-[14px] border bg-transparent font-medium text-white outline-none transition-[border-color,box-shadow] duration-300 placeholder:font-normal placeholder:text-white/20 focus:border-[rgba(249,115,22,0.4)] focus:shadow-[0_0_0_3px_rgba(249,115,22,0.08)]"
             style={{
-              background: "rgba(255,255,255,0.06)",
-              borderColor: "rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.04)",
+              borderColor: "rgba(255,255,255,0.08)",
+              padding: "16px 18px",
+              fontSize: 16,
+              color: "#fff",
+              fontWeight: 500,
             }}
           />
           <button
             type="button"
-            onClick={handleSave}
+            onClick={() => value.trim() && handleSave()}
+            disabled={!value.trim()}
             className={`min-h-[44px] w-full shrink-0 rounded-[14px] px-6 py-3 text-sm font-semibold transition-all duration-300 active:scale-[0.98] sm:w-auto ${
               saved
-                ? "text-emerald-300"
-                : "text-white"
+                ? "text-emerald-300 cursor-default"
+                : value.trim()
+                  ? "text-white cursor-pointer"
+                  : "cursor-not-allowed"
             }`}
             style={
               saved
                 ? { background: "rgba(34,197,94,0.2)" }
-                : {
-                    background: "linear-gradient(135deg, #f97316, #ec4899)",
-                    boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                  }
+                : value.trim()
+                  ? {
+                      background: "linear-gradient(135deg, #f97316, #ec4899)",
+                      boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
+                      opacity: 1,
+                    }
+                  : {
+                      background: "rgba(255,255,255,0.08)",
+                      boxShadow: "none",
+                      opacity: 0.4,
+                    }
             }
           >
             {saved ? t.keystone_locked_badge : t.keystone_lock_button}
@@ -318,6 +332,34 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
         <StoicQuote />
       </div>
     )}
+
+    {/* Daily reflection — bottom */}
+    <div
+      className="mt-6 rounded-[22px] border px-5 py-5 backdrop-blur-xl"
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        borderColor: "rgba(255,255,255,0.06)",
+      }}
+    >
+      <h2
+        className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em]"
+        style={{ color: "rgba(255,255,255,0.5)" }}
+      >
+        Daily reflection
+      </h2>
+      <p
+        className="text-base leading-relaxed text-white/90 sm:text-lg"
+        style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}
+      >
+        {dailyQuote.text}
+      </p>
+      <p
+        className="mt-3 text-[10px] font-semibold uppercase tracking-widest text-white/40"
+        style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}
+      >
+        — {dailyQuote.author.toUpperCase()}
+      </p>
+    </div>
     </>
   );
 }

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Flame } from "lucide-react";
 import {
   getUserStreaks,
   getMonthDailyCompletions,
   getLast14DaysCompletions,
-  getTodayCompletionDetail,
   type DayStatus,
-  type TodayCompletionDetail,
 } from "@/lib/streak";
-import { fetchStreakData } from "@/lib/db";
+import { fetchStreakData, getRecentActivity, type RecentActivityItem } from "@/lib/db";
+import { useLanguage } from "@/context/LanguageContext";
 
 const CARD_STYLE = {
   background: "rgba(255,255,255,0.04)",
@@ -17,13 +17,11 @@ const CARD_STYLE = {
   WebkitBackdropFilter: "blur(20px)" as const,
   border: "1px solid rgba(255,255,255,0.06)",
   borderRadius: 22,
-  padding: "22px 20px 24px",
+  padding: "22px 20px",
 };
 
 const GRADIENT_FULL = "linear-gradient(135deg, #f97316, #ec4899)";
 const PARTIAL_BG = "rgba(249, 115, 22, 0.4)";
-const MISSED_BG = "rgba(255,255,255,0.08)";
-const MISSED_TEXT = "rgba(255,255,255,0.3)";
 const TODAY = () => new Date().toISOString().slice(0, 10);
 
 type PillState = "complete" | "partial" | "missed";
@@ -34,64 +32,10 @@ function getPillState(dateStr: string, status: DayStatus | undefined, isToday: b
   return "missed";
 }
 
-function getStreakMilestone(streak: number): string {
-  if (streak <= 6) return "Building momentum 💪";
-  if (streak <= 13) return "One week strong 🔥";
-  if (streak <= 29) return "Two weeks in. This is becoming real.";
-  return "This is who you are now. 🌅";
-}
-
-/** Day of year 1–365; pick quote by index (dayOfYear - 1) % 30. */
-function getDayOfYear(): number {
-  const d = new Date();
-  const start = new Date(d.getFullYear(), 0, 0);
-  return Math.floor((d.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
-}
-
-const DAILY_QUOTES = [
-  "The soul becomes dyed with the color of its thoughts.",
-  "Begin at once to live, and count each day as a separate life.",
-  "We suffer more often in imagination than in reality.",
-  "It is not that we have a short time to live, but that we waste a lot of it.",
-  "Luck is what happens when preparation meets opportunity.",
-  "You have power over your mind—not outside events. Realize this, and you will find strength.",
-  "The best revenge is not to be like your enemy.",
-  "Waste no more time arguing what a good person should be. Be one.",
-  "First say to yourself what you would be; and then do what you have to do.",
-  "The happiness of your life depends upon the quality of your thoughts.",
-  "We are what we repeatedly do. Excellence, then, is not an act but a habit.",
-  "How long are you going to wait before you demand the best for yourself?",
-  "Don’t explain your philosophy. Embody it.",
-  "It’s not what happens to you, but how you react to it that matters.",
-  "The mind is not a vessel to be filled but a fire to be kindled.",
-  "He who lives in harmony with himself lives in harmony with the universe.",
-  "Very little is needed to make a happy life.",
-  "Accept the things to which fate binds you, and love the people with whom fate brings you together.",
-  "Each day provides its own gifts.",
-  "Begin each day by telling yourself: Today I shall meet with interference, ingratitude, arrogance.",
-  "When you arise in the morning, think of what a precious privilege it is to be alive.",
-  "The object of life is not to be on the side of the majority, but to escape finding oneself in the ranks of the insane.",
-  "No person has the power to have everything they want, but it is in their power not to want what they don’t have.",
-  "We are more often frightened than hurt; and we suffer more from imagination than from reality.",
-  "Life is very short and anxious for those who forget the past, neglect the present, and fear the future.",
-  "While we are postponing, life speeds by.",
-  "Difficulties strengthen the mind, as labor does the body.",
-  "It is the power of the mind to be unconquerable.",
-  "Only the educated are free.",
-  "Make the best use of what is in your power, and take the rest as it happens.",
-];
-
-function getQuoteForToday(): string {
-  const dayOfYear = getDayOfYear();
-  const index = (dayOfYear - 1) % DAILY_QUOTES.length;
-  return DAILY_QUOTES[index];
-}
-
 function getMonthGrid(year: number, month: number): (string | null)[][] {
   const first = new Date(year, month - 1, 1);
   const last = new Date(year, month, 0);
   const daysInMonth = last.getDate();
-  // Monday = 0 (first column)
   const startWeekday = (first.getDay() + 6) % 7;
   const grid: (string | null)[][] = [];
   let row: (string | null)[] = Array(7).fill(null);
@@ -112,7 +56,6 @@ function getMonthGrid(year: number, month: number): (string | null)[][] {
 }
 
 const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** Last 7 days: [6 days ago, ..., yesterday, today]. Today is rightmost. */
 function getLast7Dates(): string[] {
@@ -126,12 +69,21 @@ function getLast7Dates(): string[] {
 }
 
 function getDayLabel(dateStr: string): string {
-  return DAY_LABELS[new Date(dateStr + "T12:00:00").getDay()];
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return days[new Date(dateStr + "T12:00:00").getDay()];
 }
 
 function getDateNumber(dateStr: string): number {
   return new Date(dateStr + "T12:00:00").getDate();
 }
+
+/** Format date for Recent Activity: "Feb 20" */
+function formatActivityDate(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+const SECTION_HEADER_STYLE = "text-[10px] font-semibold uppercase tracking-[0.12em] text-white/50";
 
 export function ProgressTab() {
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -139,7 +91,7 @@ export function ProgressTab() {
   const [totalMornings, setTotalMornings] = useState(0);
   const [monthMap, setMonthMap] = useState<Record<string, DayStatus>>({});
   const [last7Map, setLast7Map] = useState<Record<string, DayStatus>>({});
-  const [todayDetail, setTodayDetail] = useState<TodayCompletionDetail | null | undefined>(undefined);
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const now = new Date();
@@ -149,16 +101,13 @@ export function ProgressTab() {
 
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       try {
         const [streaks, fallback] = await Promise.all([
           getUserStreaks(),
           fetchStreakData().catch(() => null),
         ]);
-
         if (cancelled) return;
-
         if (streaks && (streaks.current_streak > 0 || streaks.total_completions > 0)) {
           setCurrentStreak(streaks.current_streak);
           setLongestStreak(streaks.longest_streak);
@@ -177,7 +126,6 @@ export function ProgressTab() {
       }
       if (!cancelled) setLoading(false);
     })();
-
     return () => {
       cancelled = true;
     };
@@ -213,12 +161,12 @@ export function ProgressTab() {
 
   useEffect(() => {
     let cancelled = false;
-    getTodayCompletionDetail()
-      .then((detail) => {
-        if (!cancelled) setTodayDetail(detail ?? null);
+    getRecentActivity()
+      .then((list) => {
+        if (!cancelled) setRecentActivity(list);
       })
       .catch(() => {
-        if (!cancelled) setTodayDetail(null);
+        if (!cancelled) setRecentActivity([]);
       });
     return () => {
       cancelled = true;
@@ -230,10 +178,38 @@ export function ProgressTab() {
     month: "long",
     year: "numeric",
   });
+  const last7Dates = getLast7Dates();
+  const { t } = useLanguage();
 
   return (
-    <div className="space-y-6">
-      {/* A) Hero stats row */}
+    <div className="space-y-4">
+      {/* Progress header */}
+      <div
+        className="rounded-[22px] border backdrop-blur-xl"
+        style={CARD_STYLE}
+      >
+        <div className="mb-1 flex items-center gap-3">
+          <Flame className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
+          <h2
+            className="font-bold text-white"
+            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
+          >
+            {t.progress_title}
+          </h2>
+        </div>
+        <p
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.3)",
+            margin: "2px 0 0",
+            lineHeight: 1.4,
+          }}
+        >
+          {t.progress_subtitle}
+        </p>
+      </div>
+
+      {/* 1. STREAK STATS ROW */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div
           className="flex flex-col items-center justify-center rounded-[14px] border text-center"
@@ -241,12 +217,19 @@ export function ProgressTab() {
             ...CARD_STYLE,
             padding: "18px 12px",
             borderRadius: 14,
+            opacity: currentStreak === 0 && !loading ? 0.7 : 1,
+            background: currentStreak === 0 && !loading ? "rgba(255,255,255,0.02)" : CARD_STYLE.background,
+            borderColor: currentStreak === 0 && !loading ? "rgba(255,255,255,0.04)" : undefined,
+            boxShadow: currentStreak > 0 ? "0 0 20px rgba(249,115,22,0.1)" : undefined,
           }}
         >
           <span className="text-2xl leading-none" aria-hidden>🔥</span>
           <span className="mt-1.5 text-xl font-semibold tabular-nums text-white/95 sm:text-2xl">
             {loading ? "…" : currentStreak}
           </span>
+          {currentStreak === 0 && !loading && (
+            <span className="mt-1 text-[10px] font-medium text-white/40">Complete today</span>
+          )}
           <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-white/50">
             Current
           </span>
@@ -285,31 +268,23 @@ export function ProgressTab() {
         </div>
       </div>
 
-      {/* B) Calendar */}
+      {/* 2. LAST 7 DAYS */}
       <div className="rounded-[22px] border backdrop-blur-xl" style={CARD_STYLE}>
         {totalMornings >= 30 ? (
           <>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/70">
-              {monthLabel}
-            </h2>
+            <h2 className={`mb-3 ${SECTION_HEADER_STYLE}`}>{monthLabel}</h2>
             <div className="overflow-x-auto">
               <div className="inline-block min-w-0">
                 <div className="mb-2 grid grid-cols-7 gap-1 sm:gap-1.5">
                   {WEEKDAY_LABELS.map((label, i) => (
-                    <div
-                      key={`weekday-${i}`}
-                      className="text-center font-mono text-[10px] text-white/40"
-                    >
+                    <div key={`weekday-${i}`} className="text-center font-mono text-[10px] text-white/40">
                       {label}
                     </div>
                   ))}
                 </div>
                 <div className="flex flex-col gap-1 sm:gap-1.5">
                   {grid.map((row, ri) => (
-                    <div
-                      key={ri}
-                      className="grid grid-cols-7 gap-1 sm:gap-1.5"
-                    >
+                    <div key={ri} className="grid grid-cols-7 gap-1 sm:gap-1.5">
                       {row.map((dateStr, ci) => {
                         if (dateStr === null) {
                           return (
@@ -322,7 +297,6 @@ export function ProgressTab() {
                         const status = monthMap[dateStr] ?? "none";
                         const isToday = dateStr === todayKey;
                         const isFuture = dateStr > todayKey;
-
                         return (
                           <div
                             key={dateStr}
@@ -350,46 +324,80 @@ export function ProgressTab() {
           </>
         ) : (
           <>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/70">
-              Last 7 days
-            </h2>
-            <div className="flex justify-between gap-2 overflow-x-auto pb-1">
-              {getLast7Dates().map((dateStr) => {
+            <h2 className={`mb-4 ${SECTION_HEADER_STYLE}`}>Last 7 days</h2>
+            <div className="flex items-center justify-between gap-0 overflow-x-auto pb-1">
+              {last7Dates.map((dateStr, idx) => {
                 const status = last7Map[dateStr];
                 const isToday = dateStr === todayKey;
                 const state = getPillState(dateStr, status, isToday);
-
-                const bg =
-                  state === "complete"
-                    ? GRADIENT_FULL
-                    : state === "partial"
-                      ? PARTIAL_BG
-                      : MISSED_BG;
-                const dateColor = state === "missed" ? MISSED_TEXT : "rgba(255,255,255,1)";
+                const completed = state === "complete" || state === "partial";
+                const todayDone = isToday && completed;
+                const nextStr = idx < last7Dates.length - 1 ? last7Dates[idx + 1] : null;
+                const nextStatus = nextStr ? last7Map[nextStr] : undefined;
+                const nextCompleted =
+                  nextStr &&
+                  (getPillState(nextStr, nextStatus, nextStr === todayKey) === "complete" ||
+                    getPillState(nextStr, nextStatus, nextStr === todayKey) === "partial");
+                const showConnectorRight = nextStr !== null && completed && nextCompleted;
 
                 return (
-                  <div
-                    key={dateStr}
-                    className="flex shrink-0 flex-col items-center gap-1.5"
-                  >
-                    <span className="font-mono text-[10px] text-white/50">
-                      {getDayLabel(dateStr)}
-                    </span>
-                    <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border-2 transition-all ${
-                        isToday ? "border-white ring-2 ring-white/40" : "border-transparent"
-                      }`}
-                      style={{ background: bg }}
-                      title={dateStr}
-                      aria-label={`${dateStr}, ${state}${isToday ? ", today" : ""}`}
-                    >
-                      <span
-                        className="font-mono text-xs font-medium tabular-nums"
-                        style={{ color: dateColor }}
+                  <div key={dateStr} className="flex flex-1 min-w-0 shrink-0 items-center justify-center gap-0">
+                    {idx > 0 && (
+                      <div
+                        className="h-[2px] flex-1 min-w-[6px] max-w-[16px] shrink-0"
+                        style={{
+                          background:
+                            completed &&
+                            (() => {
+                              const prevStr = last7Dates[idx - 1];
+                              const prevStatus = last7Map[prevStr];
+                              const prevCompleted =
+                                getPillState(prevStr, prevStatus, prevStr === todayKey) === "complete" ||
+                                getPillState(prevStr, prevStatus, prevStr === todayKey) === "partial";
+                              return prevCompleted;
+                            })()
+                              ? "linear-gradient(90deg, rgba(249,115,22,0.5), rgba(236,72,153,0.5))"
+                              : "rgba(255,255,255,0.06)",
+                        }}
+                        aria-hidden
+                      />
+                    )}
+                    <div className="flex flex-col items-center gap-1.5">
+                      <span className="font-mono text-[10px] text-white/50">{getDayLabel(dateStr)}</span>
+                      <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all"
+                        style={{
+                          background: completed ? GRADIENT_FULL : "transparent",
+                          borderStyle: completed ? "solid" : "dashed",
+                          borderColor: todayDone
+                            ? "transparent"
+                            : isToday
+                              ? "rgba(249,115,22,0.4)"
+                              : completed
+                                ? "transparent"
+                                : "rgba(255,255,255,0.15)",
+                          boxShadow: todayDone ? "0 0 12px rgba(249,115,22,0.4)" : "none",
+                          color: completed ? "white" : isToday ? "rgba(249,115,22,0.6)" : "rgba(255,255,255,0.2)",
+                        }}
+                        title={dateStr}
+                        aria-label={`${dateStr}, ${state}${isToday ? ", today" : ""}`}
                       >
-                        {getDateNumber(dateStr)}
-                      </span>
+                        <span className="font-mono text-sm font-semibold tabular-nums">
+                          {getDateNumber(dateStr)}
+                        </span>
+                      </div>
                     </div>
+                    {idx < last7Dates.length - 1 && (
+                      <div
+                        className="h-[2px] flex-1 min-w-[6px] max-w-[16px] shrink-0"
+                        style={{
+                          background: showConnectorRight
+                            ? "linear-gradient(90deg, rgba(249,115,22,0.5), rgba(236,72,153,0.5))"
+                            : "rgba(255,255,255,0.06)",
+                        }}
+                        aria-hidden
+                      />
+                    )}
                   </div>
                 );
               })}
@@ -398,64 +406,42 @@ export function ProgressTab() {
         )}
       </div>
 
-      {/* C) Quote / checklist / morning complete */}
-      <div
-        className="rounded-[22px] border px-5 py-5 text-center backdrop-blur-xl"
-        style={CARD_STYLE}
-      >
-        {todayDetail === undefined ? (
-          <p className="text-lg text-white/70 sm:text-xl" style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
-            …
-          </p>
-        ) : todayDetail === null || (!todayDetail.fully_completed && !todayDetail.protocol_done && !todayDetail.constitution_done && !todayDetail.keystone_done) ? (
-          <p className="text-lg leading-relaxed text-white/90 sm:text-xl" style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}>
-            {getQuoteForToday()}
-          </p>
-        ) : todayDetail.fully_completed ? (
-          <div
-            className="rounded-2xl border p-5"
-            style={{
-              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(74,222,128,0.04))",
-              borderColor: "rgba(34,197,94,0.12)",
-            }}
-          >
-            <p className="text-lg font-bold text-white sm:text-xl">Morning complete 🌅</p>
-            <p className="mt-1 text-sm text-white/70">{getStreakMilestone(currentStreak)}</p>
-          </div>
+      {/* 3. RECENT ACTIVITY */}
+      <div className="rounded-[22px] border backdrop-blur-xl" style={CARD_STYLE}>
+        <h2 className={`mb-4 ${SECTION_HEADER_STYLE}`}>Recent activity</h2>
+        {recentActivity.length === 0 ? (
+          <p className="text-sm text-white/40">Complete your first morning to see activity here.</p>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-left">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">Today</span>
-            <ul className="flex w-full max-w-[220px] flex-col gap-2">
-              {[
-                { done: todayDetail.protocol_done, label: "Protocol" },
-                { done: todayDetail.constitution_done, label: "Constitution" },
-                { done: todayDetail.keystone_done, label: "Keystone" },
-              ].map(({ done, label }) => (
-                <li
-                  key={label}
-                  className="flex items-center gap-3 rounded-[14px] border px-4 py-3 text-sm text-white/90"
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    borderColor: "rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-white"
-                    style={{
-                      background: done ? "linear-gradient(135deg, #f97316, #ec4899)" : "rgba(255,255,255,0.06)",
-                      border: done ? "none" : "1px solid rgba(255,255,255,0.1)",
-                    }}
-                  >
-                    {done ? "✓" : "○"}
-                  </span>
-                  {label}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="flex flex-col gap-2">
+            {recentActivity.map((item) => (
+              <li
+                key={item.date}
+                className="flex items-start gap-3 rounded-xl border px-[14px] py-3"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  borderColor: "rgba(255,255,255,0.04)",
+                  borderRadius: 12,
+                }}
+              >
+                <span
+                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: "#f97316" }}
+                  aria-hidden
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="font-medium text-white/90">{formatActivityDate(item.date)}</span>
+                    <span className="text-xs text-white/50">{item.stepsLabel}</span>
+                  </div>
+                  {item.keystoneText ? (
+                    <p className="mt-1 text-sm text-white/70 line-clamp-2">{item.keystoneText}</p>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-
     </div>
   );
 }

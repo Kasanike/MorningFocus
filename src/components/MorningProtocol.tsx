@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight, Timer } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
+import { useStreak } from "@/context/StreakContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import {
   fetchProtocolSteps,
@@ -204,6 +205,8 @@ export function MorningProtocol({
     }
   }, [completed, steps.length, setProgress]);
 
+  const refreshStreak = useStreak()?.refresh;
+
   useEffect(() => {
     if (
       steps.length === 0 ||
@@ -212,11 +215,14 @@ export function MorningProtocol({
     ) return;
     protocolDoneSyncedRef.current = true;
     setProtocolDoneForToday()
-      .then(() => setShowCompletionCard(true))
+      .then(() => {
+        setShowCompletionCard(true);
+        void refreshStreak?.();
+      })
       .catch(() => {
         protocolDoneSyncedRef.current = false;
       });
-  }, [steps.length, completed]);
+  }, [steps.length, completed, refreshStreak]);
 
   const persist = useCallback((next: ProtocolStep[]) => {
     setSteps(next);
@@ -315,18 +321,21 @@ export function MorningProtocol({
       style={{
         background: "rgba(255,255,255,0.04)",
         borderColor: "rgba(255,255,255,0.06)",
-        padding: "22px 20px 24px",
+        padding: "22px 20px",
       }}
       aria-label={t.morning_protocol_aria}
     >
       {/* Row 1: title + edit icon */}
       <div className="mb-1 flex items-start justify-between">
-        <h2
-          className="font-bold text-white"
-          style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
-        >
-          {t.morning_protocol_title}
-        </h2>
+        <div className="flex items-center gap-3">
+          <Timer className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
+          <h2
+            className="font-bold text-white"
+            style={{ fontSize: 22, margin: 0, letterSpacing: "-0.01em" }}
+          >
+            {t.morning_protocol_title}
+          </h2>
+        </div>
         {!showCompletionCard && (
           <button
             type="button"
@@ -562,6 +571,7 @@ export function MorningProtocol({
 
             try {
               await saveTimerSession(results);
+              refreshStreak?.();
             } catch {
               // non-critical — session still marked complete locally
             }

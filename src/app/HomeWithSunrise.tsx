@@ -87,7 +87,7 @@ export function HomeWithSunrise() {
     <>
       <SunriseBackground currentStep={currentStep} totalSteps={totalSteps} />
 
-      <main className="relative z-10 mx-auto min-h-screen max-w-2xl pb-16">
+      <main className="relative z-10 mx-auto min-h-screen max-w-2xl pb-[90px] sm:pb-0">
         <Header />
 
         {!isReady || bootstrap?.loading ? (
@@ -105,7 +105,7 @@ export function HomeWithSunrise() {
         ) : isExpired ? (
           <Paywall userStats={accessGate.status === "expired" ? accessGate.stats : null} />
         ) : (
-          <div className="animate-fade-in mt-2 px-4 sm:px-8 sm:mt-3">
+          <div className="animate-fade-in px-5" style={{ paddingTop: 0 }}>
             {accessGate.status === "trial" && (
               <TrialBanner daysLeft={accessGate.daysLeft} />
             )}

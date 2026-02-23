@@ -59,6 +59,17 @@ function formatMinutes(seconds: number): string {
   return `${mins}m ${secs}s`;
 }
 
+// Step list color progression (ready screen summary)
+const READY_STEP_COLORS = [
+  { bg: 'rgba(167,139,250,0.06)', border: 'rgba(167,139,250,0.10)', num: 'rgba(167,139,250,0.6)' },
+  { bg: 'rgba(110,195,244,0.05)', border: 'rgba(110,195,244,0.08)', num: 'rgba(110,195,244,0.55)' },
+  { bg: 'rgba(180,210,140,0.05)', border: 'rgba(180,210,140,0.08)', num: 'rgba(180,210,140,0.55)' },
+  { bg: 'rgba(251,146,60,0.06)', border: 'rgba(251,146,60,0.10)', num: 'rgba(251,146,60,0.6)' },
+];
+function getReadyStepColor(index: number) {
+  return READY_STEP_COLORS[index % READY_STEP_COLORS.length] ?? READY_STEP_COLORS[0];
+}
+
 // Gentle chime using Web Audio API
 function playChime() {
   try {
@@ -109,6 +120,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState(0);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [completeFlash, setCompleteFlash] = useState(false);
 
   // Refs
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -253,6 +265,8 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
   };
 
   const finishEarly = () => {
+    setCompleteFlash(true);
+    if (typeof window !== 'undefined') window.setTimeout(() => setCompleteFlash(false), 300);
     if (soundEnabled) playChime();
     setPhase('step-complete');
     setAutoAdvanceCountdown(3);
@@ -279,10 +293,11 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
 
   const overallProgress = (currentStepIndex + stepProgress) / steps.length;
 
-  // Circle progress for the timer (r=126 for larger ring, 6px stroke)
+  // Circle progress for the timer (r=126, 4px stroke)
   const timerRingRadius = 126;
   const circumference = 2 * Math.PI * timerRingRadius;
-  const strokeDashoffset = circumference * (1 - stepProgress);
+  const doneProgress = phase === 'step-complete' ? 1 : stepProgress;
+  const strokeDashoffset = circumference * (1 - doneProgress);
 
   // ============================================================
   // RENDER: READY SCREEN
@@ -326,21 +341,34 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
           {/* Scrollable steps list */}
           <div style={styles.readyStepsScroll}>
             <div style={styles.stepPreviewList}>
-              {steps.map((step, i) => (
-                <div key={step.id} style={styles.stepPreviewItem}>
-                  <span style={styles.stepPreviewNum}>{String(i + 1).padStart(2, '0')}</span>
-                  <span style={styles.stepPreviewTitle}>{step.title}</span>
-                  <span style={styles.stepPreviewDuration}>{step.duration}m</span>
-                </div>
-              ))}
+              {steps.map((step, i) => {
+                const stepColor = getReadyStepColor(i);
+                return (
+                  <div
+                    key={step.id}
+                    style={{
+                      ...styles.stepPreviewItem,
+                      background: stepColor.bg,
+                      border: `1px solid ${stepColor.border}`,
+                    }}
+                  >
+                    <span style={{ ...styles.stepPreviewNum, color: stepColor.num }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span style={styles.stepPreviewTitle}>{step.title}</span>
+                    <span style={styles.stepPreviewDuration}>{step.duration}m</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Fixed bottom button with safe area */}
           <div style={styles.readyBottom}>
-            <button onClick={beginMorning} style={styles.startButton}>
-              <Play size={20} fill="white" />
-              <span>Begin your morning</span>
+            <button onClick={beginMorning} style={styles.readyBeginButton}>
+              <span style={styles.readyBeginShine} aria-hidden />
+              <Play size={20} fill="white" style={{ position: 'relative', zIndex: 1 }} />
+              <span style={{ position: 'relative', zIndex: 1 }}>Begin your morning</span>
             </button>
           </div>
         </div>
@@ -468,20 +496,31 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
         <div style={styles.timerArea}>
           {/* Step label + dot progress */}
           <div style={styles.stepLabel}>
-            <span style={styles.stepLabelNum}>
+            <span
+              key={currentStepIndex}
+              className="step-label-fade"
+              style={styles.stepLabelNum}
+            >
               Step {currentStepIndex + 1} of {steps.length}
             </span>
             <div style={styles.stepDots}>
-              {steps.map((_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    ...styles.stepDot,
-                    ...(i === currentStepIndex ? styles.stepDotActive : {}),
-                  }}
-                  aria-hidden
-                />
-              ))}
+              {steps.map((_, i) => {
+                const isCompleted = i < currentStepIndex;
+                const isCurrent = i === currentStepIndex;
+                const isUpcoming = i > currentStepIndex;
+                return (
+                  <span
+                    key={i}
+                    style={{
+                      ...styles.stepDot,
+                      ...(isCompleted ? styles.stepDotCompleted : {}),
+                      ...(isCurrent ? styles.stepDotActive : {}),
+                      ...(isUpcoming ? styles.stepDotUpcoming : {}),
+                    }}
+                    aria-hidden
+                  />
+                );
+              })}
             </div>
           </div>
 
@@ -492,27 +531,34 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
           )}
 
           {/* Circular timer */}
-          <div style={styles.timerCircleWrapper}>
+          <div
+            style={styles.timerCircleWrapper}
+            className={phase === 'step-complete' ? 'timer-done-ring-pulse' : undefined}
+          >
             <svg width="280" height="280" viewBox="0 0 280 280">
               <defs>
-                <linearGradient id="timerRingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#F4A261" />
+                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f97316" />
+                  <stop offset="100%" stopColor="#ec4899" />
                 </linearGradient>
               </defs>
-              {/* Background circle */}
+              {/* Track (background circle) */}
               <circle
-                cx="140" cy="140" r={timerRingRadius}
+                cx="140"
+                cy="140"
+                r={timerRingRadius}
                 fill="none"
-                stroke="rgba(255,255,255,0.06)"
-                strokeWidth="6"
+                stroke="rgba(255,255,255,0.08)"
+                strokeWidth="4"
               />
-              {/* Progress circle — gradient stroke */}
+              {/* Progress arc — gradient stroke */}
               <circle
-                cx="140" cy="140" r={timerRingRadius}
+                cx="140"
+                cy="140"
+                r={timerRingRadius}
                 fill="none"
-                stroke={phase === 'step-complete' ? '#7bc47f' : 'url(#timerRingGradient)'}
-                strokeWidth="6"
+                stroke="url(#timerGradient)"
+                strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
@@ -524,11 +570,13 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
             <div style={styles.timerText}>
               {phase === 'step-complete' ? (
                 <div style={styles.stepDoneInner}>
-                  <CheckCircle2 size={32} color="#7bc47f" />
+                  <span className="timer-done-check-pop" style={{ display: 'inline-flex' }}>
+                    <CheckCircle2 size={32} color="rgba(34,197,94,0.9)" />
+                  </span>
                   <span style={styles.timerDoneText}>Done</span>
                   {!isLastStep && (
                     <span style={styles.autoAdvanceText}>
-                      Next in {autoAdvanceCountdown}...
+                      Next step in <span style={styles.autoAdvanceNumber}>{autoAdvanceCountdown}</span>s
                     </span>
                   )}
                 </div>
@@ -543,7 +591,7 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
             </div>
           </div>
 
-          {/* Controls */}
+          {/* Controls — bottom center, Skip | Pause/Resume (primary) | Complete */}
           <div style={styles.controls}>
             {phase === 'step-complete' ? (
               <div style={styles.stepCompleteActions}>
@@ -564,22 +612,26 @@ export default function ProtocolTimer({ steps, onComplete, onClose }: ProtocolTi
               </div>
             ) : (
               <>
-                <button onClick={skipStep} style={styles.circleButtonSmall} aria-label="Skip step">
-                  <SkipForward size={22} color="white" />
+                <button onClick={skipStep} style={styles.controlSecondary} aria-label="Skip step">
+                  <SkipForward size={22} color="rgba(255,255,255,0.5)" />
                 </button>
 
                 {phase === 'paused' ? (
-                  <button onClick={resumeTimer} style={styles.primaryRoundButton} aria-label="Resume">
-                    <Play size={24} fill="white" />
+                  <button onClick={resumeTimer} style={styles.controlPrimary} className="timer-primary-btn" aria-label="Resume">
+                    <Play size={24} fill="white" color="white" />
                   </button>
                 ) : (
-                  <button onClick={pauseTimer} style={styles.primaryRoundButton} aria-label="Pause">
-                    <Pause size={24} fill="white" />
+                  <button onClick={pauseTimer} style={styles.controlPrimary} className="timer-primary-btn" aria-label="Pause">
+                    <Pause size={24} fill="white" color="white" />
                   </button>
                 )}
 
-                <button onClick={finishEarly} style={styles.circleButtonSmall} aria-label="Mark done">
-                  <Check size={22} color="white" />
+                <button
+                  onClick={finishEarly}
+                  style={completeFlash ? styles.controlCompleteFlash : styles.controlSecondary}
+                  aria-label="Mark done"
+                >
+                  <Check size={22} color={completeFlash ? 'rgba(34,197,94,0.8)' : 'rgba(255,255,255,0.5)'} />
                 </button>
               </>
             )}
@@ -695,7 +747,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'none',
     border: 'none',
     color: 'rgba(255, 255, 255, 0.7)',
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.8rem',
     cursor: 'pointer',
     padding: '8px 12px',
@@ -718,14 +770,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '12px',
   },
   readyTitle: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '1.35rem',
     color: '#f0e8e0',
     marginBottom: '4px',
     textAlign: 'center' as const,
   },
   readySubtitle: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.75rem',
     color: 'rgba(240, 232, 224, 0.5)',
     marginBottom: 0,
@@ -741,6 +793,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexShrink: 0,
     padding: '16px 20px',
     paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))',
+  },
+  readyBeginButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    width: '100%',
+    position: 'relative' as const,
+    overflow: 'hidden',
+    background: 'linear-gradient(135deg, #f97316 0%, #ef4444 40%, #ec4899 100%)',
+    color: '#fff',
+    padding: '16px 0',
+    borderRadius: '18px',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
+    fontSize: '17px',
+    fontWeight: 700,
+    border: 'none',
+    cursor: 'pointer',
+    boxShadow: '0 8px 32px rgba(249,115,22,0.3)',
+  },
+  readyBeginShine: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+    background: 'linear-gradient(to bottom, rgba(255,255,255,0.12), transparent)',
+    pointerEvents: 'none' as const,
+    borderTopLeftRadius: '18px',
+    borderTopRightRadius: '18px',
   },
 
   // Step preview list
@@ -762,19 +844,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '4px',
   },
   stepPreviewNum: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.65rem',
     color: 'rgba(240, 232, 224, 0.35)',
     minWidth: '20px',
   },
   stepPreviewTitle: {
-    fontFamily: "'IBM Plex Sans', sans-serif",
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '0.9rem',
     color: '#f0e8e0',
     flex: 1,
   },
   stepPreviewDuration: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.7rem',
     color: 'rgba(240, 232, 224, 0.45)',
   },
@@ -808,7 +890,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'none',
     border: 'none',
     color: 'rgba(255, 255, 255, 0.75)',
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.8rem',
     cursor: 'pointer',
     padding: '8px 12px',
@@ -827,7 +909,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: 'none',
     padding: 0,
     cursor: 'pointer',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '0.75rem',
     color: 'rgba(255, 255, 255, 0.5)',
     textDecoration: 'none',
@@ -840,16 +922,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     gap: '10px',
     width: '100%',
-    background: 'linear-gradient(135deg, #d4856a, #c46b6b)',
+    background: 'linear-gradient(135deg, #f97316, #ec4899)',
     color: '#fff',
-    padding: '16px 32px',
-    borderRadius: '12px',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontSize: '0.9rem',
-    fontWeight: 600,
+    padding: '16px 0',
+    borderRadius: '16px',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
+    fontSize: '16px',
+    fontWeight: 700,
     border: 'none',
     cursor: 'pointer',
-    boxShadow: '0 4px 20px rgba(196, 107, 107, 0.25)',
+    boxShadow: '0 6px 24px rgba(249,115,22,0.3)',
   },
 
   // ---- RUNNING SCREEN ----
@@ -879,7 +961,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'width 1s linear',
   },
   overallProgressText: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.65rem',
     color: 'rgba(240, 232, 224, 0.4)',
     whiteSpace: 'nowrap' as const,
@@ -898,7 +980,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '10px',
   },
   stepLabelNum: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.7rem',
     color: 'rgba(240, 232, 224, 0.35)',
     textTransform: 'uppercase' as const,
@@ -908,21 +990,29 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '6px',
+    gap: '8px',
     marginTop: '8px',
   },
   stepDot: {
-    width: '6px',
-    height: '6px',
+    width: '8px',
+    height: '8px',
     borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.2)',
-    transition: 'background 0.2s ease',
+    transition: 'all 0.3s ease',
+  },
+  stepDotCompleted: {
+    background: 'linear-gradient(135deg, #f97316, #ec4899)',
   },
   stepDotActive: {
-    background: 'rgba(255, 255, 255, 0.85)',
+    width: '10px',
+    height: '10px',
+    background: '#fff',
+    boxShadow: '0 0 8px rgba(255,255,255,0.3)',
+  },
+  stepDotUpcoming: {
+    background: 'rgba(255,255,255,0.15)',
   },
   stepTitle: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '2rem',
     fontWeight: 700,
     letterSpacing: '-0.02em',
@@ -932,7 +1022,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: 1.2,
   },
   stepDescription: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.75rem',
     color: 'rgba(240, 232, 224, 0.4)',
     textAlign: 'center' as const,
@@ -956,14 +1046,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
   },
   timerDigits: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '3rem',
     fontWeight: 200,
     color: '#f0e8e0',
     letterSpacing: '-0.02em',
   },
   timerOfTotal: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.7rem',
     color: 'rgba(240, 232, 224, 0.6)',
     marginTop: '4px',
@@ -977,59 +1067,78 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
   },
   timerDoneText: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontSize: '1.4rem',
-    fontWeight: 600,
-    color: '#7bc47f',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
+    fontSize: '24px',
+    fontWeight: 700,
+    color: 'rgba(34,197,94,0.8)',
   },
   autoAdvanceText: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    fontSize: '0.7rem',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
+    fontSize: '0.85rem',
     fontWeight: 400,
     color: 'rgba(240, 232, 224, 0.6)',
   },
+  autoAdvanceNumber: {
+    fontWeight: 700,
+    color: 'rgba(249,115,22,0.8)',
+  },
 
-  // Controls — three circles: Skip (52px) | Pause (72px) | Done (52px)
+  // Controls — bottom center: Skip (48px) | Pause/Resume (64px primary) | Complete (48px), gap 20px, ~100px from bottom
   controls: {
+    position: 'absolute' as const,
+    bottom: '100px',
+    left: 0,
+    right: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '28px',
-    width: '100%',
+    gap: '20px',
   },
-  circleButtonSmall: {
-    width: '52px',
-    height: '52px',
+  controlSecondary: {
+    width: '48px',
+    height: '48px',
     borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255,255,255,0.08)',
     border: 'none',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#fff',
     flexShrink: 0,
   },
-  primaryRoundButton: {
-    width: '72px',
-    height: '72px',
+  controlPrimary: {
+    width: '64px',
+    height: '64px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #d4856a, #c46b6b)',
+    background: 'linear-gradient(135deg, #f97316, #ec4899)',
     border: 'none',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 4px 24px rgba(196, 107, 107, 0.3)',
+    boxShadow: '0 4px 20px rgba(249,115,22,0.35)',
     color: '#fff',
     flexShrink: 0,
+  },
+  controlCompleteFlash: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    background: 'rgba(34,197,94,0.2)',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    transition: 'background 0.2s ease',
   },
 
   // Paused badge
   pausedBadge: {
     position: 'absolute' as const,
     top: '6%',
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.7rem',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.15em',
@@ -1062,7 +1171,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderTop: '1px solid rgba(255,255,255,0.08)',
   },
   bottomSheetTitle: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '1.1rem',
     fontWeight: 600,
     color: '#f0e8e0',
@@ -1081,7 +1190,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid rgba(255,255,255,0.2)',
     background: 'transparent',
     color: 'rgba(255, 255, 255, 0.9)',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '0.95rem',
     fontWeight: 600,
     cursor: 'pointer',
@@ -1093,7 +1202,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: 'none',
     background: 'linear-gradient(135deg, #a78bfa, #f472b6)',
     color: '#fff',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '0.95rem',
     fontWeight: 600,
     cursor: 'pointer',
@@ -1113,13 +1222,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '24px',
   },
   finishedTitle: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '2rem',
     color: '#f0e8e0',
     marginBottom: '8px',
   },
   finishedSubtitle: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.85rem',
     color: 'rgba(240, 232, 224, 0.5)',
     marginBottom: '32px',
@@ -1171,12 +1280,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
   },
   resultTitle: {
-    fontFamily: "'IBM Plex Sans', sans-serif",
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '0.85rem',
     color: '#f0e8e0',
   },
   resultTime: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.7rem',
     color: 'rgba(240, 232, 224, 0.4)',
   },
@@ -1201,12 +1310,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '4px',
   },
   statValue: {
-    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontFamily: 'var(--font-dm-sans), var(--font-geist-sans), system-ui, sans-serif',
     fontSize: '1.3rem',
     color: '#f0e8e0',
   },
   statLabel: {
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: 'var(--font-geist-mono), monospace',
     fontSize: '0.6rem',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.1em',
