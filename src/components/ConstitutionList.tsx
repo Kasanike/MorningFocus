@@ -253,13 +253,16 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
 
   useEffect(() => {
     const allChecked = principles.length > 0 && principles.every((p) => acknowledged[p.id]);
-    if (!allChecked || constitutionSyncedRef.current) return;
+    if (!allChecked) return;
+    if (constitutionSyncedRef.current) {
+      setShowCompletionCard(true);
+      return;
+    }
     constitutionSyncedRef.current = true;
-    setConstitutionDoneForToday()
-      .then(() => setShowCompletionCard(true))
-      .catch(() => {
-        constitutionSyncedRef.current = false;
-      });
+    setShowCompletionCard(true);
+    setConstitutionDoneForToday().catch(() => {
+      constitutionSyncedRef.current = false;
+    });
   }, [principles.length, acknowledged]);
 
   const handleCheck = (id: string) => {

@@ -208,17 +208,17 @@ export function MorningProtocol({
   const refreshStreak = useStreak()?.refresh;
 
   useEffect(() => {
-    if (
-      steps.length === 0 ||
-      Object.values(completed).filter(Boolean).length !== steps.length ||
-      protocolDoneSyncedRef.current
-    ) return;
+    const completedCount = Object.values(completed).filter(Boolean).length;
+    const allDone = steps.length > 0 && completedCount === steps.length;
+    if (!allDone) return;
+    if (protocolDoneSyncedRef.current) {
+      setShowCompletionCard(true);
+      return;
+    }
     protocolDoneSyncedRef.current = true;
+    setShowCompletionCard(true);
     setProtocolDoneForToday()
-      .then(() => {
-        setShowCompletionCard(true);
-        void refreshStreak?.();
-      })
+      .then(() => void refreshStreak?.())
       .catch(() => {
         protocolDoneSyncedRef.current = false;
       });
