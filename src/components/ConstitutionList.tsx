@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, ChevronRight, Play, Pause, Square, Check, BookOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronRight, Play, Square, Check, BookOpen } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -14,7 +14,6 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { trackConstitutionRead } from "@/lib/analytics";
 import { getTodayCompletionDetail, setConstitutionDoneForToday } from "@/lib/streak";
-import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 
 export interface Principle {
   id: string;
@@ -93,19 +92,6 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const constitutionSyncedRef = useRef(false);
 
-  const { texts: speechTexts, delaysAfter: speechDelays } = useMemo(() => {
-    const t: string[] = [];
-    const d: number[] = [];
-    principles.forEach((p) => {
-      t.push(p.text);
-      t.push((p.subtitle ?? "").trim());
-      d.push(500);
-      d.push(1000);
-    });
-    if (d.length > 0) d[d.length - 1] = 0;
-    return { texts: t, delaysAfter: d };
-  }, [principles]);
-
   const handleListenComplete = useCallback(() => {
     const allChecked: Record<string, boolean> = {};
     principles.forEach((p) => {
@@ -126,46 +112,87 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
       .catch(() => {});
   }, [principles]);
 
-  const {
-    play: startListen,
-    pause: pauseListen,
-    resume: resumeListen,
-    stop: stopListen,
-    isPlaying: isListenPlaying,
-    isPaused: isListenPaused,
-    currentIndex: listenSegmentIndex,
-    isSupported: isSpeechSupported,
-  } = useTextToSpeech({
-    texts: speechTexts,
-    delaysAfter: speechDelays,
-    rate: 0.9,
-    pitch: 1,
-    onProgress: () => {},
-    onComplete: handleListenComplete,
-  });
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const listenPrincipleIndex = listenSegmentIndex < 0 ? -1 : Math.floor(listenSegmentIndex / 2);
-  const isListening = isListenPlaying || isListenPaused;
-
-  useEffect(() => {
-    if (!isListening) return;
-    return () => {
-      stopListen();
-    };
-  }, [isListening, stopListen]);
-
-  const handleListenClick = useCallback(() => {
-    if (!isSpeechSupported) {
-      setToastMessage(t.constitution_audio_unsupported);
+  const handleListen = useCallback(async () => {
+    if (isSpeaking) {
+      audioRef.current?.pause();
+      if (audioRef.current) audioRef.current.currentTime = 0;
+      setIsSpeaking(false);
       return;
     }
-    if (isListening) {
-      stopListen();
-      startListen();
-    } else {
-      startListen();
+
+    const text = principles
+      .map((p) => (p.subtitle ? `${p.text}. ${p.subtitle}` : p.text))
+      .join(". ");
+    if (!text.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      let userVoice = "onyx";
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("tts_voice")
+          .eq("id", user.id)
+          .single();
+        userVoice = profile?.tts_voice ?? "onyx";
+      }
+
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, voice: userVoice }),
+      });
+
+      if (!res.ok) {
+        setToastMessage(t.constitution_audio_load_failed);
+        return;
+      }
+
+      const blob = await res.blob();
+      const playbackUrl = URL.createObjectURL(blob);
+
+      const audio = new Audio(playbackUrl);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(playbackUrl);
+        setIsSpeaking(false);
+        handleListenComplete();
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(playbackUrl);
+        setIsSpeaking(false);
+        setIsLoading(false);
+      };
+
+      try {
+        await audio.play();
+        setIsSpeaking(true);
+      } catch (playErr) {
+        URL.revokeObjectURL(playbackUrl);
+        const isBlocked =
+          playErr instanceof Error && (playErr.name === "NotAllowedError" || playErr.name === "NotSupportedError");
+        setToastMessage(isBlocked ? t.constitution_playback_tap_again : t.constitution_audio_load_failed);
+      }
+    } catch {
+      setToastMessage(t.constitution_audio_load_failed);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isSpeechSupported, isListening, stopListen, startListen, t.constitution_audio_unsupported]);
+  }, [
+    isSpeaking,
+    principles,
+    handleListenComplete,
+    t.constitution_audio_load_failed,
+    t.constitution_playback_tap_again,
+  ]);
 
   useEffect(() => {
     if (!toastMessage) return;
@@ -360,8 +387,9 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleListenClick}
-              className="flex items-center gap-1.5 rounded-[10px] border px-3.5 py-1.5 text-xs font-semibold transition-colors"
+              onClick={handleListen}
+              disabled={isLoading}
+              className="flex items-center gap-1.5 rounded-[10px] border px-3.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60"
               style={
                 showCompletionCard
                   ? {
@@ -375,12 +403,19 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                       color: "rgba(249,115,22,0.85)",
                     }
               }
-              aria-label={showCompletionCard ? t.constitution_listened : t.constitution_listen}
+              aria-label={isLoading ? undefined : isSpeaking ? "Stop" : t.constitution_listen}
             >
               {showCompletionCard ? (
                 <>
                   <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
                   {t.constitution_listened}
+                </>
+              ) : isLoading ? (
+                "Preparing"
+              ) : isSpeaking ? (
+                <>
+                  <Square className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
+                  Stop
                 </>
               ) : (
                 <>
@@ -467,23 +502,8 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                     className="flex items-start gap-4 rounded-[14px] border transition-all duration-300"
                     style={{
                       padding: 14,
-                      paddingLeft: listenPrincipleIndex === principleIdx ? 11 : 14,
-                      background:
-                        listenPrincipleIndex === principleIdx
-                          ? "rgba(255,255,255,0.07)"
-                          : isListening
-                            ? "rgba(255,255,255,0.04)"
-                            : "rgba(255,255,255,0.04)",
-                      borderColor:
-                        listenPrincipleIndex === principleIdx
-                          ? "rgba(249,115,22,0.2)"
-                          : "rgba(255,255,255,0.06)",
-                      borderLeftWidth: listenPrincipleIndex === principleIdx ? 3 : 1,
-                      borderLeftColor:
-                        listenPrincipleIndex === principleIdx
-                          ? "rgba(249,115,22,0.6)"
-                          : "rgba(255,255,255,0.06)",
-                      opacity: isListening && listenPrincipleIndex !== principleIdx ? 0.4 : 1,
+                      background: "rgba(255,255,255,0.04)",
+                      borderColor: "rgba(255,255,255,0.06)",
                     }}
                   >
                     {editId === p.id ? (
@@ -561,44 +581,6 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                   </motion.li>
         ))}
       </ul>
-
-      {isListening && (
-        <div
-          className="mt-4 flex items-center gap-3 rounded-[14px] px-4 py-2.5"
-          style={{
-            background: "rgba(0,0,0,0.3)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <button
-            type="button"
-            onClick={isListenPlaying ? pauseListen : resumeListen}
-            className="flex items-center justify-center text-white/90 transition-opacity hover:opacity-100"
-            aria-label={isListenPlaying ? "Pause" : "Resume"}
-          >
-            {isListenPlaying ? (
-              <Pause className="h-5 w-5" strokeWidth={2} />
-            ) : (
-              <Play className="h-5 w-5" fill="currentColor" strokeWidth={0} />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={stopListen}
-            className="flex items-center justify-center text-white/70 transition-opacity hover:text-white/90"
-            aria-label="Stop"
-          >
-            <Square className="h-4 w-4" fill="currentColor" strokeWidth={0} />
-          </button>
-          <span className="text-xs font-medium tabular-nums text-white/60">
-            {t.constitution_listen_progress
-              .replace("{{current}}", String(listenPrincipleIndex + 1))
-              .replace("{{total}}", String(principles.length))}
-          </span>
-        </div>
-      )}
 
       {isEditing && (
         <div className="mt-4 flex flex-col gap-2">

@@ -43,6 +43,8 @@ export const en = {
   constitution_listen: "Listen",
   constitution_listened: "Listened",
   constitution_audio_unsupported: "Audio not supported on this browser",
+  constitution_audio_load_failed: "Could not load audio. Try again.",
+  constitution_playback_tap_again: "Tap Listen again to start playback.",
   constitution_listen_progress: "{{current}} of {{total}}",
   keystone_title: "Keystone",
   keystone_prompt: "What is the one action that would create the biggest impact on my day?",

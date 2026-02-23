@@ -45,6 +45,8 @@ export const sk: LocaleKeys = {
   constitution_listen: "Počúvať",
   constitution_listened: "Vypočúvané",
   constitution_audio_unsupported: "Tento prehliadač nepodporuje prehrávanie.",
+  constitution_audio_load_failed: "Nepodarilo sa načítať audio. Skúste znova.",
+  constitution_playback_tap_again: "Stlačte Počúvať znova pre spustenie prehrávania.",
   constitution_listen_progress: "{{current}} z {{total}}",
   keystone_title: "Kľúčová vec",
   keystone_prompt: "Aká jedna činnosť by mala na môj deň najväčší vplyv?",
