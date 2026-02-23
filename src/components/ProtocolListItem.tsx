@@ -173,6 +173,7 @@ export function ProtocolListItem({
             color: isCompleted ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.85)",
             textDecoration: isCompleted ? "line-through" : "none",
             textDecorationColor: "rgba(255,255,255,0.35)",
+            textDecorationThickness: isCompleted ? "2px" : "auto",
           }}
           transition={itemTransition}
           style={isCompleted ? { opacity: 0.4 } : {}}

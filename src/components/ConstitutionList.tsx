@@ -10,7 +10,7 @@ import { createClient } from "@/utils/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { canAddPrinciple } from "@/lib/subscription";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { CircleCheckbox } from "@/components/ui/circle-checkbox";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { SectionSuccessCard } from "@/components/ui/SectionSuccessCard";
 import { cn } from "@/lib/utils";
 import { trackConstitutionRead } from "@/lib/analytics";
@@ -525,23 +525,29 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                     ) : (
                       <div
                         className={cn(
-                          "px-4 py-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/50",
-                          "transition-all duration-150",
-                          acknowledged[p.id] && "opacity-50"
+                          "px-4 py-4 rounded-2xl border transition-all duration-300",
+                          acknowledged[p.id] ? "border-orange-500/50" : "border-zinc-800/80"
                         )}
+                        style={{
+                          background: acknowledged[p.id] ? "rgba(249,115,22,0.06)" : "rgba(24,24,27,0.5)",
+                        }}
                       >
                         <div className="flex items-start gap-3">
                           <div className="flex-1">
                             <p
                               className={cn(
-                                "text-sm font-medium text-zinc-100 leading-snug",
-                                acknowledged[p.id] && "line-through text-zinc-500"
+                                "text-sm font-medium leading-snug transition-all duration-300",
+                                acknowledged[p.id] ? "line-through text-white/95" : "text-zinc-100"
                               )}
+                              style={acknowledged[p.id] ? { opacity: 0.4 } : {}}
                             >
                               {p.text}
                             </p>
                             {p.subtitle != null && p.subtitle !== "" && (
-                              <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed font-normal font-sans">
+                              <p
+                                className="text-xs text-zinc-500 mt-1.5 leading-relaxed font-normal font-sans transition-opacity duration-300"
+                                style={acknowledged[p.id] ? { opacity: 0.4 } : {}}
+                              >
                                 {p.subtitle}
                               </p>
                             )}
@@ -579,10 +585,11 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                                 </button>
                               </>
                             )}
-                            <CircleCheckbox
-                              completed={!!acknowledged[p.id]}
+                            <AnimatedCheckbox
+                              variant="primary"
+                              checked={!!acknowledged[p.id]}
                               onToggle={() => handleCheck(p.id)}
-                              ariaLabel={`${t.acknowledge}: ${p.text}`}
+                              aria-label={`${t.acknowledge}: ${p.text}`}
                             />
                           </div>
                         </div>

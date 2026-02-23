@@ -71,7 +71,7 @@ function BottomNav({
             }`}
           >
             <tab.Icon
-              className="h-5 w-5 shrink-0"
+              className="h-6 w-6 shrink-0"
               strokeWidth={isActive ? 2.5 : 1.5}
               aria-hidden
             />
