@@ -38,14 +38,14 @@ export function Header() {
       >
         {formattedDate}
       </p>
-      <div className="flex items-center justify-between" style={{ marginTop: 4 }}>
+      <div className="flex items-center justify-between gap-3" style={{ marginTop: 4 }}>
         <h1
-          className="font-bold tracking-tight text-white"
+          className="shrink-0 font-bold tracking-tight text-white whitespace-nowrap"
           style={{ fontSize: 32, margin: 0, letterSpacing: "-0.02em" }}
         >
           {t.greeting}
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 shrink items-center gap-3">
           {showBadge && (
             <>
               {neverCompleted ? (
