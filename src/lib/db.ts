@@ -387,6 +387,74 @@ export async function getRecentActivity(): Promise<RecentActivityItem[]> {
   });
 }
 
+// ── Reflections ─────────────────────────────────────────
+
+export type ReflectionMood = "calm" | "focused" | "energized" | "drained";
+
+export interface ReflectionEntry {
+  id: string;
+  date: string;
+  entry: string;
+  mood: ReflectionMood | null;
+  keystone_text: string | null;
+  created_at: string;
+}
+
+export async function fetchReflection(date: string): Promise<ReflectionEntry | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("reflections")
+    .select("id, date, entry, mood, keystone_text, created_at")
+    .eq("date", date)
+    .maybeSingle();
+  return data ?? null;
+}
+
+export async function fetchPastReflections(limit = 14): Promise<ReflectionEntry[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from("reflections")
+    .select("id, date, entry, mood, keystone_text, created_at")
+    .eq("user_id", user.id)
+    .lt("date", today)
+    .order("date", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+  return data ?? [];
+}
+
+export async function saveReflection(
+  entry: string,
+  mood: ReflectionMood | null,
+  keystoneText: string | null
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const date = new Date().toISOString().slice(0, 10);
+  const { error } = await supabase.from("reflections").upsert(
+    {
+      user_id: user.id,
+      date,
+      entry: entry.trim(),
+      mood,
+      keystone_text: keystoneText,
+    },
+    { onConflict: "user_id,date" }
+  );
+  if (error) throw error;
+}
+
 // ── Plan (subscription) ─────────────────────────────────
 
 export type Plan = "free" | "pro";

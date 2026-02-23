@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Timer, BookOpen, Target, Flame } from "lucide-react";
+import { Timer, BookOpen, Target, Moon } from "lucide-react";
 import { MorningProtocol } from "@/components/MorningProtocol";
 import { Keystone } from "@/components/Keystone";
 import { ConstitutionList } from "@/components/ConstitutionList";
-import { ProgressTab } from "@/components/ProgressTab";
+import { ReflectTab } from "@/components/ReflectTab";
 import { STORAGE_KEYS } from "@/lib/constants";
 
-type Tab = "protocol" | "constitution" | "keystone" | "progress";
+type Tab = "protocol" | "constitution" | "keystone" | "reflect";
 
-const VALID_TABS: Tab[] = ["protocol", "constitution", "keystone", "progress"];
+const VALID_TABS: Tab[] = ["protocol", "constitution", "keystone", "reflect"];
 
 function getDefaultTab(): Tab {
   if (typeof window === "undefined") return "protocol";
@@ -37,7 +37,7 @@ const TABS: { id: Tab; label: string; Icon: typeof Timer }[] = [
   { id: "protocol", label: "Protocol", Icon: Timer },
   { id: "constitution", label: "Constitution", Icon: BookOpen },
   { id: "keystone", label: "Keystone", Icon: Target },
-  { id: "progress", label: "Progress", Icon: Flame },
+  { id: "reflect", label: "Reflect", Icon: Moon },
 ];
 
 const GRAD_ACTIVE = "linear-gradient(135deg, rgba(249,115,22,0.8), rgba(236,72,153,0.7))";
@@ -112,7 +112,7 @@ export function HomeTabs() {
 
         {activeTab === "keystone" && (
           <div key="keystone" className="animate-fade-in space-y-4">
-            <Keystone onGoToProgress={() => handleSelectTab("progress")} />
+            <Keystone />
           </div>
         )}
 
@@ -122,9 +122,9 @@ export function HomeTabs() {
           </div>
         )}
 
-        {activeTab === "progress" && (
-          <div key="progress" className="animate-fade-in">
-            <ProgressTab />
+        {activeTab === "reflect" && (
+          <div key="reflect" className="animate-fade-in">
+            <ReflectTab />
           </div>
         )}
       </div>

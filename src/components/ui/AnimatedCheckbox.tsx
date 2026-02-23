@@ -9,6 +9,8 @@ export interface AnimatedCheckboxProps {
   checked: boolean;
   onToggle: () => void;
   size?: number;
+  /** Primary style: 44px tap target, orange/gradient border when unchecked, gradient fill + animated check when checked */
+  variant?: "default" | "primary";
   /** Optional aria-label for the button */
   "aria-label"?: string;
 }
@@ -16,9 +18,11 @@ export interface AnimatedCheckboxProps {
 export function AnimatedCheckbox({
   checked,
   onToggle,
-  size = 40,
+  size,
+  variant = "default",
   "aria-label": ariaLabel,
 }: AnimatedCheckboxProps) {
+  const resolvedSize = size ?? (variant === "primary" ? 44 : 40);
   const prevCheckedRef = useRef(checked);
   const uncheckKeyRef = useRef(0);
   if (prevCheckedRef.current && !checked) {
@@ -31,6 +35,14 @@ export function AnimatedCheckbox({
     onToggle();
   };
 
+  const isPrimary = variant === "primary";
+  const uncheckedBorder = isPrimary
+    ? "2px solid rgba(249,115,22,0.7)"
+    : "1.5px solid rgba(255,255,255,0.12)";
+  const uncheckedBoxShadow = isPrimary && !checked
+    ? "0 0 0 0 rgba(249,115,22,0.2), inset 0 0 12px rgba(236,72,153,0.08)"
+    : "none";
+
   return (
     <motion.button
       key={checked ? "checked" : `uncheck-${uncheckKeyRef.current}`}
@@ -38,21 +50,25 @@ export function AnimatedCheckbox({
       onClick={handleClick}
       className="flex shrink-0 cursor-pointer items-center justify-center border-0 p-0 touch-target"
       style={{
-        width: size,
-        height: size,
+        width: resolvedSize,
+        height: resolvedSize,
+        minWidth: resolvedSize,
+        minHeight: resolvedSize,
         borderRadius: 12,
-        border: checked ? "none" : "1.5px solid rgba(255,255,255,0.12)",
+        border: checked ? "none" : uncheckedBorder,
         background: checked
           ? "linear-gradient(135deg, #f97316, #ec4899)"
           : "rgba(255,255,255,0.04)",
-        boxShadow: checked ? "0 4px 16px rgba(249,115,22,0.3)" : "none",
+        boxShadow: checked
+          ? "0 4px 16px rgba(249,115,22,0.35)"
+          : uncheckedBoxShadow,
       }}
       initial={checked ? false : { scale: 1 }}
       animate={{
-        scale: checked ? [1, 1.2, 1] : [0.95, 1],
+        scale: checked ? [1, 1.15, 1] : [0.98, 1],
       }}
       transition={{
-        duration: checked ? 0.4 : 0.2,
+        duration: checked ? 0.45 : 0.2,
         ease: checked ? CHECK_BEZIER : "easeOut",
       }}
       aria-label={ariaLabel}
@@ -61,14 +77,18 @@ export function AnimatedCheckbox({
       <AnimatePresence initial={false}>
         {checked && (
           <motion.svg
-            width={18}
-            height={18}
+            width={resolvedSize >= 44 ? 22 : 18}
+            height={resolvedSize >= 44 ? 22 : 18}
             viewBox="0 0 20 20"
             fill="none"
-            initial={{ scale: 0.5, opacity: 0 }}
+            initial={{ scale: 0.4, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.5, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            exit={{ scale: 0.4, opacity: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 22,
+            }}
             style={{ flexShrink: 0 }}
           >
             <path

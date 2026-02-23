@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, ChevronRight, Play, Square, Check, BookOpen, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Play, Square, Check, BookOpen, ChevronUp, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -11,6 +11,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { canAddPrinciple } from "@/lib/subscription";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
+import { SectionSuccessCard } from "@/components/ui/SectionSuccessCard";
 import { trackConstitutionRead } from "@/lib/analytics";
 import { getTodayCompletionDetail, setConstitutionDoneForToday } from "@/lib/streak";
 
@@ -470,47 +471,20 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
 
       <AnimatePresence mode="wait">
         {showCard ? (
-          <motion.div
-            key="constitution-complete"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="animate-completion-reveal mt-6 flex flex-col items-center justify-center rounded-2xl border p-5 text-center"
-            style={{
-              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(74,222,128,0.04))",
-              borderColor: "rgba(34,197,94,0.12)",
-            }}
-          >
-            <div className="mb-2 text-[32px]">🌅</div>
-            <p className="mb-1 font-bold text-white" style={{ fontSize: 16, margin: "0 0 4px" }}>
-              Constitution complete
-            </p>
-            <p className="text-[13px] text-white/40" style={{ margin: 0 }}>
-              {affirmedCount} {affirmedCount === 1 ? "principle" : "principles"} affirmed
-            </p>
-            {onGoToKeystone && (
-              <button
-                type="button"
-                onClick={onGoToKeystone}
-                className="mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-                style={{
-                  background: "linear-gradient(135deg, #f97316, #ec4899)",
-                  boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                }}
-              >
-                Set Your Keystone
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setReviewing(true)}
-              className="mt-3 text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
-            >
-              Review
-            </button>
-          </motion.div>
+          <div className="mt-6">
+            <SectionSuccessCard
+              key="constitution-complete"
+              label="Constitution complete"
+              title="You affirmed your principles."
+              subtitle={`${affirmedCount} ${affirmedCount === 1 ? "principle" : "principles"} affirmed`}
+              primaryButton={
+                onGoToKeystone
+                  ? { label: "Set Your Keystone", onClick: onGoToKeystone }
+                  : { label: "Done", onClick: () => {} }
+              }
+              secondaryButton={{ label: "Review", onClick: () => setReviewing(true) }}
+            />
+          </div>
         ) : (
           <motion.div
             key="constitution-list"

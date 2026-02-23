@@ -113,7 +113,7 @@ export function ProtocolListItem({
                 type="button"
                 disabled={!canMoveUp}
                 onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-                className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
                 aria-label="Move up"
               >
                 <ChevronUp className="h-4 w-4" />
@@ -122,7 +122,7 @@ export function ProtocolListItem({
                 type="button"
                 disabled={!canMoveDown}
                 onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-                className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
                 aria-label="Move down"
               >
                 <ChevronDown className="h-4 w-4" />
@@ -132,14 +132,14 @@ export function ProtocolListItem({
           <button
             type="button"
             onClick={onSaveEdit}
-            className="min-h-[44px] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-app-fg transition-colors hover:bg-white/30"
+            className="min-h-[44px] min-w-[44px] rounded-lg bg-white/20 px-4 py-2 text-sm font-medium text-app-fg transition-colors hover:bg-white/30"
           >
             {saveLabel}
           </button>
           <button
             type="button"
             onClick={onRemove}
-            className="touch-target flex items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
             aria-label={removeLabel}
           >
             <Trash2 className="h-4 w-4" />
@@ -158,9 +158,16 @@ export function ProtocolListItem({
       className="flex cursor-pointer items-center gap-3 rounded-[14px] border transition-all duration-300"
       style={{
         padding: "14px",
-        background: isCompleted ? "rgba(255,255,255,0.02)" : color.bg,
-        borderColor: isCompleted ? "rgba(255,255,255,0.04)" : color.border,
-        opacity: isCompleted ? 0.5 : 1,
+        background: isCompleted
+          ? "rgba(34,197,94,0.06)"
+          : color.bg,
+        borderColor: isCompleted
+          ? "rgba(34,197,94,0.12)"
+          : color.border,
+        boxShadow: isCompleted
+          ? "0 0 0 1px rgba(34,197,94,0.08) inset, 0 0 20px rgba(34,197,94,0.06)"
+          : "none",
+        opacity: isCompleted ? 0.88 : 1,
       }}
       whileTap={{ scale: 0.995 }}
     >
@@ -169,10 +176,10 @@ export function ProtocolListItem({
         style={{
           width: 48,
           height: 48,
-          background: isCompleted ? "rgba(255,255,255,0.06)" : color.pillBg,
-          border: `1px solid ${isCompleted ? "rgba(255,255,255,0.08)" : color.pillBorder}`,
-          color: isCompleted ? "rgba(255,255,255,0.2)" : color.num,
-          boxShadow: isCompleted ? "none" : "0 0 0 1px rgba(255,255,255,0.04) inset",
+          background: isCompleted ? "rgba(34,197,94,0.1)" : color.pillBg,
+          border: `1px solid ${isCompleted ? "rgba(34,197,94,0.2)" : color.pillBorder}`,
+          color: isCompleted ? "rgba(34,197,94,0.5)" : color.num,
+          boxShadow: isCompleted ? "0 0 0 1px rgba(34,197,94,0.06) inset" : "0 0 0 1px rgba(255,255,255,0.04) inset",
           fontSize: 20,
         }}
       >
@@ -184,11 +191,12 @@ export function ProtocolListItem({
           className="break-words text-[15px] font-medium transition-all duration-300"
           initial={false}
           animate={{
-            color: isCompleted ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.85)",
+            color: isCompleted ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.85)",
             textDecoration: isCompleted ? "line-through" : "none",
-            textDecorationColor: "rgba(255,255,255,0.15)",
+            textDecorationColor: "rgba(255,255,255,0.35)",
           }}
           transition={itemTransition}
+          style={isCompleted ? { opacity: 0.4 } : {}}
         >
           {step.label}
         </MotionP>
@@ -196,16 +204,16 @@ export function ProtocolListItem({
           className="text-xs transition-colors duration-300"
           initial={false}
           animate={{
-            color: isCompleted ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.3)",
+            color: isCompleted ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.3)",
           }}
-          style={{ margin: "2px 0 0" }}
+          style={{ margin: "2px 0 0", ...(isCompleted ? { opacity: 0.4 } : {}) }}
           transition={itemTransition}
         >
           {step.minutes > 0 ? `${step.minutes} ${minutesLabel}` : "—"}
         </MotionP>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-2">
         {isEditMode && onMoveUp != null && onMoveDown != null && (
           <div className="flex flex-col">
             <button
@@ -216,7 +224,7 @@ export function ProtocolListItem({
                 e.stopPropagation();
                 onMoveUp();
               }}
-              className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
               aria-label="Move up"
             >
               <ChevronUp className="h-4 w-4" />
@@ -229,7 +237,7 @@ export function ProtocolListItem({
                 e.stopPropagation();
                 onMoveDown();
               }}
-              className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
               aria-label="Move down"
             >
               <ChevronDown className="h-4 w-4" />
@@ -244,13 +252,18 @@ export function ProtocolListItem({
               e.stopPropagation();
               onStartEdit();
             }}
-            className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
             aria-label={`${editPrincipleLabel}: ${step.label}`}
           >
             <Pencil className="h-4 w-4" />
           </button>
         )}
-        <AnimatedCheckbox checked={isCompleted} onToggle={onToggle} />
+        <AnimatedCheckbox
+          variant="primary"
+          checked={isCompleted}
+          onToggle={onToggle}
+          aria-label={isCompleted ? "Mark incomplete" : "Mark complete"}
+        />
       </div>
     </motion.li>
   );

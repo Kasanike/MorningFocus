@@ -19,6 +19,7 @@ import { canAddProtocolStep } from "@/lib/subscription";
 import { ProtocolListItem, type ProtocolStep } from "./ProtocolListItem";
 import ProtocolTimer from "./ProtocolTimer";
 import { SkeletonCard } from "@/components/SkeletonCard";
+import { SectionSuccessCard } from "@/components/ui/SectionSuccessCard";
 import { trackProtocolCompleted } from "@/lib/analytics";
 import {
   getTodayCompletionDetail,
@@ -312,16 +313,21 @@ export function MorningProtocol({
       : `${totalMinutes} min`;
 
   const handleRedo = useCallback(() => {
-    setProtocolUndoneForToday()
-      .then(() => {
-        persistCompleted({});
-        setShowCompletionCard(false);
-        protocolDoneSyncedRef.current = false;
-        if (typeof window !== "undefined") {
-          localStorage.removeItem(STORAGE_KEYS.PROTOCOL_COMPLETION_TIME);
-        }
-      })
-      .catch((err) => console.error("Persist completed failed:", err));
+    setShowCompletionCard(false);
+    persistCompleted({});
+    protocolDoneSyncedRef.current = false;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(STORAGE_KEYS.PROTOCOL_COMPLETION_TIME);
+    }
+    setProtocolUndoneForToday().catch((err) => {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : (typeof err === "object" && err !== null ? JSON.stringify(err) : String(err)) || "";
+      const display = msg && msg !== "{}" ? msg : "Unknown error";
+      console.error("Persist completed failed:", display);
+      protocolDoneSyncedRef.current = false;
+    });
   }, [persistCompleted]);
 
   if (!mounted) {
@@ -362,48 +368,18 @@ export function MorningProtocol({
 
       <AnimatePresence mode="wait">
         {showCompletionCard ? (
-          <motion.div
+          <SectionSuccessCard
             key="protocol-complete"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="animate-completion-reveal rounded-2xl border p-5 text-center"
-            style={{
-              background: "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(74,222,128,0.04))",
-              borderColor: "rgba(34,197,94,0.12)",
-              marginBottom: 16,
-            }}
-          >
-            <div className="mb-2 text-[32px]">🌅</div>
-            <p className="mb-1 font-bold text-white" style={{ fontSize: 16, margin: "0 0 4px" }}>
-              Morning complete
-            </p>
-            <p className="text-[13px] text-white/40" style={{ margin: 0 }}>
-              You showed up for yourself today. That matters.
-            </p>
-            {onGoToConstitution && (
-              <button
-                type="button"
-                onClick={onGoToConstitution}
-                className="mt-4 flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-                style={{
-                  background: "linear-gradient(135deg, #f97316, #ec4899)",
-                  boxShadow: "0 4px 16px rgba(249,115,22,0.3)",
-                }}
-              >
-                Go to Constitution
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleRedo}
-              className="mt-3 text-xs text-white/50 underline underline-offset-2 transition-colors hover:text-white/70"
-            >
-              Redo protocol
-            </button>
-          </motion.div>
+            label="Morning complete"
+            title="You showed up for yourself today."
+            subtitle="That matters."
+            primaryButton={
+              onGoToConstitution
+                ? { label: "Go to Constitution", onClick: onGoToConstitution }
+                : { label: "Done", onClick: () => {} }
+            }
+            secondaryButton={{ label: "Redo protocol", onClick: handleRedo }}
+          />
         ) : (
           <motion.div
             key="protocol-steps"

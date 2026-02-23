@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Target, Pencil } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
@@ -12,7 +13,7 @@ import {
 } from "@/lib/db";
 import { createClient } from "@/utils/supabase/client";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { StoicQuote } from "@/components/StoicQuote";
+import { SectionSuccessCard } from "@/components/ui/SectionSuccessCard";
 import { trackKeystoneSet } from "@/lib/analytics";
 import { getDailyReflectionQuote } from "@/lib/dailyQuote";
 
@@ -48,16 +49,13 @@ function saveKeystoneLocal(text: string) {
   );
 }
 
-interface KeystoneProps {
-  onGoToProgress?: () => void;
-}
-
-export function Keystone({ onGoToProgress }: KeystoneProps) {
+export function Keystone() {
   const { t } = useLanguage();
   const [value, setValue] = useState("");
   const [history, setHistory] = useState<KeystoneEntry[]>([]);
   const [mounted, setMounted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showKeystoneSuccess, setShowKeystoneSuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const dailyQuote = useMemo(() => getDailyReflectionQuote(), []);
 
@@ -111,6 +109,7 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
         setHasEditedContent();
       }
       setSaved(true);
+      setShowKeystoneSuccess(true);
       setIsEditing(false);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
@@ -141,6 +140,24 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
       style={cardStyle}
       aria-label={t.keystone_aria}
     >
+      <AnimatePresence mode="wait">
+        {showKeystoneSuccess ? (
+          <SectionSuccessCard
+            key="keystone-success"
+            label={t.keystone_success_label}
+            title={t.keystone_success_title}
+            contentCard={{
+              label: t.keystone_todays_commitment,
+              text: value.trim() || "—",
+            }}
+            quote={dailyQuote}
+            primaryButton={{
+              label: t.keystone_success_cta,
+              onClick: () => setShowKeystoneSuccess(false),
+            }}
+          />
+        ) : (
+          <>
       <div className="mb-1 flex items-center gap-3">
         <Target className="h-5 w-5 shrink-0 text-white/60" strokeWidth={2} />
         <h2
@@ -253,13 +270,16 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
           </button>
         </div>
       )}
+          </>
+        )}
+      </AnimatePresence>
     </section>
 
     {/* Recent keystones */}
     {(() => {
       const todayKey = getTodayKey();
       const pastEntries = history.filter((e) => e.date !== todayKey).slice(0, 3);
-      if (pastEntries.length === 0 && !onGoToProgress) return null;
+      if (pastEntries.length === 0) return null;
       return (
         <div
           className="mt-6 rounded-[22px] border backdrop-blur-xl"
@@ -275,16 +295,6 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
             >
               {t.keystone_recent_title}
             </h3>
-            {onGoToProgress && (
-              <button
-                type="button"
-                onClick={onGoToProgress}
-                className="text-xs font-semibold transition-colors"
-                style={{ color: "rgba(249,115,22,0.9)" }}
-              >
-                {t.keystone_see_all}
-              </button>
-            )}
           </div>
           {pastEntries.length > 0 && (
             <ul className="flex flex-col gap-2" aria-label={t.keystone_recent_title}>
@@ -326,40 +336,6 @@ export function Keystone({ onGoToProgress }: KeystoneProps) {
         </div>
       );
     })()}
-
-    {hasSetKeystone && (
-      <div className="mt-6" role="complementary" aria-label={t.quote_remember_today}>
-        <StoicQuote />
-      </div>
-    )}
-
-    {/* Daily reflection — bottom */}
-    <div
-      className="mt-6 rounded-[22px] border px-5 py-5 backdrop-blur-xl"
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        borderColor: "rgba(255,255,255,0.06)",
-      }}
-    >
-      <h2
-        className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em]"
-        style={{ color: "rgba(255,255,255,0.5)" }}
-      >
-        Daily reflection
-      </h2>
-      <p
-        className="text-base leading-relaxed text-white/90 sm:text-lg"
-        style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}
-      >
-        {dailyQuote.text}
-      </p>
-      <p
-        className="mt-3 text-[10px] font-semibold uppercase tracking-widest text-white/40"
-        style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}
-      >
-        — {dailyQuote.author.toUpperCase()}
-      </p>
-    </div>
     </>
   );
 }
