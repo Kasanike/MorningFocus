@@ -41,6 +41,7 @@ export const en = {
   principle_count: "{{count}} principle",
   principles_count: "{{count}} principles",
   constitution_listen: "Listen",
+  constitution_start_listening: "Start Listening",
   constitution_listened: "Listened",
   constitution_audio_unsupported: "Audio not supported on this browser",
   constitution_audio_load_failed: "Could not load audio. Try again.",

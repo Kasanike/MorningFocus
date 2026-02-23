@@ -115,7 +115,10 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [readyToPlay, setReadyToPlay] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+  const cachedContentKeyRef = useRef<string | null>(null);
 
   const handleListen = useCallback(async () => {
     if (isSpeaking) {
@@ -125,31 +128,43 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
       return;
     }
 
+    // Second tap: play prepared audio (user gesture so browser allows it)
+    if (readyToPlay && audioRef.current) {
+      setReadyToPlay(false);
+      setToastMessage(null);
+      audioRef.current.play().then(() => setIsSpeaking(true)).catch(() => {
+        setToastMessage(t.constitution_audio_load_failed);
+      });
+      return;
+    }
+
+    if (isLoading) return;
+
     const text = principles
       .map((p) => (p.subtitle ? `${p.text}. ${p.subtitle}` : p.text))
       .join(". ");
     if (!text.trim()) return;
 
+    // Reuse cached audio if principles unchanged (edit/add invalidates cache)
+    if (cachedContentKeyRef.current === text && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      setReadyToPlay(true);
+      return;
+    }
+
+    // New content or no cache: revoke previous and fetch
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    cachedContentKeyRef.current = null;
+
     setIsLoading(true);
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      let userVoice = "onyx";
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("tts_voice")
-          .eq("id", user.id)
-          .single();
-        userVoice = profile?.tts_voice ?? "onyx";
-      }
-
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: userVoice }),
+        body: JSON.stringify({ text }),
       });
 
       if (!res.ok) {
@@ -159,40 +174,42 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
 
       const blob = await res.blob();
       const playbackUrl = URL.createObjectURL(blob);
+      blobUrlRef.current = playbackUrl;
+      cachedContentKeyRef.current = text;
 
       const audio = new Audio(playbackUrl);
       audioRef.current = audio;
       audio.onended = () => {
-        URL.revokeObjectURL(playbackUrl);
         setIsSpeaking(false);
+        setReadyToPlay(false);
         handleListenComplete();
       };
       audio.onerror = () => {
-        URL.revokeObjectURL(playbackUrl);
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+        cachedContentKeyRef.current = null;
         setIsSpeaking(false);
+        setReadyToPlay(false);
         setIsLoading(false);
       };
 
-      try {
-        await audio.play();
-        setIsSpeaking(true);
-      } catch (playErr) {
-        URL.revokeObjectURL(playbackUrl);
-        const isBlocked =
-          playErr instanceof Error && (playErr.name === "NotAllowedError" || playErr.name === "NotSupportedError");
-        setToastMessage(isBlocked ? t.constitution_playback_tap_again : t.constitution_audio_load_failed);
-      }
+      setReadyToPlay(true);
+      setIsLoading(false);
     } catch {
+      cachedContentKeyRef.current = null;
       setToastMessage(t.constitution_audio_load_failed);
     } finally {
       setIsLoading(false);
     }
   }, [
     isSpeaking,
+    readyToPlay,
+    isLoading,
     principles,
     handleListenComplete,
     t.constitution_audio_load_failed,
-    t.constitution_playback_tap_again,
   ]);
 
   useEffect(() => {
@@ -400,7 +417,9 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                       color: "rgba(249,115,22,0.85)",
                     }
               }
-              aria-label={isLoading ? undefined : isSpeaking ? "Stop" : t.constitution_listen}
+              aria-label={
+                isLoading ? undefined : isSpeaking ? "Stop" : readyToPlay ? t.constitution_start_listening : t.constitution_listen
+              }
             >
               {showCompletionCard ? (
                 <>
@@ -409,6 +428,11 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                 </>
               ) : isLoading ? (
                 "Preparing"
+              ) : readyToPlay ? (
+                <>
+                  <Play className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
+                  {t.constitution_start_listening}
+                </>
               ) : isSpeaking ? (
                 <>
                   <Square className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />

@@ -43,6 +43,7 @@ export const sk: LocaleKeys = {
   principle_count: "{{count}} zásada",
   principles_count: "{{count}} zásad",
   constitution_listen: "Počúvať",
+  constitution_start_listening: "Spustiť prehrávanie",
   constitution_listened: "Vypočúvané",
   constitution_audio_unsupported: "Tento prehliadač nepodporuje prehrávanie.",
   constitution_audio_load_failed: "Nepodarilo sa načítať audio. Skúste znova.",

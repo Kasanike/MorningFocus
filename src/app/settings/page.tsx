@@ -8,7 +8,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createClient } from "@/utils/supabase/client";
 import { fetchTrialInfo } from "@/lib/db";
 import { getAccessStatus } from "@/lib/subscription";
-import VoiceSelector from "@/components/settings/VoiceSelector";
 import type { SupportedLocale } from "@/locales";
 
 function planLabel(
@@ -36,7 +35,6 @@ export default function SettingsPage() {
   const [authLoaded, setAuthLoaded] = useState(false);
   const [trialInfo, setTrialInfo] = useState<Awaited<ReturnType<typeof fetchTrialInfo>>>(null);
   const [trialLoaded, setTrialLoaded] = useState(false);
-  const [ttsVoice, setTtsVoice] = useState<string>("onyx");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [restoreLoading, setRestoreLoading] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
@@ -50,14 +48,6 @@ export default function SettingsPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setEmail(user?.email ?? null);
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("tts_voice")
-          .eq("id", user.id)
-          .single();
-        if (profile?.tts_voice) setTtsVoice(profile.tts_voice);
-      }
       setAuthLoaded(true);
     };
     load();
@@ -252,18 +242,6 @@ export default function SettingsPage() {
               </>
             );
           })()}
-        </section>
-
-        <section
-          className="rounded-lg border border-app-border bg-app-card px-6 py-8 sm:px-8"
-          aria-label="Reading voice"
-        >
-          <h2 className="font-sans text-xl font-semibold text-app-fg">
-            Reading voice
-          </h2>
-          <div className="mt-6">
-            <VoiceSelector currentVoice={ttsVoice} />
-          </div>
         </section>
 
         <section
