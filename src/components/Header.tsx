@@ -40,12 +40,12 @@ export function Header() {
       </p>
       <div className="flex items-center justify-between gap-3" style={{ marginTop: 4 }}>
         <h1
-          className="shrink-0 font-bold tracking-tight text-white whitespace-nowrap"
+          className="min-w-0 flex-1 truncate font-bold tracking-tight text-white"
           style={{ fontSize: 32, margin: 0, letterSpacing: "-0.02em" }}
         >
           {t.greeting}
         </h1>
-        <div className="flex min-w-0 shrink items-center gap-3">
+        <div className="flex flex-shrink-0 items-center gap-2">
           {showBadge && (
             <>
               {neverCompleted ? (
@@ -114,7 +114,7 @@ export function Header() {
           )}
           <Link
             href="/settings"
-            className="touch-target flex items-center justify-center text-[rgba(255,255,255,0.4)] transition-colors hover:text-white/70"
+            className="touch-target flex h-9 w-9 flex-shrink-0 items-center justify-center text-[rgba(255,255,255,0.4)] transition-colors hover:text-white/70"
             style={{ fontSize: 18 }}
             aria-label={t.settings_title}
           >
