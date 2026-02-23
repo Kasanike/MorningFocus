@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 
 const MotionDiv = motion.div;
@@ -37,6 +37,10 @@ interface ProtocolListItemProps {
   onStartEdit: () => void;
   onSaveEdit: () => void;
   onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
   onEditLabelChange: (v: string) => void;
   onEditMinutesChange: (v: number) => void;
   minutesLabel: string;
@@ -56,6 +60,10 @@ export function ProtocolListItem({
   onStartEdit,
   onSaveEdit,
   onRemove,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
   onEditLabelChange,
   onEditMinutesChange,
   minutesLabel,
@@ -98,7 +106,29 @@ export function ProtocolListItem({
           />
           <span className="text-sm text-white/60">{minutesLabel}</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {onMoveUp != null && onMoveDown != null && (
+            <div className="flex flex-col">
+              <button
+                type="button"
+                disabled={!canMoveUp}
+                onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                aria-label="Move up"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                disabled={!canMoveDown}
+                onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                aria-label="Move down"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={onSaveEdit}
@@ -175,7 +205,37 @@ export function ProtocolListItem({
         </MotionP>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1">
+        {isEditMode && onMoveUp != null && onMoveDown != null && (
+          <div className="flex flex-col">
+            <button
+              type="button"
+              data-edit
+              disabled={!canMoveUp}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveUp();
+              }}
+              className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+              aria-label="Move up"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              data-edit
+              disabled={!canMoveDown}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveDown();
+              }}
+              className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+              aria-label="Move down"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+          </div>
+        )}
         {isEditMode && (
           <button
             type="button"

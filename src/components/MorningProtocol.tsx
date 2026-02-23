@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight, Timer } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, ChevronRight, Timer, ChevronUp, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProtocolProgress } from "@/context/ProtocolProgressContext";
@@ -288,6 +288,20 @@ export function MorningProtocol({
     setEditId(null);
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index <= 0) return;
+    const next = [...steps];
+    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+    persist(next);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index >= steps.length - 1) return;
+    const next = [...steps];
+    [next[index], next[index + 1]] = [next[index + 1], next[index]];
+    persist(next);
+  };
+
   const totalMinutes = steps.reduce((acc, s) => acc + s.minutes, 0);
   const completedCount = Object.values(completed).filter(Boolean).length;
   const allDone = steps.length > 0 && completedCount === steps.length;
@@ -468,6 +482,10 @@ export function MorningProtocol({
                   onStartEdit={() => handleStartEdit(s)}
                   onSaveEdit={handleSaveEdit}
                   onRemove={() => handleRemove(s.id)}
+                  onMoveUp={() => handleMoveUp(i)}
+                  onMoveDown={() => handleMoveDown(i)}
+                  canMoveUp={i > 0}
+                  canMoveDown={i < steps.length - 1}
                   onEditLabelChange={setEditLabel}
                   onEditMinutesChange={setEditMinutes}
                   minutesLabel={t.minutes}

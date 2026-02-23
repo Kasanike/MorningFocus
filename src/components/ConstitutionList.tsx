@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Pencil, Trash2, ChevronRight, Play, Square, Check, BookOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronRight, Play, Square, Check, BookOpen, ChevronUp, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { STORAGE_KEYS, setHasEditedContent } from "@/lib/constants";
 import { fetchPrinciples, upsertPrinciple, deletePrinciple } from "@/lib/db";
@@ -327,6 +327,20 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
     setEditId(null);
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index <= 0) return;
+    const next = [...principles];
+    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+    savePrinciples(next);
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index >= principles.length - 1) return;
+    const next = [...principles];
+    [next[index], next[index + 1]] = [next[index + 1], next[index]];
+    savePrinciples(next);
+  };
+
   const handleStartEdit = (p: Principle) => {
     setEditId(p.id);
     setEditText(p.text);
@@ -538,7 +552,27 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                           style={{ background: "rgba(255,255,255,0.06)", borderColor: "rgba(255,255,255,0.1)" }}
                           autoFocus
                         />
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col">
+                            <button
+                              type="button"
+                              disabled={principleIdx <= 0}
+                              onClick={() => handleMoveUp(principleIdx)}
+                              className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                              aria-label="Move up"
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={principleIdx >= principles.length - 1}
+                              onClick={() => handleMoveDown(principleIdx)}
+                              className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                              aria-label="Move down"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </button>
+                          </div>
                           <button
                             type="button"
                             onClick={handleSaveEdit}
@@ -572,14 +606,36 @@ export function ConstitutionList(props: { onGoToKeystone?: () => void } = {}) {
                           </p>
                         <div className="flex shrink-0 items-center gap-1">
                           {isEditing && (
-                            <button
-                              type="button"
-                              onClick={() => handleStartEdit(p)}
-                              className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
-                              aria-label={`${t.edit_principle}: ${p.text}`}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
+                            <>
+                              <div className="flex flex-col">
+                                <button
+                                  type="button"
+                                  disabled={principleIdx <= 0}
+                                  onClick={() => handleMoveUp(principleIdx)}
+                                  className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                                  aria-label="Move up"
+                                >
+                                  <ChevronUp className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={principleIdx >= principles.length - 1}
+                                  onClick={() => handleMoveDown(principleIdx)}
+                                  className="flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80 disabled:opacity-30 disabled:pointer-events-none"
+                                  aria-label="Move down"
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(p)}
+                                className="touch-target flex items-center justify-center rounded-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white/80"
+                                aria-label={`${t.edit_principle}: ${p.text}`}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                            </>
                           )}
                           <AnimatedCheckbox
                             checked={!!acknowledged[p.id]}
